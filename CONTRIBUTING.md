@@ -81,7 +81,7 @@ The lint levels in `Cargo.toml`, `clippy.toml`, `rustfmt.toml`, `.taplo.toml` an
 ## Dependencies
 
 - Before writing new functionality, look for a well-maintained crate that already does it.
-- Every downstream build pays for a dependency. Prefer small dependency trees, set `default-features = false` and list only the features the crate uses, and put a heavy dependency behind a Cargo feature.
+- Every downstream build pays for a dependency. Prefer small dependency trees, and put a heavy dependency behind a Cargo feature. When a dependency's default features pull in something the crate doesn't use, set `default-features = false` and list only the features it needs. Leave the defaults on when they are just `std`.
 - Declare full versions (`1.2.3`, never `1` or `1.2`) and no range operators. Keep every dependency table in alphabetical order.
 - Name a feature in kebab-case after what it enables, and enable optional dependencies with `dep:`.
 - `Cargo.lock` is committed, and CI builds with `--locked`.
