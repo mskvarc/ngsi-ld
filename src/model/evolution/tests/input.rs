@@ -103,7 +103,7 @@ fn the_builder_reports_every_problem_together() {
 
 #[test]
 fn a_geometry_series_is_accepted_under_location() {
-    let point = Geometry::from(Shape::Point(Position::new(8.0, 40.0).unwrap()));
+    let point = Geometry::from(Shape::Point(Position::try_new(8.0, 40.0).unwrap()));
     let located = TemporalValues::GeoProperty(vec![TemporalValue {
         value: point.into(),
         time: time("2018-08-01T12:03:00Z"),

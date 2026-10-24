@@ -47,18 +47,18 @@ fn main() -> anyhow::Result<()> {
     let parsed: ScopeQuery = "/Madrid,/Barcelona".parse()?;
     println!("  parsed: {parsed}");
 
-    let sol = Shape::Point(Position::new(-3.7038, 40.4168)?);
+    let sol = Shape::Point(Position::try_new(-3.7038, 40.4168)?);
     let near = geoquery::near_max(2000, sol.clone()).geoproperty("location").build()?;
     println!("georel: {}", near.relation());
     println!("geoQ: {}", near.render());
     let corners = [(-3.8, 40.3), (-3.6, 40.3), (-3.6, 40.5), (-3.8, 40.5), (-3.8, 40.3)];
-    let ring = LinearRing::new(
+    let ring = LinearRing::try_new(
         corners
             .into_iter()
-            .map(|(longitude, latitude)| Position::new(longitude, latitude))
+            .map(|(longitude, latitude)| Position::try_new(longitude, latitude))
             .collect::<Result<_, _>>()?,
     )?;
-    let within = geoquery::within(Shape::Polygon(Polygon::new(vec![ring])?)).build()?;
+    let within = geoquery::within(Shape::Polygon(Polygon::try_new(vec![ring])?)).build()?;
     println!("geoQ: {}", within.render());
     let parsed = GeoQuery::parse(r#"{"georel": "near;maxDistance==500", "geometry": "Point", "coordinates": [2.1734, 41.3851]}"#)?;
     println!("  parsed: {}", parsed.render());
@@ -85,7 +85,7 @@ fn main() -> anyhow::Result<()> {
     println!("  parsed: {parsed}");
 
     let lang = language_filter::language("nl")
-        .weighted_language("en", Quality::from_thousandths(500)?)
+        .weighted_language("en", Quality::try_from_thousandths(500)?)
         .build()?;
     println!("lang: {lang}");
     let parsed: LanguageFilter = "fr,en;q=0.8".parse()?;

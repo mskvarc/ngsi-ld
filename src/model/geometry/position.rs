@@ -25,7 +25,7 @@ pub enum Dimension {
 /// ```
 /// use ngsi_ld::model::geometry::Position;
 ///
-/// let position = Position::new(13.3986, 52.5547)?;
+/// let position = Position::try_new(13.3986, 52.5547)?;
 /// assert_eq!(position.to_string(), "[13.3986,52.5547]");
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -46,7 +46,7 @@ impl Position {
     ///
     /// Returns [`GeometryError::InvalidCoordinate`] when a coordinate is NaN or infinite, and
     /// [`GeometryError::LongitudeOutOfRange`] or [`GeometryError::LatitudeOutOfRange`] outside WGS 84.
-    pub fn new(longitude: f64, latitude: f64) -> Result<Self, GeometryError> {
+    pub fn try_new(longitude: f64, latitude: f64) -> Result<Self, GeometryError> {
         Self::in_range(coordinate(longitude)?, coordinate(latitude)?, None)
     }
 
@@ -54,7 +54,7 @@ impl Position {
     ///
     /// # Errors
     ///
-    /// As [`Position::new`].
+    /// As [`Position::try_new`].
     pub fn with_altitude(longitude: f64, latitude: f64, altitude: f64) -> Result<Self, GeometryError> {
         Self::in_range(coordinate(longitude)?, coordinate(latitude)?, Some(coordinate(altitude)?))
     }

@@ -348,7 +348,7 @@ fn a_200_to_a_batch_delete_is_an_unexpected_status() {
 #[test]
 fn an_empty_array_and_a_null_element_are_sent_through_the_unchecked_path() {
     let entities = [vehicle(A, 80)];
-    let unchecked = || UncheckedRequest::from_operation(&create(&entities), &endpoint()).unwrap();
+    let unchecked = || UncheckedRequest::try_from_operation(&create(&entities), &endpoint()).unwrap();
     let empty = unchecked().body(Bytes::from_static(b"[]")).into_request();
     assert_eq!(empty.body().as_ref(), b"[]");
     assert_eq!(header_value(&empty, &header::CONTENT_LENGTH), Some("2"));
@@ -364,13 +364,13 @@ fn documents_replace_a_batch_body_keeping_the_context_of_each_element() {
         UncheckedDocument::from_entity(&entities[0], Lossless::Normalized),
         UncheckedDocument::from_entity(&entities[1], Lossless::Normalized).remove_member("type"),
     ];
-    let request = UncheckedRequest::from_operation(&create(&entities), &endpoint())
+    let request = UncheckedRequest::try_from_operation(&create(&entities), &endpoint())
         .unwrap()
         .documents(&documents)
         .into_request();
     let untyped = format!(r#"{{"id":"{B}","speed":{{"type":"Property","value":60}}}}"#);
     assert_eq!(request.body(), &Bytes::from(format!("[{},{untyped}]", vehicle_text(A, 80))));
-    let request = UncheckedRequest::from_operation(&create(&entities), &endpoint_with(ContextDelivery::LdJsonBody))
+    let request = UncheckedRequest::try_from_operation(&create(&entities), &endpoint_with(ContextDelivery::LdJsonBody))
         .unwrap()
         .documents(&documents)
         .into_request();

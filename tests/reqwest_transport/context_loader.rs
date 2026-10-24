@@ -130,7 +130,7 @@ async fn an_active_context_is_processed_with_the_client_loader() {
     let server = serving(ResponseTemplate::new(200).set_body_raw(document_a().to_string(), "application/ld+json")).await;
     let client = client(&server.uri());
     let context = Context::from(IriRefBuf::new(format!("{}/a.jsonld", server.uri())).unwrap());
-    let active = ContextProcessor::new()
+    let active = ContextProcessor::try_new()
         .unwrap()
         .process(&context, &client.context_loader().build())
         .await
@@ -144,7 +144,7 @@ async fn a_context_the_client_loader_cannot_load_is_reported_with_its_url_and_st
     let server = serving(ResponseTemplate::new(404)).await;
     let client = client(&server.uri());
     let context = Context::from(IriRefBuf::new(format!("{}/a.jsonld", server.uri())).unwrap());
-    let error = ContextProcessor::new()
+    let error = ContextProcessor::try_new()
         .unwrap()
         .process(&context, &client.context_loader().build())
         .await

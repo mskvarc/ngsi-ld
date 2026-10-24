@@ -87,8 +87,8 @@ struct Sent {
 
 /// Sent for every parameter, each in a form its grammar makes non-trivial.
 fn values() -> Sent {
-    let point = Shape::Point(Position::new(8.0, 40.0).unwrap());
-    let line = Shape::LineString(LineString::new(vec![Position::new(13.3986, 52.5547).unwrap(), Position::new(13.4, 52.6).unwrap()]).unwrap());
+    let point = Shape::Point(Position::try_new(8.0, 40.0).unwrap());
+    let line = Shape::LineString(LineString::try_new(vec![Position::try_new(13.3986, 52.5547).unwrap(), Position::try_new(13.4, 52.6).unwrap()]).unwrap());
     Sent {
         entity_type: "(Home;Vehicle)|Motorhome".parse().unwrap(),
         ids: [

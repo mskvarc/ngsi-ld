@@ -7,8 +7,8 @@ use crate::model::geometry::{GeometryError, Position, position::at_least};
 /// ```
 /// use ngsi_ld::model::geometry::{GeometryError, LinearRing, Position};
 ///
-/// let corner = |longitude, latitude| Position::new(longitude, latitude);
-/// let ring = LinearRing::new(vec![
+/// let corner = |longitude, latitude| Position::try_new(longitude, latitude);
+/// let ring = LinearRing::try_new(vec![
 ///     corner(0.0, 0.0)?,
 ///     corner(1.0, 0.0)?,
 ///     corner(1.0, 1.0)?,
@@ -16,7 +16,7 @@ use crate::model::geometry::{GeometryError, Position, position::at_least};
 /// ])?;
 /// assert_eq!(ring.positions().len(), 4);
 /// assert_eq!(
-///     LinearRing::new(vec![
+///     LinearRing::try_new(vec![
 ///         corner(0.0, 0.0)?,
 ///         corner(1.0, 0.0)?,
 ///         corner(1.0, 1.0)?,
@@ -36,7 +36,7 @@ impl LinearRing {
     ///
     /// Returns [`GeometryError::TooFewPositions`] for fewer than four positions and
     /// [`GeometryError::RingNotClosed`] when the last position differs from the first.
-    pub fn new(positions: Vec<Position>) -> Result<Self, GeometryError> {
+    pub fn try_new(positions: Vec<Position>) -> Result<Self, GeometryError> {
         at_least(4, &positions)?;
         match (positions.first(), positions.last()) {
             (Some(first), Some(last)) if first.same_point(last) => Ok(Self(positions)),

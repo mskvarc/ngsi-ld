@@ -46,7 +46,7 @@ mod subscription;
 ///
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() -> anyhow::Result<()> {
-/// let core = ContextProcessor::new()?.core().await?;
+/// let core = ContextProcessor::try_new()?.core().await?;
 /// let concise = Entity::<Input>::parse(r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":55}"#, Lossless::Concise)?;
 /// let normalized = Entity::<Input>::parse(
 ///     r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":55}}"#,

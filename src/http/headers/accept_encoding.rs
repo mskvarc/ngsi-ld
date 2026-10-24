@@ -26,10 +26,10 @@ use http::{HeaderName, HeaderValue, header::ACCEPT_ENCODING};
 ///     query::{Quality, Weighted},
 /// };
 ///
-/// let header = AcceptEncoding::new([
+/// let header = AcceptEncoding::try_new([
 ///     Weighted::new("gzip".parse::<ContentCoding>()?),
-///     Weighted::new(CodingRange::Identity).with_quality(Quality::from_thousandths(500)?),
-///     Weighted::new(CodingRange::Any).with_quality(Quality::from_thousandths(0)?),
+///     Weighted::new(CodingRange::Identity).with_quality(Quality::try_from_thousandths(500)?),
+///     Weighted::new(CodingRange::Any).with_quality(Quality::try_from_thousandths(0)?),
 /// ])?;
 /// let mut headers = HeaderMap::new();
 /// headers.typed_insert(header);
@@ -44,7 +44,7 @@ use http::{HeaderName, HeaderValue, header::ACCEPT_ENCODING};
 /// );
 /// assert_eq!(
 ///     decoded.and_then(|header| header.codings().last().and_then(Weighted::quality)),
-///     Some(Quality::from_thousandths(0)?)
+///     Some(Quality::try_from_thousandths(0)?)
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -58,7 +58,7 @@ impl AcceptEncoding {
     ///
     /// Returns [`InvalidFieldValue`] when the rendering cannot be carried in a header field, which content codings
     /// never cause.
-    pub fn new(codings: impl IntoIterator<Item = Weighted<CodingRange>>) -> Result<AcceptEncoding, InvalidFieldValue> {
+    pub fn try_new(codings: impl IntoIterator<Item = Weighted<CodingRange>>) -> Result<AcceptEncoding, InvalidFieldValue> {
         FieldList::new(codings.into_iter().collect()).map(AcceptEncoding)
     }
 
@@ -85,7 +85,7 @@ impl headers::Header for AcceptEncoding {
     where
         I: Iterator<Item = &'i HeaderValue>,
     {
-        AcceptEncoding::new(decode_elements(values, parse_coding)?).map_err(|_| headers::Error::invalid())
+        AcceptEncoding::try_new(decode_elements(values, parse_coding)?).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -111,9 +111,9 @@ mod tests {
 
     #[test]
     fn codings_encode_in_order_and_decode_back() {
-        let header = AcceptEncoding::new([
-            Weighted::new(CodingRange::Coding("br".parse().unwrap())).with_quality(Quality::from_thousandths(1000).unwrap()),
-            Weighted::new(CodingRange::Coding("gzip".parse().unwrap())).with_quality(Quality::from_thousandths(800).unwrap()),
+        let header = AcceptEncoding::try_new([
+            Weighted::new(CodingRange::Coding("br".parse().unwrap())).with_quality(Quality::try_from_thousandths(1000).unwrap()),
+            Weighted::new(CodingRange::Coding("gzip".parse().unwrap())).with_quality(Quality::try_from_thousandths(800).unwrap()),
             Weighted::new(CodingRange::Identity),
         ])
         .unwrap();
@@ -126,7 +126,7 @@ mod tests {
         let header = decode_line::<AcceptEncoding>("").unwrap();
         assert_eq!(header.codings(), []);
         assert_eq!(encoded(&header), vec![HeaderValue::from_static("")]);
-        assert_eq!(AcceptEncoding::new([]).ok(), Some(header));
+        assert_eq!(AcceptEncoding::try_new([]).ok(), Some(header));
     }
 
     #[test]

@@ -169,7 +169,7 @@ impl UncheckedRequest {
     /// # Errors
     ///
     /// Returns [`RequestError`] when the operation itself refuses its parameters.
-    pub fn from_operation<O: Operation>(operation: &O, endpoint: &Endpoint) -> Result<UncheckedRequest, RequestError> {
+    pub fn try_from_operation<O: Operation>(operation: &O, endpoint: &Endpoint) -> Result<UncheckedRequest, RequestError> {
         let request = operation.to_request(endpoint)?;
         let context = body_context(request.body());
         Ok(UncheckedRequest { request, context })
@@ -213,7 +213,7 @@ impl UncheckedRequest {
     ///     .build()?;
     /// let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"));
     /// let request =
-    ///     UncheckedRequest::from_operation(&DeleteEntity::builder().id(&id).build(), &endpoint)?
+    ///     UncheckedRequest::try_from_operation(&DeleteEntity::builder().id(&id).build(), &endpoint)?
     ///         .typed_header(IfNoneMatch::any());
     /// assert_eq!(request.as_request().headers()[&header::IF_NONE_MATCH], "*");
     /// # Ok::<(), anyhow::Error>(())
@@ -274,7 +274,7 @@ impl UncheckedRequest {
     /// let create = BatchCreate::builder().entities(&entities).build();
     /// let untyped =
     ///     UncheckedDocument::from_entity(&entities[0], Lossless::Normalized).remove_member("type");
-    /// let request = UncheckedRequest::from_operation(&create, &endpoint)?.documents(&[untyped]);
+    /// let request = UncheckedRequest::try_from_operation(&create, &endpoint)?.documents(&[untyped]);
     /// assert_eq!(
     ///     request.as_request().body(),
     ///     &Bytes::from_static(br#"[{"id":"urn:ngsi-ld:Vehicle:A4567"}]"#)

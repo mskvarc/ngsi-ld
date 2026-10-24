@@ -22,13 +22,13 @@ use url::Url;
 /// A polygon around central Madrid, holding Puerta del Sol and the Retiro.
 fn central_madrid() -> anyhow::Result<Shape> {
     let corners = [(-3.8, 40.3), (-3.6, 40.3), (-3.6, 40.5), (-3.8, 40.5), (-3.8, 40.3)];
-    let ring = LinearRing::new(
+    let ring = LinearRing::try_new(
         corners
             .into_iter()
-            .map(|(longitude, latitude)| Position::new(longitude, latitude))
+            .map(|(longitude, latitude)| Position::try_new(longitude, latitude))
             .collect::<Result<_, _>>()?,
     )?;
-    Ok(Shape::Polygon(Polygon::new(vec![ring])?))
+    Ok(Shape::Polygon(Polygon::try_new(vec![ring])?))
 }
 
 /// Prints the ids of the entities a query matched.
@@ -48,9 +48,9 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
 
     // Puerta del Sol and the Retiro are about 1.3 km apart in Madrid.
-    let sol = Shape::Point(Position::new(-3.7038, 40.4168)?);
-    let retiro = Shape::Point(Position::new(-3.6884, 40.4153)?);
-    let barcelona = Shape::Point(Position::new(2.1734, 41.3851)?);
+    let sol = Shape::Point(Position::try_new(-3.7038, 40.4168)?);
+    let retiro = Shape::Point(Position::try_new(-3.6884, 40.4153)?);
+    let barcelona = Shape::Point(Position::try_new(2.1734, 41.3851)?);
 
     let places = [
         (iri!("urn:ngsi-ld:Vehicle:G1301"), "Vehicle", sol.clone(), "/Madrid/Gardens", 30),

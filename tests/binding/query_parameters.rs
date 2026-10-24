@@ -30,7 +30,7 @@ use std::num::NonZeroU32;
 
 /// The entity map the broker hands out in these tests.
 fn entity_map() -> NgsiLdEntityMap {
-    NgsiLdEntityMap::new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1").unwrap()).unwrap()
+    NgsiLdEntityMap::try_new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1").unwrap()).unwrap()
 }
 
 /// Two dataset ids: the default instance and the GPS one.
@@ -188,7 +188,7 @@ fn a_get_query_sends_every_parameter_with_its_encoding() {
 #[test]
 fn an_ordering_by_distance_sends_its_origin() {
     let entity_type: SelectorType = "Vehicle".parse().unwrap();
-    let point = Shape::Point(Position::new(13.3986, 52.5547).unwrap());
+    let point = Shape::Point(Position::try_new(13.3986, 52.5547).unwrap());
     let nearest = ordering::nearest("location").origin(point).build().unwrap();
     let query = QueryEntities {
         ordering: Some(&nearest),
@@ -198,8 +198,8 @@ fn an_ordering_by_distance_sends_its_origin() {
         query_string(&query).as_deref(),
         Some("type=Vehicle&orderBy=location;dist-asc&orderFrom=%5B13.3986%2C52.5547%5D&format=simplified")
     );
-    let positions = vec![Position::new(13.3986, 52.5547).unwrap(), Position::new(13.4, 52.6).unwrap()];
-    let line = Shape::LineString(LineString::new(positions).unwrap());
+    let positions = vec![Position::try_new(13.3986, 52.5547).unwrap(), Position::try_new(13.4, 52.6).unwrap()];
+    let line = Shape::LineString(LineString::try_new(positions).unwrap());
     let farthest = ordering::farthest("location").origin(line).build().unwrap();
     let query = QueryEntities {
         ordering: Some(&farthest),
@@ -222,8 +222,8 @@ fn a_post_query_carries_the_parameters_in_its_body() {
     let dataset_ids = dataset_ids();
     let lang: LanguageFilter = "fr-CH,fr;q=0.9".parse().unwrap();
     let contained_by = building();
-    let positions = vec![Position::new(13.3986, 52.5547).unwrap(), Position::new(13.4, 52.6).unwrap()];
-    let line = Shape::LineString(LineString::new(positions).unwrap());
+    let positions = vec![Position::try_new(13.3986, 52.5547).unwrap(), Position::try_new(13.4, 52.6).unwrap()];
+    let line = Shape::LineString(LineString::try_new(positions).unwrap());
     let ordering = ordering::by("name")
         .then_nearest("location")
         .collation("und-u-ks-identic")

@@ -19,20 +19,20 @@ use pretty_assertions::assert_eq;
 
 /// Puerta del Sol, Madrid.
 fn sol() -> Shape {
-    Shape::Point(Position::new(-3.7038, 40.4168).unwrap())
+    Shape::Point(Position::try_new(-3.7038, 40.4168).unwrap())
 }
 
 /// A polygon around central Madrid.
 fn central_madrid() -> Shape {
     let corners = [(-3.8, 40.3), (-3.6, 40.3), (-3.6, 40.5), (-3.8, 40.5), (-3.8, 40.3)];
-    let ring = LinearRing::new(
+    let ring = LinearRing::try_new(
         corners
             .into_iter()
-            .map(|(longitude, latitude)| Position::new(longitude, latitude).unwrap())
+            .map(|(longitude, latitude)| Position::try_new(longitude, latitude).unwrap())
             .collect(),
     )
     .unwrap();
-    Shape::Polygon(Polygon::new(vec![ring]).unwrap())
+    Shape::Polygon(Polygon::try_new(vec![ring]).unwrap())
 }
 
 /// Creates three vehicles of a type unique to the calling test, under the scope root `root`: `n1` at Puerta del Sol
@@ -43,8 +43,8 @@ async fn create_placed_fleet(client: &Client<ReqwestTransport>, label: &str, roo
     let vehicle_type = unique(label);
     let places = [
         (sol(), "Madrid/Gardens"),
-        (Shape::Point(Position::new(-3.6884, 40.4153).unwrap()), "Madrid/Sights"),
-        (Shape::Point(Position::new(2.1734, 41.3851).unwrap()), "Barcelona"),
+        (Shape::Point(Position::try_new(-3.6884, 40.4153).unwrap()), "Madrid/Sights"),
+        (Shape::Point(Position::try_new(2.1734, 41.3851).unwrap()), "Barcelona"),
     ];
     let mut vehicles = Vec::new();
     for (number, (location, scope)) in (1..).zip(places) {

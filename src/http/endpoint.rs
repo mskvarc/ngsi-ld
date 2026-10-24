@@ -406,7 +406,7 @@ pub(crate) fn profiled_context_link(context: Option<&Context>, profile: &IriBuf)
     // The header owns its target, and the endpoint keeps the context it renders.
     let target = context.and_then(Context::link_target).map_or_else(core_context_reference, IriRefBuf::clone);
     // The header owns its profile, and the endpoint keeps the one it states.
-    Link::new(LinkValue::profiled_json_ld_context(target, profile.clone()))
+    Link::try_new(LinkValue::profiled_json_ld_context(target, profile.clone()))
 }
 
 /// Refuses `profile` beside `context` when the context is not a single reference, which no `Link` header carries.
@@ -614,7 +614,7 @@ mod tests {
         let profile = LinkValue::builder(IriRefBuf::new("https://uri.etsi.org/ngsi-ld/profile/version").unwrap())
             .rel(RelationType::Profile)
             .build();
-        let endpoint = endpoint().with_link(Link::new(profile).unwrap()).unwrap();
+        let endpoint = endpoint().with_link(Link::try_new(profile).unwrap()).unwrap();
         assert!(endpoint.link().is_some());
         let context = Link::json_ld_context(IriRefBuf::new("https://example.org/context.jsonld").unwrap()).unwrap();
         assert!(matches!(endpoint.with_link(context), Err(EndpointError::ContextLink)));

@@ -24,7 +24,7 @@ use std::iter;
 ///
 /// A client asks for one NGSI-LD representation with [`Accept::new`], the form the request pipeline sends (NGSI-LD
 /// clause 6.3.4); a weighted list, a wildcard range or a media type outside NGSI-LD, which a broker must refuse
-/// with 406 Not Acceptable, is built with [`Accept::from_entries`]. Decoding reads any valid list, across all its
+/// with 406 Not Acceptable, is built with [`Accept::try_from_entries`]. Decoding reads any valid list, across all its
 /// lines, keeping its order and weights, so a mock server can check what a broker forwarded. An `Accept` with no
 /// element does not decode: it states no preference, which is said by sending no `Accept` at all.
 ///
@@ -45,8 +45,8 @@ use std::iter;
 /// headers.typed_insert(Accept::new(NgsiLdMediaType::GeoJson));
 /// assert_eq!(headers[&header::ACCEPT], "application/geo+json");
 ///
-/// let weighted = Accept::from_entries([
-///     Weighted::new(NgsiLdMediaType::Json).with_quality(Quality::from_thousandths(500)?),
+/// let weighted = Accept::try_from_entries([
+///     Weighted::new(NgsiLdMediaType::Json).with_quality(Quality::try_from_thousandths(500)?),
 ///     Weighted::new(NgsiLdMediaType::JsonLd),
 /// ])?;
 /// headers.typed_insert(weighted);
@@ -55,7 +55,7 @@ use std::iter;
 ///     "application/json;q=0.5, application/ld+json"
 /// );
 ///
-/// let listed = Accept::from_entries(
+/// let listed = Accept::try_from_entries(
 ///     [
 ///         NgsiLdMediaType::GeoJson,
 ///         NgsiLdMediaType::JsonLd,
@@ -69,10 +69,10 @@ use std::iter;
 ///     "application/geo+json, application/ld+json, application/json"
 /// );
 ///
-/// let ranges = Accept::from_entries([
+/// let ranges = Accept::try_from_entries([
 ///     Weighted::new(MediaRange::any_subtype_of(names::TEXT)?),
 ///     Weighted::new("application/xml".parse::<MediaRange>()?),
-///     Weighted::new(MediaRange::any()).with_quality(Quality::from_thousandths(100)?),
+///     Weighted::new(MediaRange::any()).with_quality(Quality::try_from_thousandths(100)?),
 /// ])?;
 /// headers.typed_insert(ranges);
 /// assert_eq!(
@@ -84,7 +84,7 @@ use std::iter;
 ///     decoded.map(|accept| accept.entries().iter().map(Weighted::quality).collect());
 /// assert_eq!(
 ///     weights,
-///     Some(vec![None, None, Some(Quality::from_thousandths(100)?)])
+///     Some(vec![None, None, Some(Quality::try_from_thousandths(100)?)])
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -133,7 +133,7 @@ impl Accept {
     ///
     /// Returns [`ListFieldError::Empty`] when `entries` is empty, and [`ListFieldError::FieldValue`] when the
     /// rendering cannot be carried in a header field, which validated media ranges never cause.
-    pub fn from_entries(entries: impl IntoIterator<Item = Weighted<MediaRange>>) -> Result<Accept, ListFieldError> {
+    pub fn try_from_entries(entries: impl IntoIterator<Item = Weighted<MediaRange>>) -> Result<Accept, ListFieldError> {
         FieldList::non_empty(entries.into_iter().collect()).map(Accept)
     }
 
@@ -180,7 +180,7 @@ impl headers::Header for Accept {
     where
         I: Iterator<Item = &'i HeaderValue>,
     {
-        Accept::from_entries(decode_elements(values, parse_entry)?).map_err(|_| headers::Error::invalid())
+        Accept::try_from_entries(decode_elements(values, parse_entry)?).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -220,7 +220,7 @@ mod tests {
             assert_eq!(encoded(&accept), vec![HeaderValue::try_from(media_type.to_string()).unwrap()]);
             assert_eq!(Accept::decode(&mut encoded(&accept).iter()).ok(), Some(accept.clone()));
             assert_eq!(Accept::from(media_type), accept);
-            assert_eq!(Accept::from_entries([Weighted::new(media_type)]).ok(), Some(accept));
+            assert_eq!(Accept::try_from_entries([Weighted::new(media_type)]).ok(), Some(accept));
         }
     }
 
@@ -228,15 +228,15 @@ mod tests {
     fn the_any_range_encodes_as_a_star_pair() {
         assert_eq!(encoded(&Accept::any()), vec![HeaderValue::from_static("*/*")]);
         assert_eq!(decode_line::<Accept>("*/*"), Some(Accept::any()));
-        assert_eq!(Accept::from_entries([Weighted::new(MediaRange::any())]).ok(), Some(Accept::any()));
+        assert_eq!(Accept::try_from_entries([Weighted::new(MediaRange::any())]).ok(), Some(Accept::any()));
     }
 
     #[test]
     fn a_weighted_list_keeps_its_order_and_weights_through_a_round_trip() {
-        let accept = Accept::from_entries([
-            Weighted::new(NgsiLdMediaType::Json).with_quality(Quality::from_thousandths(500).unwrap()),
+        let accept = Accept::try_from_entries([
+            Weighted::new(NgsiLdMediaType::Json).with_quality(Quality::try_from_thousandths(500).unwrap()),
             Weighted::new(NgsiLdMediaType::JsonLd),
-            Weighted::new("text/plain; charset=utf-8".parse::<MediaRange>().unwrap()).with_quality(Quality::from_thousandths(0).unwrap()),
+            Weighted::new("text/plain; charset=utf-8".parse::<MediaRange>().unwrap()).with_quality(Quality::try_from_thousandths(0).unwrap()),
         ])
         .unwrap();
         assert_eq!(
@@ -297,6 +297,6 @@ mod tests {
 
     #[test]
     fn an_empty_list_is_refused_on_construction() {
-        assert!(matches!(Accept::from_entries(Vec::new()), Err(ListFieldError::Empty)));
+        assert!(matches!(Accept::try_from_entries(Vec::new()), Err(ListFieldError::Empty)));
     }
 }

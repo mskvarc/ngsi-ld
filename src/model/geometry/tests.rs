@@ -30,7 +30,7 @@ fn round_trips(json: &str) {
 }
 
 fn point(longitude: f64, latitude: f64) -> Position {
-    Position::new(longitude, latitude).unwrap()
+    Position::try_new(longitude, latitude).unwrap()
 }
 
 #[test]
@@ -100,8 +100,14 @@ fn a_coordinate_too_large_for_a_float_is_refused_on_read() {
 
 #[test]
 fn a_position_built_in_code_must_lie_within_wgs_84() {
-    assert_eq!(Position::new(181.0, 0.0), Err(GeometryError::LongitudeOutOfRange { value: Number::from(181) }));
-    assert_eq!(Position::new(0.0, -91.0), Err(GeometryError::LatitudeOutOfRange { value: Number::from(-91) }));
+    assert_eq!(
+        Position::try_new(181.0, 0.0),
+        Err(GeometryError::LongitudeOutOfRange { value: Number::from(181) })
+    );
+    assert_eq!(
+        Position::try_new(0.0, -91.0),
+        Err(GeometryError::LatitudeOutOfRange { value: Number::from(-91) })
+    );
 }
 
 #[test]
@@ -317,15 +323,15 @@ fn a_bounding_box_must_not_have_its_south_north_of_its_north() {
 #[test]
 fn a_bounding_box_built_in_code_is_checked() {
     let three = Position::with_altitude(0.0, 0.0, 0.0).unwrap();
-    assert_eq!(BoundingBox::new(point(0.0, 0.0), three), Err(GeometryError::BoundingBoxCorners));
+    assert_eq!(BoundingBox::try_new(point(0.0, 0.0), three), Err(GeometryError::BoundingBoxCorners));
     assert_eq!(
-        BoundingBox::new(point(0.0, 1.0), point(1.0, 0.0)),
+        BoundingBox::try_new(point(0.0, 1.0), point(1.0, 0.0)),
         Err(GeometryError::BoundingBoxLatitudes {
             south: Number::from(1),
             north: Number::from(0)
         })
     );
-    let three_dimensional = BoundingBox::new(Position::with_altitude(0.0, 0.0, 0.0).unwrap(), Position::with_altitude(1.0, 1.0, 1.0).unwrap()).unwrap();
+    let three_dimensional = BoundingBox::try_new(Position::with_altitude(0.0, 0.0, 0.0).unwrap(), Position::with_altitude(1.0, 1.0, 1.0).unwrap()).unwrap();
     assert_eq!(
         Geometry::from(Shape::Point(point(0.0, 0.0))).with_bbox(three_dimensional),
         Err(GeometryError::BoundingBoxDimension {
@@ -338,9 +344,9 @@ fn a_bounding_box_built_in_code_is_checked() {
 #[test]
 fn a_ring_built_in_code_must_be_closed() {
     let positions = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)].map(|(x, y)| point(x, y));
-    assert_eq!(LinearRing::new(positions.to_vec()), Err(GeometryError::RingNotClosed));
+    assert_eq!(LinearRing::try_new(positions.to_vec()), Err(GeometryError::RingNotClosed));
     let closed_by_negative_zero = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (-0.0, 0.0)].map(|(x, y)| point(x, y));
-    assert!(LinearRing::new(closed_by_negative_zero.to_vec()).is_ok());
+    assert!(LinearRing::try_new(closed_by_negative_zero.to_vec()).is_ok());
 }
 
 #[cfg(feature = "geo-types")]

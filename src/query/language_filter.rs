@@ -11,8 +11,8 @@
 //!
 //! let lang = language_filter::language("fr-CH")
 //!     .language("fr")
-//!     .weighted_language("en", Quality::from_thousandths(800)?)
-//!     .weighted_any(Quality::from_thousandths(500)?)
+//!     .weighted_language("en", Quality::try_from_thousandths(800)?)
+//!     .weighted_any(Quality::try_from_thousandths(500)?)
 //!     .build()?;
 //! assert_eq!(lang.to_string(), "fr-CH,fr,en;q=0.8,*;q=0.5");
 //! # Ok::<(), anyhow::Error>(())

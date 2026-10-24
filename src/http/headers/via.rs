@@ -25,7 +25,7 @@ use http::{HeaderName, HeaderValue, header::VIA};
 /// use http::{HeaderMap, header};
 /// use ngsi_ld::http::headers::{ReceivedBy, ReceivedProtocol, Via, ViaEntry};
 ///
-/// let via = Via::new(ViaEntry::new(
+/// let via = Via::try_new(ViaEntry::new(
 ///     "1.1".parse::<ReceivedProtocol>()?,
 ///     ReceivedBy::new("broker-a".parse()?),
 /// ))?
@@ -56,7 +56,7 @@ impl Via {
     ///
     /// Returns [`InvalidFieldValue`] when the rendering cannot be carried in a header field, which validated hops
     /// never cause.
-    pub fn new(entry: ViaEntry) -> Result<Via, InvalidFieldValue> {
+    pub fn try_new(entry: ViaEntry) -> Result<Via, InvalidFieldValue> {
         FieldList::new(vec![entry]).map(Via)
     }
 
@@ -66,7 +66,7 @@ impl Via {
     ///
     /// Returns [`ListFieldError::Empty`] when `entries` is empty, and [`ListFieldError::FieldValue`] when the
     /// rendering cannot be carried in a header field, which validated hops never cause.
-    pub fn from_entries(entries: impl IntoIterator<Item = ViaEntry>) -> Result<Via, ListFieldError> {
+    pub fn try_from_entries(entries: impl IntoIterator<Item = ViaEntry>) -> Result<Via, ListFieldError> {
         FieldList::non_empty(entries.into_iter().collect()).map(Via)
     }
 
@@ -98,7 +98,7 @@ impl headers::Header for Via {
     where
         I: Iterator<Item = &'i HeaderValue>,
     {
-        Via::from_entries(decode_elements(values, str::parse::<ViaEntry>)?).map_err(|_| headers::Error::invalid())
+        Via::try_from_entries(decode_elements(values, str::parse::<ViaEntry>)?).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -125,17 +125,17 @@ mod tests {
 
     #[test]
     fn one_hop_encodes_and_decodes_back() {
-        let via = Via::new(entry("1.1 broker-a")).unwrap();
+        let via = Via::try_new(entry("1.1 broker-a")).unwrap();
         assert_eq!(encoded(&via), vec![HeaderValue::from_static("1.1 broker-a")]);
         assert_eq!(Via::decode(&mut encoded(&via).iter()).ok(), Some(via));
     }
 
     #[test]
     fn appending_a_hop_keeps_the_earlier_ones_first() {
-        let via = Via::new(entry("1.1 broker-a")).unwrap().appended(entry("HTTP/2 broker-b (x, y)")).unwrap();
+        let via = Via::try_new(entry("1.1 broker-a")).unwrap().appended(entry("HTTP/2 broker-b (x, y)")).unwrap();
         assert_eq!(encoded(&via), vec![HeaderValue::from_static("1.1 broker-a, HTTP/2 broker-b (x, y)")]);
         assert_eq!(
-            Via::from_entries([entry("1.1 broker-a"), entry("HTTP/2 broker-b (x, y)")]).ok(),
+            Via::try_from_entries([entry("1.1 broker-a"), entry("HTTP/2 broker-b (x, y)")]).ok(),
             Some(via.clone())
         );
         assert_eq!(Via::decode(&mut encoded(&via).iter()).ok(), Some(via));
@@ -161,6 +161,6 @@ mod tests {
 
     #[test]
     fn an_empty_list_is_refused_on_construction() {
-        assert!(matches!(Via::from_entries([]), Err(ListFieldError::Empty)));
+        assert!(matches!(Via::try_from_entries([]), Err(ListFieldError::Empty)));
     }
 }

@@ -41,7 +41,7 @@ enum AltSvcValue {
 ///     .max_age(Duration::from_secs(3600))
 ///     .build();
 /// let mut headers = HeaderMap::new();
-/// headers.typed_insert(AltSvc::new(h3)?);
+/// headers.typed_insert(AltSvc::try_new(h3)?);
 /// assert_eq!(headers[&header::ALT_SVC], "h3=\":443\"; ma=3600");
 /// headers.typed_insert(AltSvc::clear());
 /// assert_eq!(headers[&header::ALT_SVC], "clear");
@@ -69,7 +69,7 @@ impl AltSvc {
     ///
     /// Returns [`InvalidFieldValue`] when the rendering cannot be carried in a header field, which validated
     /// alternatives never cause.
-    pub fn new(alternative: Alternative) -> Result<AltSvc, InvalidFieldValue> {
+    pub fn try_new(alternative: Alternative) -> Result<AltSvc, InvalidFieldValue> {
         FieldList::new(vec![alternative]).map(|list| AltSvc(AltSvcValue::Alternatives(list)))
     }
 
@@ -79,7 +79,7 @@ impl AltSvc {
     ///
     /// Returns [`ListFieldError::Empty`] when `alternatives` is empty, and [`ListFieldError::FieldValue`] when the
     /// rendering cannot be carried in a header field, which validated alternatives never cause.
-    pub fn from_alternatives(alternatives: impl IntoIterator<Item = Alternative>) -> Result<AltSvc, ListFieldError> {
+    pub fn try_from_alternatives(alternatives: impl IntoIterator<Item = Alternative>) -> Result<AltSvc, ListFieldError> {
         FieldList::non_empty(alternatives.into_iter().collect()).map(|list| AltSvc(AltSvcValue::Alternatives(list)))
     }
 
@@ -117,7 +117,7 @@ impl headers::Header for AltSvc {
             .map(str::parse)
             .collect::<Result<Vec<Alternative>, _>>()
             .map_err(|_| headers::Error::invalid())?;
-        AltSvc::from_alternatives(alternatives).map_err(|_| headers::Error::invalid())
+        AltSvc::try_from_alternatives(alternatives).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn alternatives_encode_in_order_and_decode_back() {
-        let header = AltSvc::from_alternatives([alternative("h3=\":443\"; ma=86400"), alternative("h2=\"alt.example.org:443\"")]).unwrap();
+        let header = AltSvc::try_from_alternatives([alternative("h3=\":443\"; ma=86400"), alternative("h2=\"alt.example.org:443\"")]).unwrap();
         assert_eq!(
             encoded(&header),
             vec![HeaderValue::from_static("h3=\":443\"; ma=86400, h2=\"alt.example.org:443\"")]
@@ -162,7 +162,7 @@ mod tests {
         assert!(!header.is_clear());
         assert_eq!(header.alternatives().len(), 2);
         assert_eq!(AltSvc::decode(&mut encoded(&header).iter()).ok(), Some(header));
-        assert_eq!(AltSvc::new(alternative("h3=\":443\"")).ok(), decode_line::<AltSvc>("h3=\":443\""));
+        assert_eq!(AltSvc::try_new(alternative("h3=\":443\"")).ok(), decode_line::<AltSvc>("h3=\":443\""));
     }
 
     #[test]
@@ -178,6 +178,6 @@ mod tests {
         for raw in ["", " , ", "Clear", "clear, h3=\":443\"", "h3=\":443\", clear", "h3", "h3=\":443\"; ma=x"] {
             assert_eq!(decode_line::<AltSvc>(raw), None, "{raw}");
         }
-        assert!(matches!(AltSvc::from_alternatives([]), Err(ListFieldError::Empty)));
+        assert!(matches!(AltSvc::try_from_alternatives([]), Err(ListFieldError::Empty)));
     }
 }

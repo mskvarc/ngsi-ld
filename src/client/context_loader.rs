@@ -112,7 +112,7 @@ pub enum ContextLoadError<E> {
 /// // Raw files served as `text/plain` hold contexts too.
 /// let loader = client.context_loader().media_type(MediaTypeCheck::Ignored).build();
 /// let context = Context::from(iri_rs::IriRefBuf::new("https://example.org/context.jsonld")?);
-/// let active = ContextProcessor::new()?.process(&context, &loader).await?;
+/// let active = ContextProcessor::try_new()?.process(&context, &loader).await?;
 /// let speed: AttributeName = "speed".parse()?;
 /// assert_eq!(active.expand(&speed)?.as_str(), "https://example.org/speed");
 /// # Ok(())

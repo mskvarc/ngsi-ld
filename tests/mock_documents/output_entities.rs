@@ -66,8 +66,8 @@ fn every_kind() -> Entity<Output> {
         )
         .output_attribute(
             "location",
-            GeoProperty::output_builder(Shape::Point(Position::new(-8.5, 41.2).unwrap()))
-                .previous_value(Geometry::from(Shape::Point(Position::new(-8.6, 41.1).unwrap()))),
+            GeoProperty::output_builder(Shape::Point(Position::try_new(-8.5, 41.2).unwrap()))
+                .previous_value(Geometry::from(Shape::Point(Position::try_new(-8.6, 41.1).unwrap()))),
         )
         .output_attribute(
             "street",
@@ -180,7 +180,7 @@ fn a_deleted_attribute_with_a_dataset_id_keeps_its_kind_and_shape() {
 
 #[test]
 fn a_deleted_attribute_of_every_kind_reports_its_previous_payload() {
-    let point = Geometry::from(Shape::Point(Position::new(13.3986, 52.5547).unwrap()));
+    let point = Geometry::from(Shape::Point(Position::try_new(13.3986, 52.5547).unwrap()));
     let deleted: [(Attribute<Output>, &str); 8] = [
         (Property::deleted().previous_value(80).build().into(), r#""previousValue":80"#),
         (

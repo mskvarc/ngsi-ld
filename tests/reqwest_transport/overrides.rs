@@ -133,12 +133,12 @@ async fn a_derived_client_sends_a_weighted_accept_and_a_via_hop() {
         .expect(1)
         .mount(&server)
         .await;
-    let accept = Accept::from_entries([
-        Weighted::new(NgsiLdMediaType::Json).with_quality(Quality::from_thousandths(500).unwrap()),
+    let accept = Accept::try_from_entries([
+        Weighted::new(NgsiLdMediaType::Json).with_quality(Quality::try_from_thousandths(500).unwrap()),
         Weighted::new(NgsiLdMediaType::JsonLd),
     ])
     .unwrap();
-    let via = Via::new(ViaEntry::new(
+    let via = Via::try_new(ViaEntry::new(
         ReceivedProtocol::new("1.1".parse().unwrap()),
         ReceivedBy::new("broker-a".parse().unwrap()),
     ))
@@ -315,7 +315,7 @@ async fn a_derived_client_sends_a_profile_beside_and_inside_the_context_link() {
     let client = client(&server.uri())
         .with_context_profile(IriBuf::new("https://uri.etsi.org/ngsi-ld/profile/version").unwrap())
         .unwrap()
-        .with_link(Link::new(profile).unwrap())
+        .with_link(Link::try_new(profile).unwrap())
         .unwrap();
     let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"));
     assert!(client.entities().delete(&id).send().await.unwrap().is_done());

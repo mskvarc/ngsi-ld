@@ -81,7 +81,7 @@ fn a_document_carries_its_context_link() {
 #[test]
 fn a_creation_carries_its_location_and_reads_back_as_created() {
     let vehicle = vehicle();
-    let location = Location::new(IriRefBuf::new("/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567".to_owned()).unwrap()).unwrap();
+    let location = Location::try_new(IriRefBuf::new("/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567".to_owned()).unwrap()).unwrap();
     let response = answer::created(location);
     assert!(response.body().is_empty());
     assert!(response.headers().typed_get::<Link>().is_none());

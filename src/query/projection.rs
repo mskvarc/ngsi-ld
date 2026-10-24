@@ -98,11 +98,11 @@ pub struct EntityMemberError {
 /// };
 ///
 /// let observation: Term = "observation".parse()?;
-/// let printed = AttributeProjection::new(observation).map(|attribute| attribute.to_string());
+/// let printed = AttributeProjection::try_new(observation).map(|attribute| attribute.to_string());
 /// assert_eq!(printed, Ok("observation".to_owned()));
 /// let id: Term = "id".parse()?;
 /// assert_eq!(
-///     AttributeProjection::new(id).err(),
+///     AttributeProjection::try_new(id).err(),
 ///     Some(EntityMemberError {
 ///         member: EntityMember::Id
 ///     })
@@ -123,7 +123,7 @@ impl AttributeProjection {
     /// # Errors
     ///
     /// Returns an [`EntityMemberError`] when `name` is `id`, `type` or `scope`.
-    pub fn new(name: Term) -> Result<AttributeProjection, EntityMemberError> {
+    pub fn try_new(name: Term) -> Result<AttributeProjection, EntityMemberError> {
         match name.as_ref().parse::<EntityMember>() {
             Ok(member) => Err(EntityMemberError { member }),
             Err(_) => Ok(Self { name, linked: None }),

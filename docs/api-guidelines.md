@@ -107,6 +107,8 @@ A public type implements the traits a caller expects when they are meaningful fo
 
 Public names follow the naming conventions of the Rust API Guidelines: `as_`, `to_` and `into_` conversions, `iter`, `iter_mut` and `into_iter`, and getters without a `get_` prefix.
 
+A constructor that returns a `Result` is prefixed `try_` (`try_new`, `try_from_*`), as `TryFrom` and the validated newtypes are.
+
 ## Process-Wide Behaviour
 
 The crate holds no global state. It has no statics a caller cannot see, no global allocator and no process-wide configuration, and it never prints to stdout or stderr.

@@ -196,11 +196,11 @@ impl RequestParts {
         }
         if let Some(tenant) = scope.tenant() {
             // The header owns the tenant it renders.
-            headers.typed_insert(NgsiLdTenant::new(tenant.clone()).map_err(|source| RequestError::Tenant { source })?);
+            headers.typed_insert(NgsiLdTenant::try_new(tenant.clone()).map_err(|source| RequestError::Tenant { source })?);
         }
         if let Some(snapshot) = scope.snapshot() {
             // The header owns the snapshot id it renders.
-            headers.typed_insert(NgsiLdSnapshot::new(snapshot.clone()).map_err(|source| RequestError::Snapshot { source })?);
+            headers.typed_insert(NgsiLdSnapshot::try_new(snapshot.clone()).map_err(|source| RequestError::Snapshot { source })?);
         }
         if let Some(link) = endpoint.link() {
             let mut lines = Vec::new();

@@ -80,7 +80,7 @@ pub struct ForeignMemberName(String);
 ///     geometry::{ForeignMemberName, Geometry, Position, Shape},
 /// };
 ///
-/// let point = Geometry::from(Shape::Point(Position::new(1.5, 2.5)?))
+/// let point = Geometry::from(Shape::Point(Position::try_new(1.5, 2.5)?))
 ///     .with_foreign_member("plot name".parse()?, r#""7""#.parse()?);
 /// let name: ForeignMemberName = "plot name".parse()?;
 /// assert_eq!(

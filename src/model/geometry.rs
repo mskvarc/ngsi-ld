@@ -64,7 +64,7 @@ mod position;
 /// ```
 /// use ngsi_ld::model::geometry::{Position, Shape};
 ///
-/// let point = Shape::Point(Position::new(13.3986, 52.5547)?);
+/// let point = Shape::Point(Position::try_new(13.3986, 52.5547)?);
 /// assert_eq!(
 ///     point.to_string(),
 ///     r#"{"type":"Point","coordinates":[13.3986,52.5547]}"#
@@ -95,9 +95,9 @@ pub enum Shape {
 /// ```
 /// use ngsi_ld::model::geometry::{Geometry, Shape, BoundingBox, Position};
 ///
-/// let point = Shape::Point(Position::new(13.3986, 52.5547)?);
-/// let corner = Position::new(13.3986, 52.5547)?;
-/// let geometry = Geometry::from(point).with_bbox(BoundingBox::new(corner.clone(), corner)?)?;
+/// let point = Shape::Point(Position::try_new(13.3986, 52.5547)?);
+/// let corner = Position::try_new(13.3986, 52.5547)?;
+/// let geometry = Geometry::from(point).with_bbox(BoundingBox::try_new(corner.clone(), corner)?)?;
 /// assert_eq!(
 ///     geometry.to_string(),
 ///     r#"{"type":"Point","coordinates":[13.3986,52.5547],"bbox":[13.3986,52.5547,13.3986,52.5547]}"#

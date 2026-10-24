@@ -108,7 +108,7 @@ impl ActiveContext {
     /// let b = Context::Single(ContextEntry::Inline(
     ///     "{\"velocity\": \"https://example.org/speed\"}".parse::<InlineContext>()?,
     /// ));
-    /// let processor = ContextProcessor::new()?;
+    /// let processor = ContextProcessor::try_new()?;
     /// let a = processor.process_offline(&a).await?;
     /// let b = processor.process_offline(&b).await?;
     /// let q: Query = "speed>50".parse()?;

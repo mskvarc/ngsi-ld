@@ -26,7 +26,7 @@ use std::sync::Arc;
 ///
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() -> anyhow::Result<()> {
-/// let processor = ContextProcessor::new()?;
+/// let processor = ContextProcessor::try_new()?;
 /// let user = Context::Single(ContextEntry::Inline(
 ///     r#"{"Vehicle": "https://example.org/Vehicle"}"#.parse::<InlineContext>()?,
 /// ));
@@ -52,7 +52,7 @@ impl ContextProcessor {
     /// # Errors
     ///
     /// Returns [`BundledContextError`] if a bundled document cannot be read, a defect of the build.
-    pub fn new() -> Result<Self, BundledContextError> {
+    pub fn try_new() -> Result<Self, BundledContextError> {
         Ok(Self {
             bundled: Arc::new(BundledContexts::read()?),
         })

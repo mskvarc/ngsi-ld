@@ -247,7 +247,7 @@ impl FromStr for OrderBy {
 ///     query::ordering,
 /// };
 ///
-/// let origin = Shape::Point(Position::new(8.0, 40.0)?);
+/// let origin = Shape::Point(Position::try_new(8.0, 40.0)?);
 /// let nearest = ordering::nearest("location").origin(origin).build()?;
 /// assert_eq!(nearest.order_by().to_string(), "location;dist-asc");
 /// # Ok::<(), anyhow::Error>(())

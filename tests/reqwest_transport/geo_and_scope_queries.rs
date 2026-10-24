@@ -17,7 +17,7 @@ use wiremock::{
 
 /// The Point `[8,40]` of clause 4.10 example 1.
 fn point() -> Shape {
-    Shape::Point(Position::new(8.0, 40.0).unwrap())
+    Shape::Point(Position::try_new(8.0, 40.0).unwrap())
 }
 
 #[tokio::test]

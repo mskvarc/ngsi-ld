@@ -78,7 +78,7 @@ fn a_property_whose_value_looks_like_a_geometry_keeps_its_type_in_concise_form()
 
 #[test]
 fn a_plain_geo_property_is_its_bare_geometry_in_concise_form() {
-    let point = Geometry::from(Shape::Point(Position::new(8.0, 40.0).unwrap()));
+    let point = Geometry::from(Shape::Point(Position::try_new(8.0, 40.0).unwrap()));
     assert_eq!(
         both(GeoProperty::builder(point).build().unwrap()),
         (

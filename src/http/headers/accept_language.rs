@@ -33,8 +33,8 @@ use http::{HeaderName, HeaderValue, header::ACCEPT_LANGUAGE};
 ///
 /// let filter = language_filter::language("fr-CH")
 ///     .language("fr")
-///     .weighted_language("en", Quality::from_thousandths(800)?)
-///     .weighted_any(Quality::from_thousandths(500)?)
+///     .weighted_language("en", Quality::try_from_thousandths(800)?)
+///     .weighted_any(Quality::try_from_thousandths(500)?)
 ///     .build()?;
 /// let mut headers = HeaderMap::new();
 /// headers.typed_insert(AcceptLanguage::try_from(filter)?);
@@ -60,7 +60,7 @@ impl AcceptLanguage {
     ///
     /// Returns [`ListFieldError::Empty`] when `preferences` is empty, and [`ListFieldError::FieldValue`] when the
     /// rendering cannot be carried in a header field, which language ranges never cause.
-    pub fn new(preferences: impl IntoIterator<Item = Weighted<BasicLanguageRange>>) -> Result<AcceptLanguage, ListFieldError> {
+    pub fn try_new(preferences: impl IntoIterator<Item = Weighted<BasicLanguageRange>>) -> Result<AcceptLanguage, ListFieldError> {
         FieldList::non_empty(preferences.into_iter().collect()).map(AcceptLanguage)
     }
 
@@ -76,7 +76,7 @@ impl TryFrom<LanguageFilter> for AcceptLanguage {
     type Error = ListFieldError;
 
     fn try_from(filter: LanguageFilter) -> Result<AcceptLanguage, ListFieldError> {
-        AcceptLanguage::new(filter.into_preferences().into_iter().map(|preference| preference.map(BasicLanguageRange::from)))
+        AcceptLanguage::try_new(filter.into_preferences().into_iter().map(|preference| preference.map(BasicLanguageRange::from)))
     }
 }
 
@@ -96,7 +96,7 @@ impl headers::Header for AcceptLanguage {
     where
         I: Iterator<Item = &'i HeaderValue>,
     {
-        AcceptLanguage::new(decode_elements(values, parse_preference)?).map_err(|_| headers::Error::invalid())
+        AcceptLanguage::try_new(decode_elements(values, parse_preference)?).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -126,9 +126,9 @@ mod tests {
 
     #[test]
     fn preferences_encode_in_order_and_decode_back() {
-        let header = AcceptLanguage::new([
+        let header = AcceptLanguage::try_new([
             Weighted::new("de-AT".parse::<BasicLanguageRange>().unwrap()),
-            Weighted::new(BasicLanguageRange::any()).with_quality(Quality::from_thousandths(100).unwrap()),
+            Weighted::new(BasicLanguageRange::any()).with_quality(Quality::try_from_thousandths(100).unwrap()),
         ])
         .unwrap();
         assert_eq!(encoded(&header), vec![HeaderValue::from_static("de-AT, *;q=0.1")]);
@@ -165,6 +165,6 @@ mod tests {
 
     #[test]
     fn an_empty_list_is_refused_on_construction() {
-        assert!(matches!(AcceptLanguage::new([]), Err(ListFieldError::Empty)));
+        assert!(matches!(AcceptLanguage::try_new([]), Err(ListFieldError::Empty)));
     }
 }

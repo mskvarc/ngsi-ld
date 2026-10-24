@@ -243,7 +243,7 @@ mod tests {
             list.render(Lossless::Normalized).to_string(),
             r#"{"type":"ListProperty","valueList":[1,2],"valueType":"urn:ngsi-ld:null","unitCode":"urn:ngsi-ld:null"}"#
         );
-        let geo = Attribute::from(GeoProperty::builder(Shape::Point(Position::new(1.0, 2.0).unwrap())).build().unwrap())
+        let geo = Attribute::from(GeoProperty::builder(Shape::Point(Position::try_new(1.0, 2.0).unwrap())).build().unwrap())
             .into_patch()
             .delete_member(PatchMember::UnitCode)
             .unwrap();

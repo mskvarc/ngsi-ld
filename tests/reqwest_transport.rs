@@ -407,7 +407,7 @@ async fn a_query_sends_its_language_filter_ordering_and_join() {
         .entities()
         .query()
         .entity_type("Vehicle")
-        .lang(language_filter::language("fr").weighted_language("en", Quality::from_thousandths(500).unwrap()))
+        .lang(language_filter::language("fr").weighted_language("en", Quality::try_from_thousandths(500).unwrap()))
         .ordering(ordering::descending("speed"))
         .join(Join::Inline)
         .join_level(NonZeroU32::new(2).unwrap())

@@ -13,7 +13,7 @@ use pretty_assertions::assert_eq;
 
 /// The quality `thousandths` / 1000.
 fn quality(thousandths: u16) -> Quality {
-    Quality::from_thousandths(thousandths).unwrap()
+    Quality::try_from_thousandths(thousandths).unwrap()
 }
 
 /// Parses `text`, checks it prints back unchanged, and returns the filter.
@@ -87,7 +87,7 @@ fn l_06_a_quality_above_one_or_with_four_decimals_is_rejected() {
     ] {
         assert_eq!(text.parse::<Quality>(), Err(error), "{text}");
     }
-    assert_eq!(Quality::from_thousandths(1001), Err(QualityError::AboveOne));
+    assert_eq!(Quality::try_from_thousandths(1001), Err(QualityError::AboveOne));
     assert!(matches!(
         "en;q=1.5".parse::<LanguageFilter>(),
         Err(ParseError::InvalidQuality { position: 5, .. })

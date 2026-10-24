@@ -18,7 +18,7 @@ use jsonld::{
 ///
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() -> anyhow::Result<()> {
-/// let processor = ContextProcessor::new()?;
+/// let processor = ContextProcessor::try_new()?;
 /// let alias = Context::Single(ContextEntry::Inline(r#"{"x":{"@id":"@context"}}"#.parse::<InlineContext>()?));
 /// let refused = processor.process_offline(&alias).await;
 /// assert!(matches!(

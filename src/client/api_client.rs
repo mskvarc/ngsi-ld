@@ -177,7 +177,7 @@ impl<T: Transport, M: Answering> Client<T, M> {
     ///
     /// Returns [`ClientError::Request`] when the operation itself refuses its parameters.
     pub fn unchecked<O: Operation>(&self, operation: &O) -> Result<UncheckedRequest, ClientError<T::Error>> {
-        UncheckedRequest::from_operation(operation, &self.endpoint).map_err(ClientError::Request)
+        UncheckedRequest::try_from_operation(operation, &self.endpoint).map_err(ClientError::Request)
     }
 
     /// Sends an unchecked request. An error response is decoded as for every other call, so a broker's rejection

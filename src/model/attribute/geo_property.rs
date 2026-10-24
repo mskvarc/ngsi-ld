@@ -35,7 +35,7 @@ use jstrict::Value as Json;
 ///     geometry::{Geometry, Position, Shape},
 /// };
 ///
-/// let point = GeoValue::from(Geometry::from(Shape::Point(Position::new(8.0, 40.0)?)));
+/// let point = GeoValue::from(Geometry::from(Shape::Point(Position::try_new(8.0, 40.0)?)));
 /// assert!(
 ///     point
 ///         .as_geometry()
@@ -92,7 +92,8 @@ impl GeoValue {
 ///     geometry::{Position, Shape},
 /// };
 ///
-/// let location = GeoProperty::builder(Shape::Point(Position::new(13.3986, 52.5547)?)).build()?;
+/// let location =
+///     GeoProperty::builder(Shape::Point(Position::try_new(13.3986, 52.5547)?)).build()?;
 /// assert!(
 ///     location
 ///         .value()

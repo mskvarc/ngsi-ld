@@ -61,7 +61,7 @@ pub enum DeliveryError {
 /// let headers = request.headers_mut();
 /// headers.typed_insert(ContentType::NgsiLd(NgsiLdMediaType::Json));
 /// headers.typed_insert(Link::json_ld_context(IriRefBuf::new("https://example.org/context.jsonld")?)?);
-/// headers.typed_insert(NgsiLdTenant::new("t1".parse()?)?);
+/// headers.typed_insert(NgsiLdTenant::try_new("t1".parse()?)?);
 /// let delivery = NotificationDelivery::read(request)?;
 /// assert_eq!(delivery.media_type(), NgsiLdMediaType::Json);
 /// assert_eq!(delivery.context().map(|context| context.as_str()), Some("https://example.org/context.jsonld"));

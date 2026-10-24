@@ -24,7 +24,7 @@ use crate::{
 ///     query::{Problem, geoquery},
 /// };
 ///
-/// let point = Shape::Point(Position::new(8.0, 40.0)?);
+/// let point = Shape::Point(Position::try_new(8.0, 40.0)?);
 /// let error = geoquery::near_max(0, point)
 ///     .geoproperty("1location")
 ///     .build()

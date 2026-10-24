@@ -32,7 +32,7 @@ fn gps() -> DatasetId {
 }
 
 fn point(longitude: f64, latitude: f64) -> Geometry {
-    Geometry::from(Shape::Point(Position::new(longitude, latitude).unwrap()))
+    Geometry::from(Shape::Point(Position::try_new(longitude, latitude).unwrap()))
 }
 
 /// Writes the entity in `form` and reads it back as a request entity.

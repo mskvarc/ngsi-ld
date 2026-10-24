@@ -31,10 +31,10 @@ pub enum ForwardedHostError {
 /// assert_eq!(host.to_string(), "broker.example.org:8443");
 /// assert_eq!(host.port(), Some(8443));
 /// assert_eq!(
-///     ForwardedHost::new(Host::Domain("caf\u{e9}.example".to_owned()))?.to_string(),
+///     ForwardedHost::try_new(Host::Domain("caf\u{e9}.example".to_owned()))?.to_string(),
 ///     "xn--caf-dma.example"
 /// );
-/// assert!(ForwardedHost::new(Host::Domain("a b".to_owned())).is_err());
+/// assert!(ForwardedHost::try_new(Host::Domain("a b".to_owned())).is_err());
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -52,7 +52,7 @@ impl ForwardedHost {
     /// # Errors
     ///
     /// Returns [`ForwardedHostError::Host`] when `host` is a domain no URL holds, such as one with a space.
-    pub fn new(host: Host) -> Result<ForwardedHost, ForwardedHostError> {
+    pub fn try_new(host: Host) -> Result<ForwardedHost, ForwardedHostError> {
         let host = canonical_host(host).map_err(ForwardedHostError::Host)?;
         Ok(ForwardedHost { host, port: None })
     }
@@ -80,7 +80,7 @@ impl TryFrom<Host> for ForwardedHost {
     type Error = ForwardedHostError;
 
     fn try_from(host: Host) -> Result<ForwardedHost, ForwardedHostError> {
-        ForwardedHost::new(host)
+        ForwardedHost::try_new(host)
     }
 }
 
@@ -132,11 +132,11 @@ mod tests {
     #[test]
     fn a_constructed_host_is_held_as_a_url_holds_it() {
         let domain = |name: &str| Host::Domain(name.to_owned());
-        let host = ForwardedHost::new(domain("Caf\u{e9}.Example")).unwrap().with_port(8080);
+        let host = ForwardedHost::try_new(domain("Caf\u{e9}.Example")).unwrap().with_port(8080);
         assert_eq!(host.to_string(), "xn--caf-dma.example:8080");
         assert_eq!(host.to_string().parse::<ForwardedHost>(), Ok(host));
         for name in ["a b", "a/b", ""] {
-            assert!(matches!(ForwardedHost::new(domain(name)), Err(ForwardedHostError::Host(_))), "{name}");
+            assert!(matches!(ForwardedHost::try_new(domain(name)), Err(ForwardedHostError::Host(_))), "{name}");
         }
     }
 

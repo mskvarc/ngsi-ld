@@ -16,7 +16,10 @@ fn a_number_keeps_its_lexical_form() {
 fn a_json_ld_value_object_is_a_typed_value_and_round_trips() {
     let json = r#"{"@type":"DateTime","@value":"2018-12-04T12:00:00Z"}"#;
     let value = parse(json).unwrap();
-    assert_eq!(value, Value::Typed(TypedValue::new(CoreDatatype::DateTime, "2018-12-04T12:00:00Z").unwrap()));
+    assert_eq!(
+        value,
+        Value::Typed(TypedValue::try_new(CoreDatatype::DateTime, "2018-12-04T12:00:00Z").unwrap())
+    );
     assert_eq!(value.to_string(), json);
 }
 
@@ -101,9 +104,9 @@ fn a_core_typed_value_holds_a_lexical_form_of_its_datatype() {
         (CoreDatatype::Date, "2018-12-04"),
         (CoreDatatype::Time, "12:00:00Z"),
     ] {
-        let typed = TypedValue::new(datatype, lexical).unwrap();
+        let typed = TypedValue::try_new(datatype, lexical).unwrap();
         assert_eq!((typed.datatype(), typed.lexical()), (&Datatype::Core(datatype), lexical));
-        let error = TypedValue::new(datatype, "yesterday").unwrap_err();
+        let error = TypedValue::try_new(datatype, "yesterday").unwrap_err();
         assert_eq!(error.datatype, datatype);
     }
 }
@@ -112,9 +115,9 @@ fn a_core_typed_value_holds_a_lexical_form_of_its_datatype() {
 fn a_datatype_term_naming_a_core_datatype_is_that_datatype() {
     let term: VocabTerm = "Date".parse().unwrap();
     assert_eq!(Datatype::from(term.clone()), Datatype::Core(CoreDatatype::Date));
-    assert!(TypedValue::new(Datatype::Other(term), "not a date").is_err());
+    assert!(TypedValue::try_new(Datatype::Other(term), "not a date").is_err());
     let other: VocabTerm = "xsd:gYear".parse().unwrap();
-    let typed = TypedValue::new(other.clone(), "2018").unwrap();
+    let typed = TypedValue::try_new(other.clone(), "2018").unwrap();
     assert_eq!(typed.datatype(), &Datatype::Other(other));
 }
 

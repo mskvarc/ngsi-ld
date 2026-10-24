@@ -36,7 +36,7 @@ pub enum ContentRangeSize {
 ///
 /// The `headers` crate's `ContentRange` reads the `bytes` unit only, so this one reads the unit NGSI-LD defines.
 /// Range units are case-insensitive (RFC 9110 section 14.1), so `datetime` is read too; the header is always
-/// written `DateTime`. The field value is rendered once, by [`ContentRange::new`], since
+/// written `DateTime`. The field value is rendered once, by [`ContentRange::try_new`], since
 /// [`headers::Header::encode`] cannot fail.
 ///
 /// ```
@@ -81,7 +81,7 @@ impl ContentRange {
     ///
     /// Returns [`InvalidFieldValue`] when the rendered range cannot be carried in a header field, which the
     /// ASCII lexical form of a `DateTime` (clause 4.6.3) never causes.
-    pub fn new(start: DateTime, end: DateTime, size: ContentRangeSize) -> Result<ContentRange, InvalidFieldValue> {
+    pub fn try_new(start: DateTime, end: DateTime, size: ContentRangeSize) -> Result<ContentRange, InvalidFieldValue> {
         let size_text = match size {
             ContentRangeSize::Unknown => "*".to_owned(),
             ContentRangeSize::LastN(count) => count.to_string(),
@@ -126,7 +126,7 @@ impl ContentRange {
             digits if !digits.is_empty() && digits.bytes().all(|byte| byte.is_ascii_digit()) => ContentRangeSize::LastN(digits.parse().ok()?),
             _ => return None,
         };
-        ContentRange::new(start, end, size).ok()
+        ContentRange::try_new(start, end, size).ok()
     }
 }
 
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn a_built_range_encodes_and_decodes_back() {
-        let range = ContentRange::new(
+        let range = ContentRange::try_new(
             time("2018-08-01T12:07:00Z"),
             time("2018-08-01T12:03:00Z"),
             ContentRangeSize::LastN(NonZeroU64::new(3).unwrap()),

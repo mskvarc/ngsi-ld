@@ -54,7 +54,7 @@ fn b() -> EntityId {
 
 /// The entity map at [`MAP`].
 fn entity_map() -> NgsiLdEntityMap {
-    NgsiLdEntityMap::new(IriRefBuf::new(MAP.to_owned()).unwrap()).unwrap()
+    NgsiLdEntityMap::try_new(IriRefBuf::new(MAP.to_owned()).unwrap()).unwrap()
 }
 
 #[tokio::test]

@@ -49,7 +49,7 @@ fn assert_empty<T>(result: Result<T, BuildError>, member: ReservedMember) {
 }
 
 fn point() -> Geometry {
-    Geometry::from(Shape::Point(Position::new(8.0, 40.0).unwrap()))
+    Geometry::from(Shape::Point(Position::try_new(8.0, 40.0).unwrap()))
 }
 
 #[test]

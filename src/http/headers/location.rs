@@ -8,14 +8,14 @@ use iri_rs::IriRefBuf;
 /// operation made (NGSI-LD clause 6.4.3.1).
 ///
 /// RFC 9110 makes the value a URI reference, so a relative path is kept as written. The field value is rendered
-/// once, by [`Location::new`], and kept: an IRI holding non-ASCII characters cannot be carried verbatim, and
+/// once, by [`Location::try_new`], and kept: an IRI holding non-ASCII characters cannot be carried verbatim, and
 /// [`headers::Header::encode`] cannot fail.
 ///
 /// ```
 /// use iri_rs::IriRefBuf;
 /// use ngsi_ld::http::headers::Location;
 ///
-/// let location = Location::new(IriRefBuf::new(
+/// let location = Location::try_new(IriRefBuf::new(
 ///     "/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567",
 /// )?)?;
 /// assert_eq!(
@@ -33,7 +33,7 @@ impl Location {
     /// # Errors
     ///
     /// Returns [`InvalidFieldValue`] when the reference cannot be carried in a header field.
-    pub fn new(target: IriRefBuf) -> Result<Location, InvalidFieldValue> {
+    pub fn try_new(target: IriRefBuf) -> Result<Location, InvalidFieldValue> {
         TextField::new(target).map(Location)
     }
 
@@ -89,12 +89,12 @@ mod tests {
 
     #[test]
     fn a_reference_with_non_ascii_characters_cannot_be_carried() {
-        assert!(Location::new(IriRefBuf::new("/entities/caf\u{e9}").unwrap()).is_err());
+        assert!(Location::try_new(IriRefBuf::new("/entities/caf\u{e9}").unwrap()).is_err());
     }
 
     #[test]
     fn a_location_encodes_its_reference_and_decodes_back() {
-        let location = Location::new(IriRefBuf::new("https://broker.example/ngsi-ld/v1/subscriptions/urn:ngsi-ld:Subscription:1").unwrap()).unwrap();
+        let location = Location::try_new(IriRefBuf::new("https://broker.example/ngsi-ld/v1/subscriptions/urn:ngsi-ld:Subscription:1").unwrap()).unwrap();
         let mut encoded = Vec::new();
         location.encode(&mut encoded);
         assert_eq!(

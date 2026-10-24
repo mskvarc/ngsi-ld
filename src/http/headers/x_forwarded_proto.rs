@@ -25,7 +25,7 @@ static X_FORWARDED_PROTO: HeaderName = HeaderName::from_static("x-forwarded-prot
 /// use ngsi_ld::http::headers::{Scheme, XForwardedProto};
 ///
 /// let mut headers = HeaderMap::new();
-/// headers.typed_insert(XForwardedProto::new("https".parse::<Scheme>()?)?);
+/// headers.typed_insert(XForwardedProto::try_new("https".parse::<Scheme>()?)?);
 /// assert_eq!(headers[XForwardedProto::name()], "https");
 /// assert_eq!(
 ///     headers
@@ -45,7 +45,7 @@ impl XForwardedProto {
     ///
     /// Returns [`InvalidFieldValue`] when the rendering cannot be carried in a header field, which a scheme never
     /// causes.
-    pub fn new(scheme: Scheme) -> Result<XForwardedProto, InvalidFieldValue> {
+    pub fn try_new(scheme: Scheme) -> Result<XForwardedProto, InvalidFieldValue> {
         FieldList::new(vec![scheme]).map(XForwardedProto)
     }
 
@@ -55,7 +55,7 @@ impl XForwardedProto {
     ///
     /// Returns [`ListFieldError::Empty`] when `schemes` is empty, and [`ListFieldError::FieldValue`] when the
     /// rendering cannot be carried in a header field, which schemes never cause.
-    pub fn from_schemes(schemes: impl IntoIterator<Item = Scheme>) -> Result<XForwardedProto, ListFieldError> {
+    pub fn try_from_schemes(schemes: impl IntoIterator<Item = Scheme>) -> Result<XForwardedProto, ListFieldError> {
         FieldList::non_empty(schemes.into_iter().collect()).map(XForwardedProto)
     }
 
@@ -75,7 +75,7 @@ impl headers::Header for XForwardedProto {
     where
         I: Iterator<Item = &'i HeaderValue>,
     {
-        XForwardedProto::from_schemes(decode_elements(values, str::parse::<Scheme>)?).map_err(|_| headers::Error::invalid())
+        XForwardedProto::try_from_schemes(decode_elements(values, str::parse::<Scheme>)?).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn each_scheme_encodes_and_decodes_back() {
         for text in ["http", "https", "ws"] {
-            let header = XForwardedProto::new(scheme(text)).unwrap();
+            let header = XForwardedProto::try_new(scheme(text)).unwrap();
             assert_eq!(encoded(&header), vec![HeaderValue::from_str(text).unwrap()]);
             assert_eq!(XForwardedProto::decode(&mut encoded(&header).iter()).ok(), Some(header));
         }
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn a_chain_of_schemes_keeps_its_order() {
-        let header = XForwardedProto::from_schemes([scheme("https"), scheme("http")]).unwrap();
+        let header = XForwardedProto::try_from_schemes([scheme("https"), scheme("http")]).unwrap();
         assert_eq!(encoded(&header), vec![HeaderValue::from_static("https, http")]);
         assert_eq!(decode_line::<XForwardedProto>(" HTTPS ,http"), Some(header));
     }
@@ -121,6 +121,6 @@ mod tests {
         for raw in ["", " , ", "1http", "https:", "\"https\"", "https http"] {
             assert_eq!(decode_line::<XForwardedProto>(raw), None, "{raw}");
         }
-        assert!(matches!(XForwardedProto::from_schemes([]), Err(ListFieldError::Empty)));
+        assert!(matches!(XForwardedProto::try_from_schemes([]), Err(ListFieldError::Empty)));
     }
 }

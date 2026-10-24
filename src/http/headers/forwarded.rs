@@ -34,7 +34,7 @@ use http::{HeaderName, HeaderValue, header::FORWARDED};
 ///     .forwarded_for(Node::unknown())
 ///     .build()?;
 /// let mut headers = HeaderMap::new();
-/// headers.typed_insert(Forwarded::new(client)?.appended(proxy)?);
+/// headers.typed_insert(Forwarded::try_new(client)?.appended(proxy)?);
 /// assert_eq!(
 ///     headers[&header::FORWARDED],
 ///     "for=192.0.2.43;proto=https, for=unknown"
@@ -61,7 +61,7 @@ impl Forwarded {
     ///
     /// Returns [`InvalidFieldValue`] when the rendering cannot be carried in a header field, which validated
     /// elements never cause.
-    pub fn new(element: ForwardedElement) -> Result<Forwarded, InvalidFieldValue> {
+    pub fn try_new(element: ForwardedElement) -> Result<Forwarded, InvalidFieldValue> {
         FieldList::new(vec![element]).map(Forwarded)
     }
 
@@ -71,7 +71,7 @@ impl Forwarded {
     ///
     /// Returns [`ListFieldError::Empty`] when `elements` is empty, and [`ListFieldError::FieldValue`] when the
     /// rendering cannot be carried in a header field, which validated elements never cause.
-    pub fn from_elements(elements: impl IntoIterator<Item = ForwardedElement>) -> Result<Forwarded, ListFieldError> {
+    pub fn try_from_elements(elements: impl IntoIterator<Item = ForwardedElement>) -> Result<Forwarded, ListFieldError> {
         FieldList::non_empty(elements.into_iter().collect()).map(Forwarded)
     }
 
@@ -103,7 +103,7 @@ impl headers::Header for Forwarded {
     where
         I: Iterator<Item = &'i HeaderValue>,
     {
-        Forwarded::from_elements(decode_elements(values, str::parse::<ForwardedElement>)?).map_err(|_| headers::Error::invalid())
+        Forwarded::try_from_elements(decode_elements(values, str::parse::<ForwardedElement>)?).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -142,7 +142,7 @@ mod tests {
 
     #[test]
     fn elements_encode_in_order_and_decode_back() {
-        let forwarded = Forwarded::new(element("for=192.0.2.43"))
+        let forwarded = Forwarded::try_new(element("for=192.0.2.43"))
             .unwrap()
             .appended(element("for=\"[2001:db8::1]\";proto=https"))
             .unwrap();
@@ -151,7 +151,7 @@ mod tests {
             vec![HeaderValue::from_static("for=192.0.2.43, for=\"[2001:db8::1]\";proto=https")]
         );
         assert_eq!(
-            Forwarded::from_elements([element("for=192.0.2.43"), element("proto=https;for=\"[2001:db8::1]\"")]).ok(),
+            Forwarded::try_from_elements([element("for=192.0.2.43"), element("proto=https;for=\"[2001:db8::1]\"")]).ok(),
             Some(forwarded.clone())
         );
         assert_eq!(Forwarded::decode(&mut encoded(&forwarded).iter()).ok(), Some(forwarded));
@@ -170,6 +170,6 @@ mod tests {
         for raw in ["", " , ", ";", "for", "secret=1", "for=a;for=b", "for=\"192.0.2.43", "for=[::1]", "proto=1http"] {
             assert_eq!(decode_line::<Forwarded>(raw), None, "{raw}");
         }
-        assert!(matches!(Forwarded::from_elements([]), Err(ListFieldError::Empty)));
+        assert!(matches!(Forwarded::try_from_elements([]), Err(ListFieldError::Empty)));
     }
 }

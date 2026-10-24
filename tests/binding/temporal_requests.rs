@@ -403,7 +403,7 @@ fn a_temporal_query_refuses_what_the_specification_refuses() {
     assert!(matches!(refusal(&zero), RequestError::Argument(ArgumentError::ZeroLimitWithoutCount)));
     let by_speed = ordering::by("speed").build().unwrap();
     let nearest = ordering::nearest("location")
-        .origin(Shape::Point(Position::new(8.0, 40.0).unwrap()))
+        .origin(Shape::Point(Position::try_new(8.0, 40.0).unwrap()))
         .build()
         .unwrap();
     for ordering in [&by_speed, &nearest] {

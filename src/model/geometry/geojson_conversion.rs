@@ -26,7 +26,7 @@ impl TryFrom<&geojson::Position> for Position {
 
     fn try_from(position: &geojson::Position) -> Result<Self, Self::Error> {
         match *position.as_slice() {
-            [longitude, latitude] => Self::new(longitude, latitude),
+            [longitude, latitude] => Self::try_new(longitude, latitude),
             [longitude, latitude, altitude] => Self::with_altitude(longitude, latitude, altitude),
             _ => Err(GeometryError::InvalidPosition),
         }
@@ -50,7 +50,7 @@ fn geojson_polygon(polygon: &Polygon) -> Vec<Vec<geojson::Position>> {
 
 /// Converts `geojson` rings into a polygon, holding them to RFC 7946.
 fn polygon(rings: &[Vec<geojson::Position>]) -> Result<Polygon, GeometryError> {
-    Polygon::new(rings.iter().map(|ring| LinearRing::new(positions(ring)?)).collect::<Result<_, _>>()?)
+    Polygon::try_new(rings.iter().map(|ring| LinearRing::try_new(positions(ring)?)).collect::<Result<_, _>>()?)
 }
 
 /// Converts a shape into a `geojson` geometry value.
@@ -88,11 +88,11 @@ fn geojson_bbox(bbox: &BoundingBox) -> Bbox {
 /// Converts a `geojson` bounding box: four or six numbers, each corner held to the WGS 84 ranges.
 fn bbox(bbox: &[f64]) -> Result<BoundingBox, GeometryError> {
     let (south_west, north_east) = match *bbox {
-        [west, south, east, north] => (Position::new(west, south)?, Position::new(east, north)?),
+        [west, south, east, north] => (Position::try_new(west, south)?, Position::try_new(east, north)?),
         [west, south, low, east, north, high] => (Position::with_altitude(west, south, low)?, Position::with_altitude(east, north, high)?),
         _ => return Err(GeometryError::InvalidBoundingBox),
     };
-    BoundingBox::new(south_west, north_east)
+    BoundingBox::try_new(south_west, north_east)
 }
 
 /// Converts a `geojson` geometry value. A `GeometryCollection` is excluded by NGSI-LD clause 4.7.1.
@@ -100,10 +100,10 @@ fn shape(value: &GeometryValue) -> Result<Shape, GeometryError> {
     match value {
         GeometryValue::Point { coordinates } => Position::try_from(coordinates).map(Shape::Point),
         GeometryValue::MultiPoint { coordinates } => positions(coordinates).map(Shape::MultiPoint),
-        GeometryValue::LineString { coordinates } => LineString::new(positions(coordinates)?).map(Shape::LineString),
+        GeometryValue::LineString { coordinates } => LineString::try_new(positions(coordinates)?).map(Shape::LineString),
         GeometryValue::MultiLineString { coordinates } => coordinates
             .iter()
-            .map(|line| LineString::new(positions(line)?))
+            .map(|line| LineString::try_new(positions(line)?))
             .collect::<Result<_, _>>()
             .map(Shape::MultiLineString),
         GeometryValue::Polygon { coordinates } => polygon(coordinates).map(Shape::Polygon),

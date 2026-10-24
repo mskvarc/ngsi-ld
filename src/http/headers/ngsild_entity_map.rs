@@ -23,7 +23,7 @@ static NGSILD_ENTITY_MAP: HeaderName = HeaderName::from_static("ngsild-entitymap
 /// use iri_rs::IriRefBuf;
 /// use ngsi_ld::http::headers::NgsiLdEntityMap;
 ///
-/// let map = NgsiLdEntityMap::new(IriRefBuf::new(
+/// let map = NgsiLdEntityMap::try_new(IriRefBuf::new(
 ///     "/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1",
 /// )?)?;
 /// assert_eq!(
@@ -41,7 +41,7 @@ impl NgsiLdEntityMap {
     /// # Errors
     ///
     /// Returns [`InvalidFieldValue`] when the reference cannot be carried in a header field.
-    pub fn new(target: IriRefBuf) -> Result<NgsiLdEntityMap, InvalidFieldValue> {
+    pub fn try_new(target: IriRefBuf) -> Result<NgsiLdEntityMap, InvalidFieldValue> {
         TextField::new(target).map(NgsiLdEntityMap)
     }
 
@@ -60,7 +60,7 @@ impl NgsiLdEntityMap {
     /// use ngsi_ld::http::headers::NgsiLdEntityMap;
     ///
     /// let target = IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1")?;
-    /// let map = NgsiLdEntityMap::new(target)?;
+    /// let map = NgsiLdEntityMap::try_new(target)?;
     /// assert_eq!(
     ///     map.id().map(|id| id.to_string()).as_deref(),
     ///     Some("urn:ngsi-ld:EntityMap:1")
@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn a_map_location_encodes_and_decodes_back() {
-        let map = NgsiLdEntityMap::new(IriRefBuf::new("urn:ngsi-ld:EntityMap:7").unwrap()).unwrap();
+        let map = NgsiLdEntityMap::try_new(IriRefBuf::new("urn:ngsi-ld:EntityMap:7").unwrap()).unwrap();
         let mut encoded = Vec::new();
         map.encode(&mut encoded);
         assert_eq!(encoded, vec![HeaderValue::from_static("urn:ngsi-ld:EntityMap:7")]);

@@ -20,9 +20,9 @@ use jstrict::{Object, Value as Json};
 /// ```
 /// use ngsi_ld::model::{CoreDatatype, Datatype, TypedValue};
 ///
-/// let tested = TypedValue::new(CoreDatatype::DateTime, "2018-12-04T12:00:00Z")?;
+/// let tested = TypedValue::try_new(CoreDatatype::DateTime, "2018-12-04T12:00:00Z")?;
 /// assert_eq!(tested.datatype(), &Datatype::Core(CoreDatatype::DateTime));
-/// assert!(TypedValue::new(CoreDatatype::Date, "yesterday").is_err());
+/// assert!(TypedValue::try_new(CoreDatatype::Date, "yesterday").is_err());
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -54,7 +54,7 @@ impl TypedValue {
     /// # Errors
     ///
     /// Returns [`TypedValueError`] when the datatype is a core one and `lexical` is not a lexical form of it.
-    pub fn new(datatype: impl Into<Datatype>, lexical: impl Into<String>) -> Result<Self, TypedValueError> {
+    pub fn try_new(datatype: impl Into<Datatype>, lexical: impl Into<String>) -> Result<Self, TypedValueError> {
         let datatype = match datatype.into() {
             Datatype::Other(term) => Datatype::from(term),
             core @ Datatype::Core(_) => core,
@@ -99,7 +99,7 @@ impl TypedValue {
             _ => return None,
         };
         let datatype = VocabTerm::try_new(datatype.as_str()?).ok()?;
-        Some(TypedValue::new(datatype, lexical.as_str()?))
+        Some(TypedValue::try_new(datatype, lexical.as_str()?))
     }
 
     /// Writes the typed value as a JSON-LD value object, `@type` first.

@@ -120,7 +120,7 @@ impl FromStr for EntityMapLifetime {
 /// let endpoint = Endpoint::builder()
 ///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
 ///     .build()?;
-/// let map = NgsiLdEntityMap::new(IriRefBuf::new(
+/// let map = NgsiLdEntityMap::try_new(IriRefBuf::new(
 ///     "/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1",
 /// )?)?;
 /// let reuse = EntityMapRequest::reuse(map);
@@ -245,7 +245,7 @@ mod tests {
 
     /// The map at `/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1`.
     fn map() -> NgsiLdEntityMap {
-        NgsiLdEntityMap::new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1".to_owned()).unwrap()).unwrap()
+        NgsiLdEntityMap::try_new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1".to_owned()).unwrap()).unwrap()
     }
 
     /// The query string and the `Query` body a request writes.

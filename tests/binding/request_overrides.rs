@@ -143,7 +143,7 @@ fn an_endpoint_header_reaches_every_request_and_a_pipeline_header_is_refused() {
     assert_eq!(request.method(), Method::DELETE);
     assert_eq!(header_value(&request, &header::IF_NONE_MATCH), Some("*"));
     assert!(matches!(
-        endpoint.with_header(NgsiLdTenant::new("fleet".parse().unwrap()).unwrap()),
+        endpoint.with_header(NgsiLdTenant::try_new("fleet".parse().unwrap()).unwrap()),
         Err(EndpointError::ReservedHeader { name }) if name == NgsiLdTenant::name()
     ));
 }
@@ -235,7 +235,7 @@ fn a_context_profile_is_sent_on_the_context_link_and_refused_where_no_link_trave
     let retrieve = retrieve_entity(&id, Lossless::Normalized).to_request(&bare).unwrap();
     assert_eq!(
         link_of(&retrieve),
-        Some(Link::new(profiled_context_value(CORE_CONTEXT.as_str(), "https://uri.etsi.org/ngsi-ld/profile/version")).unwrap())
+        Some(Link::try_new(profiled_context_value(CORE_CONTEXT.as_str(), "https://uri.etsi.org/ngsi-ld/profile/version")).unwrap())
     );
     let ld_json = endpoint_with(ContextDelivery::LdJsonBody).with_context_profile(profile).unwrap();
     let vehicle = vehicle();

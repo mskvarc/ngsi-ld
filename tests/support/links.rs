@@ -30,5 +30,5 @@ pub(crate) fn link_value(target: &str, rel: RelationType) -> LinkValue {
 
 /// The `Link` field value carrying `values`, in order, as a broker writes it.
 pub(crate) fn link_field(values: impl IntoIterator<Item = LinkValue>) -> String {
-    Link::from_values(values.into_iter().collect()).unwrap().to_string()
+    Link::try_from_values(values.into_iter().collect()).unwrap().to_string()
 }

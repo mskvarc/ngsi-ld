@@ -105,7 +105,7 @@ async fn main() -> anyhow::Result<()> {
     let link = Link::core_context()?;
 
     let stand_in = StandIn {
-        location: Location::new(IriRefBuf::new(VEHICLE.to_owned())?)?,
+        location: Location::try_new(IriRefBuf::new(VEHICLE.to_owned())?)?,
         vehicle: vehicle.render(Representation::Normalized),
         link: Link::core_context()?,
         received: Mutex::default(),

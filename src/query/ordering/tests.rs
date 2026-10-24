@@ -23,7 +23,7 @@ fn round_trip(text: &str) -> OrderBy {
 
 /// A point at the given coordinates.
 fn point(longitude: f64, latitude: f64) -> Shape {
-    Shape::Point(Position::new(longitude, latitude).unwrap())
+    Shape::Point(Position::try_new(longitude, latitude).unwrap())
 }
 
 #[test]
@@ -79,9 +79,9 @@ fn or_08_and_09_distance_from_a_point() {
 fn or_10_distance_from_a_line_string() {
     let positions = [(8.0, 40.0), (9.0, 42.0), (9.0, 45.0), (8.0, 40.0)]
         .into_iter()
-        .map(|(longitude, latitude)| Position::new(longitude, latitude).unwrap())
+        .map(|(longitude, latitude)| Position::try_new(longitude, latitude).unwrap())
         .collect();
-    let line = Shape::LineString(LineString::new(positions).unwrap());
+    let line = Shape::LineString(LineString::try_new(positions).unwrap());
     let ordering = ordering::nearest("location").origin(line.clone()).build().unwrap();
     assert_eq!(ordering.origin(), Some(&line));
 }

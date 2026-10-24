@@ -21,7 +21,7 @@ pub(crate) fn inline(json: &str) -> Context {
 
 /// A context processor.
 pub(crate) fn processor() -> ContextProcessor {
-    ContextProcessor::new().unwrap()
+    ContextProcessor::try_new().unwrap()
 }
 
 /// The active context of the core context alone.

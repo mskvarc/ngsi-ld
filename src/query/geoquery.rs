@@ -11,7 +11,7 @@
 //!     query::geoquery,
 //! };
 //!
-//! let point = Shape::Point(Position::new(8.0, 40.0)?);
+//! let point = Shape::Point(Position::try_new(8.0, 40.0)?);
 //! let near = geoquery::near_max(2000, point)
 //!     .geoproperty("observationSpace")
 //!     .build()?;
@@ -224,7 +224,7 @@ impl FromStr for GeoRelation {
 ///
 /// let query = GeoQuery::new(
 ///     GeoRelation::Intersects,
-///     Shape::Point(Position::new(8.0, 40.0)?),
+///     Shape::Point(Position::try_new(8.0, 40.0)?),
 /// );
 /// assert_eq!(query.relation(), &GeoRelation::Intersects);
 /// assert!(query.geoproperty().is_none());

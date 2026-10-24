@@ -55,7 +55,7 @@ impl PreferenceApplied {
     /// # Errors
     ///
     /// Returns [`InvalidFieldValue`] when the rendering cannot be carried in a header field.
-    pub fn new(version: SpecVersion) -> Result<PreferenceApplied, InvalidFieldValue> {
+    pub fn try_new(version: SpecVersion) -> Result<PreferenceApplied, InvalidFieldValue> {
         let encoded = encode_text(&format!("{NGSI_LD_PREFERENCE}={version}"))?;
         Ok(PreferenceApplied { version, encoded })
     }
@@ -81,7 +81,7 @@ impl headers::Header for PreferenceApplied {
             .ok_or_else(headers::Error::invalid)?
             .parse()
             .map_err(|_| headers::Error::invalid())?;
-        PreferenceApplied::new(version).map_err(|_| headers::Error::invalid())
+        PreferenceApplied::try_new(version).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn a_version_encodes_as_its_token_and_decodes_back() {
-        let applied = PreferenceApplied::new(SpecVersion::new(1, 8)).unwrap();
+        let applied = PreferenceApplied::try_new(SpecVersion::new(1, 8)).unwrap();
         let mut encoded = Vec::new();
         applied.encode(&mut encoded);
         assert_eq!(encoded, vec![HeaderValue::from_static("ngsi-ld=1.8")]);

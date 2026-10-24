@@ -48,7 +48,7 @@ impl Quality {
     /// # Errors
     ///
     /// Returns [`QualityError::AboveOne`] when `thousandths` is above 1000.
-    pub const fn from_thousandths(thousandths: u16) -> Result<Quality, QualityError> {
+    pub const fn try_from_thousandths(thousandths: u16) -> Result<Quality, QualityError> {
         if thousandths > MAXIMUM_QUALITY {
             Err(QualityError::AboveOne)
         } else {
@@ -117,9 +117,9 @@ impl fmt::Display for Quality {
 /// use ngsi_ld::query::{Quality, Weighted, language_filter::LanguageRange};
 ///
 /// let any: Weighted<LanguageRange> =
-///     Weighted::new(LanguageRange::Any).with_quality(Quality::from_thousandths(500)?);
+///     Weighted::new(LanguageRange::Any).with_quality(Quality::try_from_thousandths(500)?);
 /// assert_eq!(any.to_string(), "*;q=0.5");
-/// assert_eq!(any.quality(), Some(Quality::from_thousandths(500)?));
+/// assert_eq!(any.quality(), Some(Quality::try_from_thousandths(500)?));
 /// assert_eq!(any.value(), &LanguageRange::Any);
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -235,14 +235,14 @@ mod tests {
         for text in ["1.5", "1.001", "2", "10", "9.0"] {
             assert_eq!(text.parse::<Quality>(), Err(QualityError::AboveOne), "{text}");
         }
-        assert_eq!(Quality::from_thousandths(1001), Err(QualityError::AboveOne));
-        assert_eq!(Quality::from_thousandths(1000).map(Quality::thousandths), Ok(1000));
+        assert_eq!(Quality::try_from_thousandths(1001), Err(QualityError::AboveOne));
+        assert_eq!(Quality::try_from_thousandths(1000).map(Quality::thousandths), Ok(1000));
     }
 
     #[test]
     fn a_quality_prints_its_shortest_form_and_reads_back() {
         for (thousandths, text) in [(1000, "1"), (0, "0"), (900, "0.9"), (850, "0.85"), (5, "0.005")] {
-            let quality = Quality::from_thousandths(thousandths).unwrap();
+            let quality = Quality::try_from_thousandths(thousandths).unwrap();
             assert_eq!(quality.to_string(), text);
             assert_eq!(text.parse::<Quality>(), Ok(quality));
         }
@@ -250,7 +250,7 @@ mod tests {
 
     #[test]
     fn an_element_renders_its_weight_only_when_it_has_one() {
-        let quality = |thousandths| Quality::from_thousandths(thousandths).unwrap();
+        let quality = |thousandths| Quality::try_from_thousandths(thousandths).unwrap();
         assert_eq!(Weighted::<&str>::new("gzip").to_string(), "gzip");
         assert_eq!(Weighted::<&str>::new("gzip").with_quality(quality(0)).to_string(), "gzip;q=0");
         assert_eq!(Weighted::<&str>::new("gzip").with_quality(quality(1000)).to_string(), "gzip;q=1");
@@ -261,8 +261,11 @@ mod tests {
 
     #[test]
     fn mapping_an_element_keeps_its_weight() {
-        let weighted = Weighted::<&str>::new("fr").with_quality(Quality::from_thousandths(900).unwrap());
-        assert_eq!(weighted.map(str::len), Weighted::from_parts(2, Some(Quality::from_thousandths(900).unwrap())));
+        let weighted = Weighted::<&str>::new("fr").with_quality(Quality::try_from_thousandths(900).unwrap());
+        assert_eq!(
+            weighted.map(str::len),
+            Weighted::from_parts(2, Some(Quality::try_from_thousandths(900).unwrap()))
+        );
         assert_eq!(Weighted::<&str>::new("fr").map(str::len).quality(), None);
     }
 }

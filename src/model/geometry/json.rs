@@ -215,12 +215,12 @@ fn list<T>(json: &Json, item: fn(&Json) -> Result<T, GeometryError>) -> Result<V
 
 /// Reads a line string's coordinates.
 fn line_string(json: &Json) -> Result<LineString, GeometryError> {
-    LineString::new(list(json, Position::from_json)?)
+    LineString::try_new(list(json, Position::from_json)?)
 }
 
 /// Reads a polygon's coordinates.
 fn polygon(json: &Json) -> Result<Polygon, GeometryError> {
-    Polygon::new(list(json, |ring| LinearRing::new(list(ring, Position::from_json)?))?)
+    Polygon::try_new(list(json, |ring| LinearRing::try_new(list(ring, Position::from_json)?))?)
 }
 
 /// Writes positions as a JSON array.

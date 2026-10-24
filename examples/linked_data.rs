@@ -49,7 +49,7 @@ async fn read(processor: &ContextProcessor, text: &str) -> anyhow::Result<(Entit
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    let processor = ContextProcessor::new()?;
+    let processor = ContextProcessor::try_new()?;
     let (fleet_vehicle, fleet) = read(&processor, FLEET_VEHICLE).await?;
     let (garage_vehicle, garage) = read(&processor, GARAGE_VEHICLE).await?;
 

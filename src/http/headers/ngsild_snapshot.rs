@@ -13,7 +13,7 @@ static NGSILD_SNAPSHOT: HeaderName = HeaderName::from_static("ngsild-snapshot");
 /// value is the snapshot's identifier, and the broker repeats it in the response.
 ///
 /// A snapshot id is a URI, which a header carries as written; an IRI with characters outside ASCII cannot be
-/// carried, so [`NgsiLdSnapshot::new`] refuses it.
+/// carried, so [`NgsiLdSnapshot::try_new`] refuses it.
 ///
 /// ```
 /// use headers::{Header, HeaderMapExt};
@@ -22,7 +22,7 @@ static NGSILD_SNAPSHOT: HeaderName = HeaderName::from_static("ngsild-snapshot");
 /// use ngsi_ld::{http::headers::NgsiLdSnapshot, snapshot::SnapshotId};
 ///
 /// let mut headers = HeaderMap::new();
-/// headers.typed_insert(NgsiLdSnapshot::new(SnapshotId::from(iri!(
+/// headers.typed_insert(NgsiLdSnapshot::try_new(SnapshotId::from(iri!(
 ///     "urn:ngsi-ld:Snapshot:1"
 /// )))?);
 /// assert_eq!(headers[NgsiLdSnapshot::name()], "urn:ngsi-ld:Snapshot:1");
@@ -37,7 +37,7 @@ impl NgsiLdSnapshot {
     /// # Errors
     ///
     /// Returns [`InvalidFieldValue`] when the identifier holds characters a header field cannot carry.
-    pub fn new(snapshot: SnapshotId) -> Result<NgsiLdSnapshot, InvalidFieldValue> {
+    pub fn try_new(snapshot: SnapshotId) -> Result<NgsiLdSnapshot, InvalidFieldValue> {
         TextField::new(snapshot).map(NgsiLdSnapshot)
     }
 
@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn a_snapshot_encodes_as_written_and_decodes_back() {
-        let header = NgsiLdSnapshot::new(SnapshotId::from(iri!("urn:ngsi-ld:Snapshot:1"))).unwrap();
+        let header = NgsiLdSnapshot::try_new(SnapshotId::from(iri!("urn:ngsi-ld:Snapshot:1"))).unwrap();
         let mut encoded = Vec::new();
         header.encode(&mut encoded);
         assert_eq!(encoded, vec![HeaderValue::from_static("urn:ngsi-ld:Snapshot:1")]);
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn an_iri_outside_ascii_cannot_be_carried() {
-        assert!(NgsiLdSnapshot::new("urn:ngsi-ld:Snapshot:é".parse().unwrap()).is_err());
+        assert!(NgsiLdSnapshot::try_new("urn:ngsi-ld:Snapshot:é".parse().unwrap()).is_err());
     }
 
     #[test]

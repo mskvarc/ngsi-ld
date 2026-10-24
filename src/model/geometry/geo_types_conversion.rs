@@ -21,7 +21,7 @@ impl TryFrom<Coord> for Position {
     type Error = GeometryError;
 
     fn try_from(coord: Coord) -> Result<Self, Self::Error> {
-        Self::new(coord.x, coord.y)
+        Self::try_new(coord.x, coord.y)
     }
 }
 
@@ -45,10 +45,10 @@ fn geo_polygon(polygon: &Polygon) -> geo_types::Polygon {
 /// Converts a `geo-types` polygon, holding its rings to RFC 7946 (closed, at least four positions).
 fn polygon(polygon: geo_types::Polygon) -> Result<Polygon, GeometryError> {
     let (exterior, interiors) = polygon.into_inner();
-    Polygon::new(
+    Polygon::try_new(
         iter::once(exterior)
             .chain(interiors)
-            .map(|ring| LinearRing::new(positions(ring)?))
+            .map(|ring| LinearRing::try_new(positions(ring)?))
             .collect::<Result<_, _>>()?,
     )
 }
@@ -81,10 +81,10 @@ impl TryFrom<GeoTypesGeometry> for Shape {
                 .map(|point| Position::try_from(point.0))
                 .collect::<Result<_, _>>()
                 .map(Self::MultiPoint),
-            GeoTypesGeometry::LineString(line) => LineString::new(positions(line)?).map(Self::LineString),
+            GeoTypesGeometry::LineString(line) => LineString::try_new(positions(line)?).map(Self::LineString),
             GeoTypesGeometry::MultiLineString(lines) => lines
                 .into_iter()
-                .map(|line| LineString::new(positions(line)?))
+                .map(|line| LineString::try_new(positions(line)?))
                 .collect::<Result<_, _>>()
                 .map(Self::MultiLineString),
             GeoTypesGeometry::Polygon(shape) => polygon(shape).map(Self::Polygon),

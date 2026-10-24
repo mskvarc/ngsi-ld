@@ -24,7 +24,7 @@ fn an_entity_without_type_is_sent_with_the_headers_of_create() {
     let vehicle = vehicle();
     let create = CreateEntity::builder().entity(&vehicle).build();
     let missing_type = UncheckedDocument::from_entity(&vehicle, Lossless::Normalized).remove_member("type");
-    let request = UncheckedRequest::from_operation(&create, &endpoint())
+    let request = UncheckedRequest::try_from_operation(&create, &endpoint())
         .unwrap()
         .document(&missing_type)
         .into_request();
@@ -40,7 +40,7 @@ fn a_link_header_alongside_an_ld_json_body_is_sent_and_the_rejection_decodes() {
     let vehicle = vehicle();
     let create = CreateEntity::builder().entity(&vehicle).build();
     let endpoint = endpoint_with(ContextDelivery::LdJsonBody);
-    let request = UncheckedRequest::from_operation(&create, &endpoint)
+    let request = UncheckedRequest::try_from_operation(&create, &endpoint)
         .unwrap()
         .typed_header(context_link())
         .into_request();
@@ -64,7 +64,7 @@ fn a_link_header_alongside_an_ld_json_body_is_sent_and_the_rejection_decodes() {
 fn a_body_that_is_not_json_is_sent_as_given() {
     let vehicle = vehicle();
     let create = CreateEntity::builder().entity(&vehicle).build();
-    let request = UncheckedRequest::from_operation(&create, &endpoint())
+    let request = UncheckedRequest::try_from_operation(&create, &endpoint())
         .unwrap()
         .body(Bytes::from_static(b"{not json"))
         .into_request();
@@ -77,7 +77,7 @@ fn a_document_replacing_an_ld_json_body_keeps_its_context() {
     let vehicle = vehicle();
     let create = CreateEntity::builder().entity(&vehicle).build();
     let missing_type = UncheckedDocument::from_entity(&vehicle, Lossless::Normalized).remove_member("type");
-    let request = UncheckedRequest::from_operation(&create, &endpoint_with(ContextDelivery::LdJsonBody))
+    let request = UncheckedRequest::try_from_operation(&create, &endpoint_with(ContextDelivery::LdJsonBody))
         .unwrap()
         .document(&missing_type)
         .into_request();
@@ -92,7 +92,7 @@ fn a_document_replacing_an_ld_json_body_keeps_its_context() {
 fn a_document_sent_as_is_drops_the_context_and_one_with_its_own_context_keeps_it() {
     let vehicle = vehicle();
     let create = CreateEntity::builder().entity(&vehicle).build();
-    let unchecked = || UncheckedRequest::from_operation(&create, &endpoint_with(ContextDelivery::LdJsonBody)).unwrap();
+    let unchecked = || UncheckedRequest::try_from_operation(&create, &endpoint_with(ContextDelivery::LdJsonBody)).unwrap();
     let document = UncheckedDocument::from_entity(&vehicle, Lossless::Normalized);
     let without = unchecked().document_as_is(&document).into_request();
     assert!(json(without.body()).as_object().unwrap().get("@context").next().is_none());

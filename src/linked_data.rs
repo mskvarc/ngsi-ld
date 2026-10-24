@@ -28,7 +28,9 @@
 //! let context = Context::Single(ContextEntry::Inline(
 //!     r#"{"speed": "https://example.org/speed"}"#.parse::<InlineContext>()?,
 //! ));
-//! let active = ContextProcessor::new()?.process_offline(&context).await?;
+//! let active = ContextProcessor::try_new()?
+//!     .process_offline(&context)
+//!     .await?;
 //! let speed: AttributeName = "speed".parse()?;
 //! assert_eq!(active.expand(&speed)?.as_str(), "https://example.org/speed");
 //! # Ok(())

@@ -151,7 +151,7 @@ use sealed::{NamePosition, Prefixing};
 /// let b = Context::Single(ContextEntry::Inline(
 ///     "{\"Car\": \"https://example.org/Vehicle\"}".parse::<InlineContext>()?,
 /// ));
-/// let processor = ContextProcessor::new()?;
+/// let processor = ContextProcessor::try_new()?;
 /// let a = processor.process_offline(&a).await?;
 /// let b = processor.process_offline(&b).await?;
 /// let vehicle: EntityTypeName = "Vehicle".parse()?;

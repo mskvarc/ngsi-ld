@@ -139,7 +139,7 @@ async fn the_client_names_the_entity_map_of_the_query_on_every_following_page() 
         .mount(&server)
         .await;
     let client = client(&server.uri());
-    let map = NgsiLdEntityMap::new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1".to_owned()).unwrap()).unwrap();
+    let map = NgsiLdEntityMap::try_new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1".to_owned()).unwrap()).unwrap();
     let reuse = EntityMapRequest::reuse(map);
     let first = client
         .entities()

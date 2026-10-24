@@ -11,7 +11,7 @@ static NGSILD_TENANT: HeaderName = HeaderName::from_static("ngsild-tenant");
 
 /// The `NGSILD-Tenant` header: the tenant an operation targets (NGSI-LD clause 6.3.14).
 ///
-/// The field value is rendered once, by [`NgsiLdTenant::new`], and kept: [`headers::Header::encode`] cannot fail,
+/// The field value is rendered once, by [`NgsiLdTenant::try_new`], and kept: [`headers::Header::encode`] cannot fail,
 /// so a tenant that could not be carried must be refused before encoding is reached.
 ///
 /// ```
@@ -21,7 +21,7 @@ static NGSILD_TENANT: HeaderName = HeaderName::from_static("ngsild-tenant");
 ///
 /// let tenant: Tenant = "city-of-madrid".parse()?;
 /// let mut headers = HeaderMap::new();
-/// headers.typed_insert(NgsiLdTenant::new(tenant)?);
+/// headers.typed_insert(NgsiLdTenant::try_new(tenant)?);
 /// assert_eq!(headers[NgsiLdTenant::name()], "city-of-madrid");
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -34,7 +34,7 @@ impl NgsiLdTenant {
     /// # Errors
     ///
     /// Returns [`InvalidFieldValue`] when the tenant cannot be carried in a header field.
-    pub fn new(tenant: Tenant) -> Result<NgsiLdTenant, InvalidFieldValue> {
+    pub fn try_new(tenant: Tenant) -> Result<NgsiLdTenant, InvalidFieldValue> {
         TextField::new(tenant).map(NgsiLdTenant)
     }
 
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn a_tenant_encodes_as_written_and_decodes_back() {
-        let header = NgsiLdTenant::new("urn:ngsi-ld:tenant:city".parse::<Tenant>().unwrap()).unwrap();
+        let header = NgsiLdTenant::try_new("urn:ngsi-ld:tenant:city".parse::<Tenant>().unwrap()).unwrap();
         let mut encoded = Vec::new();
         header.encode(&mut encoded);
         assert_eq!(encoded, vec![HeaderValue::from_static("urn:ngsi-ld:tenant:city")]);

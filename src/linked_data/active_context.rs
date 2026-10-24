@@ -114,7 +114,7 @@ fn processing_error<E>(error: ContextProcessingError<E>) -> ProcessingError<E> {
 ///
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() -> anyhow::Result<()> {
-/// let core = ContextProcessor::new()?.core().await?;
+/// let core = ContextProcessor::try_new()?.core().await?;
 /// let speed: AttributeName = "speed".parse()?;
 /// let expanded: Uri = core.expand(&speed)?;
 /// assert_eq!(

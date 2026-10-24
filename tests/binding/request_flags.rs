@@ -64,7 +64,7 @@ fn query_string(operation: &impl Operation) -> Option<String> {
 
 /// The map at `/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1`.
 fn entity_map() -> NgsiLdEntityMap {
-    NgsiLdEntityMap::new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1".to_owned()).unwrap()).unwrap()
+    NgsiLdEntityMap::try_new(IriRefBuf::new("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1".to_owned()).unwrap()).unwrap()
 }
 
 /// `B`.

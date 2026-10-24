@@ -65,8 +65,8 @@ impl Link {
     /// # Errors
     ///
     /// Returns [`LinkBuildError::Unencodable`] when the rendering cannot be carried in a header field.
-    pub fn new(value: LinkValue) -> Result<Link, LinkBuildError> {
-        Link::from_values(vec![value])
+    pub fn try_new(value: LinkValue) -> Result<Link, LinkBuildError> {
+        Link::try_from_values(vec![value])
     }
 
     /// A `Link` header carrying `values`, in order.
@@ -75,7 +75,7 @@ impl Link {
     ///
     /// Returns [`LinkBuildError::Empty`] when `values` is empty, and [`LinkBuildError::Unencodable`] when the
     /// rendering cannot be carried in a header field.
-    pub fn from_values(values: Vec<LinkValue>) -> Result<Link, LinkBuildError> {
+    pub fn try_from_values(values: Vec<LinkValue>) -> Result<Link, LinkBuildError> {
         if values.is_empty() {
             return Err(LinkBuildError::Empty);
         }
@@ -89,7 +89,7 @@ impl Link {
     ///
     /// Returns [`LinkBuildError::Unencodable`] when the rendering cannot be carried in a header field.
     pub fn json_ld_context(context: IriRefBuf) -> Result<Link, LinkBuildError> {
-        Link::new(LinkValue::json_ld_context(context))
+        Link::try_new(LinkValue::json_ld_context(context))
     }
 
     /// The JSON-LD context link naming the core context (clause 4.3.4): the `Link` an `application/json` answer
@@ -192,7 +192,7 @@ impl headers::Header for Link {
             let text = value.to_str().map_err(|_| headers::Error::invalid())?;
             link_values.extend(parse_values(text).map_err(|_| headers::Error::invalid())?);
         }
-        Link::from_values(link_values).map_err(|_| headers::Error::invalid())
+        Link::try_from_values(link_values).map_err(|_| headers::Error::invalid())
     }
 
     fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
@@ -319,7 +319,7 @@ mod tests {
 
     #[test]
     fn values_render_comma_separated_and_parse_back() {
-        let link = Link::from_values(vec![
+        let link = Link::try_from_values(vec![
             LinkValue::builder(IriRefBuf::new("/next").unwrap()).rel(RelationType::Next).build(),
             LinkValue::builder(IriRefBuf::new("/prev").unwrap()).rel(RelationType::Prev).build(),
         ])
@@ -330,11 +330,11 @@ mod tests {
 
     #[test]
     fn a_link_without_values_or_with_a_non_ascii_target_cannot_be_built() {
-        assert!(matches!(Link::from_values(Vec::new()), Err(LinkBuildError::Empty)));
+        assert!(matches!(Link::try_from_values(Vec::new()), Err(LinkBuildError::Empty)));
         let non_ascii = LinkValue::builder(IriRefBuf::new("/entities/caf\u{e9}").unwrap())
             .rel(RelationType::Next)
             .build();
-        assert!(matches!(Link::new(non_ascii), Err(LinkBuildError::Unencodable(_))));
+        assert!(matches!(Link::try_new(non_ascii), Err(LinkBuildError::Unencodable(_))));
     }
 
     #[test]

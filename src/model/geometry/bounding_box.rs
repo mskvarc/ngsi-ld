@@ -15,7 +15,10 @@ use jstrict::Value as Json;
 /// ```
 /// use ngsi_ld::model::geometry::{BoundingBox, Position};
 ///
-/// let bbox = BoundingBox::new(Position::new(170.0, 0.0)?, Position::new(-170.0, 1.0)?)?;
+/// let bbox = BoundingBox::try_new(
+///     Position::try_new(170.0, 0.0)?,
+///     Position::try_new(-170.0, 1.0)?,
+/// )?;
 /// assert_eq!(bbox.north_east().longitude().to_string(), "-170");
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -35,7 +38,7 @@ impl BoundingBox {
     ///
     /// Returns [`GeometryError::BoundingBoxCorners`] when the corners have different dimensions, and
     /// [`GeometryError::BoundingBoxLatitudes`] when the south-western corner lies north of the north-eastern one.
-    pub fn new(south_west: Position, north_east: Position) -> Result<Self, GeometryError> {
+    pub fn try_new(south_west: Position, north_east: Position) -> Result<Self, GeometryError> {
         if south_west.dimension() != north_east.dimension() {
             return Err(GeometryError::BoundingBoxCorners);
         }
@@ -88,7 +91,7 @@ impl BoundingBox {
                 Err(_) => return Err(GeometryError::InvalidBoundingBox),
             },
         };
-        Self::new(south_west, north_east)
+        Self::try_new(south_west, north_east)
     }
 
     /// Writes the box as RFC 7946 section 5 orders it: every coordinate of the south-western corner, then every

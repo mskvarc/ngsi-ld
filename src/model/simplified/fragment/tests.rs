@@ -34,7 +34,7 @@ fn a_value_is_written_bare_as_the_default_instance() {
 #[test]
 fn every_simplified_kind_is_written_as_clause_4_5_4_shows_it() {
     let fragment = SimplifiedFragment::builder()
-        .set("location", Geometry::from(Shape::Point(Position::new(13.3986, 52.5547).unwrap())))
+        .set("location", Geometry::from(Shape::Point(Position::try_new(13.3986, 52.5547).unwrap())))
         .set("street", LanguageMap::try_from_pairs([("fr", "Grand Place"), ("nl", "Grote Markt")]).unwrap())
         .set("gender", OneOrMany::from("Male".parse::<VocabTerm>().unwrap()))
         .set("parkingTickets", r#"{"id": "85a6cc52-0589-45f9"}"#.parse::<RawJson>().unwrap())
@@ -165,7 +165,7 @@ fn a_geometry_name_takes_only_a_geometry_or_a_deletion() {
         }]
     ));
     let fragment = SimplifiedFragment::builder()
-        .set("location", Geometry::from(Shape::Point(Position::new(4.35, 50.85).unwrap())))
+        .set("location", Geometry::from(Shape::Point(Position::try_new(4.35, 50.85).unwrap())))
         .delete("observationSpace")
         .build();
     assert!(fragment.is_ok());

@@ -58,10 +58,10 @@ pub enum AltAuthorityError {
 /// let authority: AltAuthority = "alt.example.org:8443".parse()?;
 /// assert_eq!(authority.port(), 8443);
 /// assert_eq!(
-///     AltAuthority::new(Host::Domain("Alt.Example.org".to_owned()), 443)?.to_string(),
+///     AltAuthority::try_new(Host::Domain("Alt.Example.org".to_owned()), 443)?.to_string(),
 ///     "alt.example.org:443"
 /// );
-/// assert!(AltAuthority::new(Host::Domain("a b".to_owned()), 443).is_err());
+/// assert!(AltAuthority::try_new(Host::Domain("a b".to_owned()), 443).is_err());
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -79,7 +79,7 @@ impl AltAuthority {
     /// # Errors
     ///
     /// Returns [`AltAuthorityError::Host`] when `host` is a domain no URL holds, such as one with a space.
-    pub fn new(host: Host, port: u16) -> Result<AltAuthority, AltAuthorityError> {
+    pub fn try_new(host: Host, port: u16) -> Result<AltAuthority, AltAuthorityError> {
         let host = canonical_host(host).map_err(AltAuthorityError::Host)?;
         Ok(AltAuthority { host: Some(host), port })
     }
@@ -321,7 +321,7 @@ mod tests {
     fn the_builder_drops_a_fraction_of_a_second_and_defaults_the_persistence() {
         let alternative = Alternative::builder()
             .protocol("h2".parse().unwrap())
-            .authority(AltAuthority::new(Host::Ipv4(Ipv4Addr::LOCALHOST), 8443).unwrap())
+            .authority(AltAuthority::try_new(Host::Ipv4(Ipv4Addr::LOCALHOST), 8443).unwrap())
             .max_age(Duration::from_millis(1500))
             .build();
         assert_eq!(alternative.max_age(), Some(Duration::from_secs(1)));
@@ -390,9 +390,9 @@ mod tests {
     #[test]
     fn a_constructed_authority_holds_its_host_as_a_url_does() {
         let domain = |name: &str| Host::Domain(name.to_owned());
-        let authority = AltAuthority::new(domain("caf\u{e9}.example"), 443).unwrap();
+        let authority = AltAuthority::try_new(domain("caf\u{e9}.example"), 443).unwrap();
         assert_eq!(authority.to_string(), "xn--caf-dma.example:443");
         assert_eq!(authority.to_string().parse::<AltAuthority>(), Ok(authority));
-        assert!(matches!(AltAuthority::new(domain("a b"), 443), Err(AltAuthorityError::Host(_))));
+        assert!(matches!(AltAuthority::try_new(domain("a b"), 443), Err(AltAuthorityError::Host(_))));
     }
 }

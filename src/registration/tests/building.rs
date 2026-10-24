@@ -51,12 +51,12 @@ fn time(text: &str) -> DateTime {
 
 /// A position.
 fn position(longitude: f64, latitude: f64) -> Position {
-    Position::new(longitude, latitude).unwrap()
+    Position::try_new(longitude, latitude).unwrap()
 }
 
 /// The polygon of Annex C.3.
 fn polygon() -> Geometry {
-    let ring = LinearRing::new(vec![
+    let ring = LinearRing::try_new(vec![
         position(100.0, 0.0),
         position(101.0, 0.0),
         position(101.0, 1.0),
@@ -64,7 +64,7 @@ fn polygon() -> Geometry {
         position(100.0, 0.0),
     ])
     .unwrap();
-    Geometry::from(Shape::Polygon(Polygon::new(vec![ring]).unwrap()))
+    Geometry::from(Shape::Polygon(Polygon::try_new(vec![ring]).unwrap()))
 }
 
 /// A registration with every member set.

@@ -29,7 +29,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     fn quality(thousandths: u16) -> Quality {
-        Quality::from_thousandths(thousandths).unwrap()
+        Quality::try_from_thousandths(thousandths).unwrap()
     }
 
     #[test]

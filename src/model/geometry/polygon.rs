@@ -7,19 +7,22 @@ use crate::model::geometry::{GeometryError, LinearRing};
 /// ```
 /// use ngsi_ld::model::geometry::{GeometryError, LinearRing, Polygon, Position, Shape};
 ///
-/// let corner = |longitude, latitude| Position::new(longitude, latitude);
-/// let exterior = LinearRing::new(vec![
+/// let corner = |longitude, latitude| Position::try_new(longitude, latitude);
+/// let exterior = LinearRing::try_new(vec![
 ///     corner(0.0, 0.0)?,
 ///     corner(1.0, 0.0)?,
 ///     corner(1.0, 1.0)?,
 ///     corner(0.0, 0.0)?,
 /// ])?;
-/// let square = Polygon::new(vec![exterior])?;
+/// let square = Polygon::try_new(vec![exterior])?;
 /// assert_eq!(
 ///     Shape::Polygon(square).to_string(),
 ///     r#"{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,0]]]}"#
 /// );
-/// assert_eq!(Polygon::new(Vec::new()), Err(GeometryError::EmptyPolygon));
+/// assert_eq!(
+///     Polygon::try_new(Vec::new()),
+///     Err(GeometryError::EmptyPolygon)
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -31,7 +34,7 @@ impl Polygon {
     /// # Errors
     ///
     /// Returns [`GeometryError::EmptyPolygon`] when there is no ring.
-    pub fn new(rings: Vec<LinearRing>) -> Result<Self, GeometryError> {
+    pub fn try_new(rings: Vec<LinearRing>) -> Result<Self, GeometryError> {
         if rings.is_empty() {
             Err(GeometryError::EmptyPolygon)
         } else {
