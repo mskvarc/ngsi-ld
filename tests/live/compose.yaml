@@ -1,0 +1,40 @@
+# NGSI-LD broker for opt-in live tests. Both images are published for amd64 only, and both are pinned by digest:
+# a tag such as 17-3.5 moves with patch releases.
+name: ngsi-ld-live-broker
+
+services:
+  postgres:
+    image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+    platform: linux/amd64
+    environment:
+      POSTGRES_USER: ngb
+      POSTGRES_PASSWORD: ngb
+      POSTGRES_DB: ngb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ngb -d ngb"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  scorpio:
+    image: scorpiobroker/all-in-one-runner:java-6.0.2@sha256:eade45746bd745f738b951b7f398ba0e4e338c8097dab76111e96c6adb3d1e98
+    platform: linux/amd64
+    environment:
+      DBHOST: postgres
+    ports:
+      - "9090:9090"
+    # The live notification tests receive notifications in the test process, which the broker reaches under this
+    # name (NGSI_LD_TEST_NOTIFICATION_HOST); Docker Desktop defines it already, Docker Engine on Linux needs the
+    # mapping.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:9090/q/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s

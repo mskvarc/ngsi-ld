@@ -186,3 +186,8 @@ required-features = ["http"]
 [[example]]
 name = "conversions"
 required-features = ["chrono", "geo-types", "geojson"]
+
+[[test]]
+name = "live"
+path = "tests/live.rs"
+required-features = ["reqwest"]
