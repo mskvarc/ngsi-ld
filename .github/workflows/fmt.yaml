@@ -1,0 +1,24 @@
+name: fmt
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: fmt-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fmt:
+    name: cargo +nightly fmt --check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # rustfmt.toml uses unstable import options, which only nightly rustfmt honours.
+      - name: Install nightly rustfmt
+        run: rustup toolchain install nightly --profile minimal --component rustfmt
+      - run: cargo +nightly fmt --all --check

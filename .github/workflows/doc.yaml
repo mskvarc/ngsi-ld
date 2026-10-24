@@ -1,0 +1,28 @@
+name: doc
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: doc-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: "0"
+  RUSTDOCFLAGS: -D warnings
+
+jobs:
+  doc:
+    name: cargo doc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install pinned toolchain
+        run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo doc --workspace --no-deps --all-features --locked

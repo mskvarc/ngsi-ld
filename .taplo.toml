@@ -1,0 +1,7 @@
+exclude = ["target/**"]
+
+[formatting]
+inline_table_expand = false
+array_auto_collapse = true
+column_width = 200
+indent_string = "    "

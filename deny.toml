@@ -1,0 +1,22 @@
+# Permissive-only allow list. A licence is added when a dependency first brings it in; an allowance no dependency
+# uses is a warning.
+
+[graph]
+all-features = true
+
+[licenses]
+confidence-threshold = 0.93
+allow = ["MIT"]
+
+[advisories]
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "deny"
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

@@ -1,0 +1,30 @@
+name: unit
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: unit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: "0"
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  CARGO_PROFILE_TEST_DEBUG: line-tables-only
+
+jobs:
+  unit-test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install pinned toolchain
+        run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+      # Library, integration and doc tests; doc tests keep every rustdoc example compiling.
+      - run: cargo test --workspace --all-features --locked
