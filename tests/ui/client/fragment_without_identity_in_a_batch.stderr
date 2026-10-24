@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+ --> tests/ui/client/fragment_without_identity_in_a_batch.rs:7:45
+  |
+7 |     let _ = BatchMerge::builder().fragments(&fragments).build();
+  |                                   --------- ^^^^^^^^^^ expected `&[EntityFragment<Complete>]`, found `&[EntityFragment; 1]`
+  |                                   |
+  |                                   arguments to this method are incorrect
+  |
+  = note: expected reference `&[EntityFragment<ngsi_ld::model::Complete>]`
+             found reference `&[EntityFragment; 1]`
+note: method defined here
+ --> src/http/operation/batch/merge.rs
+  |
+  |     pub fragments: &'a [EntityFragment<Complete>],
+  |         ^^^^^^^^^

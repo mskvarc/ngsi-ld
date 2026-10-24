@@ -71,9 +71,9 @@ async fn an_expanded_entity_compacts_under_another_context_with_its_spelling() {
 #[tokio::test]
 async fn the_concise_and_normalized_forms_of_an_entity_expand_alike() {
     let core = core().await;
-    let concise = entity(include_str!("../../../tests/golden/project/vehicle-concise.json"), Lossless::Concise, None);
+    let concise = entity(include_str!("../../../tests/golden/authored/vehicle-concise.json"), Lossless::Concise, None);
     let normalized = entity(
-        include_str!("../../../tests/golden/project/vehicle-normalized.json"),
+        include_str!("../../../tests/golden/authored/vehicle-normalized.json"),
         Lossless::Normalized,
         None,
     );

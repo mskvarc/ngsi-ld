@@ -1,0 +1,14 @@
+error[E0277]: `&mut ngsi_ld::model::Instances<ngsi_ld::model::Attribute<Input>>` is not an iterator
+ --> tests/ui/iterating_instances_mutably.rs:8:21
+  |
+8 |     for instance in &mut instances {
+  |                     ^^^^^^^^^^^^^^ `&mut ngsi_ld::model::Instances<ngsi_ld::model::Attribute<Input>>` is not an iterator
+  |
+  = help: the trait `Iterator` is not implemented for `ngsi_ld::model::Instances<ngsi_ld::model::Attribute<Input>>`
+help: the trait `IntoIterator` is implemented for `&ngsi_ld::model::Instances<T>`
+ --> src/model/attribute/instances.rs
+  |
+  | impl<'a, T> IntoIterator for &'a Instances<T> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: required for `&mut ngsi_ld::model::Instances<ngsi_ld::model::Attribute<Input>>` to implement `Iterator`
+  = note: required for `&mut ngsi_ld::model::Instances<ngsi_ld::model::Attribute<Input>>` to implement `IntoIterator`

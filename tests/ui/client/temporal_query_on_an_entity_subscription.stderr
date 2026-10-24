@@ -1,0 +1,11 @@
+error[E0599]: no method named `temporal_q` found for struct `SubscriptionBuilder<EntitySubscription>` in the current scope
+  --> tests/ui/client/temporal_query_on_an_entity_subscription.rs:15:10
+   |
+14 |       let _ = Subscription::builder()
+   |  _____________-
+15 | |         .temporal_q(TemporalQuery::after(time))
+   | |         -^^^^^^^^^^ method not found in `SubscriptionBuilder<EntitySubscription>`
+   | |_________|
+   |
+   |
+   = note: the method was found for `SubscriptionBuilder<RegistrationSubscription, S>`

@@ -1,0 +1,19 @@
+error[E0277]: the member `bon::__::Unset<model::entity::entity_builder::members::id>` was not set, but this method requires it to be set
+ --> tests/ui/entity_without_id.rs:5:54
+  |
+5 |     let _ = Entity::builder().entity_type("Vehicle").build();
+  |                                                      ^^^^^ the member `bon::__::Unset<model::entity::entity_builder::members::id>` was not set, but this method requires it to be set
+  |
+  = help: the trait `bon::builder_state::IsSet` is not implemented for `bon::__::Unset<model::entity::entity_builder::members::id>`
+help: the trait `bon::builder_state::IsSet` is implemented for `bon::__::Set<Name>`
+ --> $CARGO/bon-$VERSION/src/builder_state.rs
+  |
+  | impl<Name> IsSet for Set<Name> {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: required for `model::entity::entity_builder::SetEntityType` to implement `model::entity::entity_builder::IsComplete`
+note: required by a bound in `EntityBuilder::<S>::build`
+ --> src/model/entity.rs
+  |
+  | #[bon]
+  | ^^^^^^ required by this bound in `EntityBuilder::<S>::build`
+  = note: this error originates in the attribute macro `bon` (in Nightly builds, run with -Z macro-backtrace for more info)

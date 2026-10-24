@@ -1,0 +1,30 @@
+error[E0277]: the trait bound `Downstream: model::attribute::instances::sealed::Sealed` is not satisfied
+ --> tests/ui/instance_key_outside_the_crate.rs:6:22
+  |
+6 | impl InstanceKey for Downstream {
+  |                      ^^^^^^^^^^ unsatisfied trait bound
+  |
+help: the trait `model::attribute::instances::sealed::Sealed` is not implemented for `Downstream`
+ --> tests/ui/instance_key_outside_the_crate.rs:4:1
+  |
+4 | struct Downstream;
+  | ^^^^^^^^^^^^^^^^^
+help: the following other types implement trait `model::attribute::instances::sealed::Sealed`
+ --> src/model/attribute.rs
+  |
+  | impl<D: Direction> Sealed for Attribute<D> {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `ngsi_ld::model::Attribute<D>`
+  |
+ ::: src/model/direction.rs
+  |
+  | impl<T: InstanceKey> InstanceSealed for Change<T> {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Change<T>`
+note: required by a bound in `InstanceKey`
+ --> src/model/attribute/instances.rs
+  |
+  | pub trait InstanceKey: sealed::Sealed {
+  |                        ^^^^^^^^^^^^^^ required by this bound in `InstanceKey`
+  = note: `InstanceKey` is a "sealed trait", because to implement it you also need to implement `ngsi_ld::model::attribute::instances::sealed::Sealed`, which is not accessible; this is usually done to force you to use one of the provided types that already implement it
+  = help: the following types implement the trait:
+            ngsi_ld::model::Attribute<D>
+            ngsi_ld::model::Change<T>

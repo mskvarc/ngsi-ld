@@ -1,0 +1,5 @@
+error[E0599]: no method named `output` found for struct `ngsi_ld::model::Relationship<Input>` in the current scope
+ --> tests/ui/output_members_of_a_request_relationship.rs:8:19
+  |
+8 |     let _ = owner.output();
+  |                   ^^^^^^ private field, not a method

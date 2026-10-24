@@ -1,0 +1,5 @@
+error[E0599]: no method named `previous_value` found for struct `PropertyBuilder<S>` in the current scope
+ --> tests/ui/previous_value_on_a_request_property.rs:5:34
+  |
+5 |     let _ = Property::builder(1).previous_value(5);
+  |                                  ^^^^^^^^^^^^^^ method not found in `PropertyBuilder`

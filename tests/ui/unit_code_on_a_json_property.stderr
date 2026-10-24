@@ -1,0 +1,5 @@
+error[E0599]: no method named `unit_code` found for struct `JsonPropertyBuilder<S>` in the current scope
+ --> tests/ui/unit_code_on_a_json_property.rs:7:41
+  |
+7 |     let _ = JsonProperty::builder(json).unit_code(UnitCode::Cel);
+  |                                         ^^^^^^^^^ method not found in `JsonPropertyBuilder`

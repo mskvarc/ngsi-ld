@@ -1,0 +1,12 @@
+error[E0277]: the trait bound `ngsi_ld::model::Entity<Input>: From<EntityFragment>` is not satisfied
+ --> tests/ui/fragment_into_input.rs:7:37
+  |
+7 |     let _: Entity<Input> = fragment.into();
+  |                                     ^^^^ the trait `From<EntityFragment>` is not implemented for `ngsi_ld::model::Entity<Input>`
+  |
+help: the trait `From<ngsi_ld::model::Entity<ngsi_ld::model::Output>>` is implemented for `ngsi_ld::model::Entity<ngsi_ld::model::Output, Projected>`
+ --> src/model/entity.rs
+  |
+  | impl From<Entity<Output, Complete>> for Entity<Output, Projected> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: required for `EntityFragment` to implement `Into<ngsi_ld::model::Entity<Input>>`

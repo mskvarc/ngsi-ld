@@ -1,0 +1,11 @@
+error[E0599]: no variant, associated function, or constant named `Endpoint` found for enum `RegistrationMember` in the current scope
+ --> tests/ui/registration_member_for_a_required_member.rs:7:72
+  |
+7 |     let _ = RegistrationFragment::builder().delete(RegistrationMember::Endpoint).build();
+  |                                                                        ^^^^^^^^ variant, associated function, or constant not found in `RegistrationMember`
+
+error[E0599]: no variant, associated function, or constant named `Information` found for enum `RegistrationMember` in the current scope
+ --> tests/ui/registration_member_for_a_required_member.rs:8:72
+  |
+8 |     let _ = RegistrationFragment::builder().delete(RegistrationMember::Information).build();
+  |                                                                        ^^^^^^^^^^^ variant, associated function, or constant not found in `RegistrationMember`

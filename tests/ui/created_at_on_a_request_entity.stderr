@@ -1,0 +1,5 @@
+error[E0609]: no field `created_at` on type `()`
+ --> tests/ui/created_at_on_a_request_entity.rs:7:27
+  |
+7 |     let _ = entity.output.created_at;
+  |                           ^^^^^^^^^^ unknown field

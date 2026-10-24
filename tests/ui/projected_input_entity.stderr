@@ -1,0 +1,12 @@
+error[E0277]: the trait bound `ngsi_ld::model::Entity<Input, Projected>: From<ngsi_ld::model::Entity<Input>>` is not satisfied
+ --> tests/ui/projected_input_entity.rs:7:47
+  |
+7 |     let _: Entity<Input, Projected> = vehicle.into();
+  |                                               ^^^^ the trait `From<ngsi_ld::model::Entity<Input>>` is not implemented for `ngsi_ld::model::Entity<Input, Projected>`
+  |
+help: the trait `From<ngsi_ld::model::Entity<ngsi_ld::model::Output>>` is implemented for `ngsi_ld::model::Entity<ngsi_ld::model::Output, Projected>`
+ --> src/model/entity.rs
+  |
+  | impl From<Entity<Output, Complete>> for Entity<Output, Projected> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: required for `ngsi_ld::model::Entity<Input>` to implement `Into<ngsi_ld::model::Entity<Input, Projected>>`

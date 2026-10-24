@@ -1,0 +1,11 @@
+error[E0599]: no method named `csf` found for struct `SubscriptionBuilder<RegistrationSubscription>` in the current scope
+  --> tests/ui/client/context_source_filter_on_a_registration_subscription.rs:11:10
+   |
+10 |       let _ = Subscription::registration_builder()
+   |  _____________-
+11 | |         .csf("owner".parse().unwrap())
+   | |         -^^^ method not found in `SubscriptionBuilder<RegistrationSubscription>`
+   | |_________|
+   |
+   |
+   = note: the method was found for `SubscriptionBuilder<EntitySubscription, S>`

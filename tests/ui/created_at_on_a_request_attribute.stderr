@@ -1,0 +1,5 @@
+error[E0599]: no method named `created_at` found for struct `PropertyBuilder<S>` in the current scope
+ --> tests/ui/created_at_on_a_request_attribute.rs:6:34
+  |
+6 |     let _ = Property::builder(1).created_at(created);
+  |                                  ^^^^^^^^^^ method not found in `PropertyBuilder`

@@ -1,0 +1,26 @@
+{
+    "id": "urn:ngsi-ld:Vehicle:fleet-07",
+    "type": "Vehicle",
+    "modelName": "Cargo Van",
+    "destination": {
+        "languageMap": {
+            "de": "Hauptbahnhof",
+            "en": "Central Station"
+        }
+    },
+    "fuelType": {
+        "vocab": "diesel"
+    },
+    "axleLoads": [3400, 3650, 2900],
+    "crew": ["urn:ngsi-ld:Person:driver-12", "urn:ngsi-ld:Person:courier-31"],
+    "dockedAt": "urn:ngsi-ld:LoadingBay:north-3",
+    "stops": [
+        "urn:ngsi-ld:Depot:east",
+        "urn:ngsi-ld:Depot:harbour",
+        "urn:ngsi-ld:Depot:airport"
+    ],
+    "@context": [
+        "https://example.org/ngsi-ld/fleet.jsonld",
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.9.jsonld"
+    ]
+}

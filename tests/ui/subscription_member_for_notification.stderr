@@ -1,0 +1,11 @@
+error[E0599]: no variant, associated function, or constant named `Notification` found for enum `SubscriptionMember` in the current scope
+ --> tests/ui/subscription_member_for_notification.rs:6:72
+  |
+6 |     let _ = SubscriptionFragment::builder().delete(SubscriptionMember::Notification).build();
+  |                                                                        ^^^^^^^^^^^^ variant, associated function, or constant not found in `SubscriptionMember`
+
+error[E0599]: no variant, associated function, or constant named `Id` found for enum `SubscriptionMember` in the current scope
+ --> tests/ui/subscription_member_for_notification.rs:7:72
+  |
+7 |     let _ = SubscriptionFragment::builder().delete(SubscriptionMember::Id).build();
+  |                                                                        ^^ variant, associated function, or constant not found in `SubscriptionMember`
