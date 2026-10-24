@@ -13,7 +13,6 @@ permissions:
   contents: read
 
 env:
-  CARGO_INCREMENTAL: "0"
   CARGO_PROFILE_DEV_DEBUG: line-tables-only
   CARGO_PROFILE_TEST_DEBUG: line-tables-only
 
@@ -26,5 +25,7 @@ jobs:
       - name: Install pinned toolchain
         run: rustup toolchain install --profile minimal
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
       # Library, integration and doc tests; doc tests keep every rustdoc example compiling.
       - run: cargo test --workspace --all-features --locked

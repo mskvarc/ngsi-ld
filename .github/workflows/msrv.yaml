@@ -12,9 +12,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  CARGO_INCREMENTAL: "0"
-
 jobs:
   msrv:
     name: cargo check on the msrv
@@ -25,5 +22,7 @@ jobs:
       - name: Install the msrv toolchain
         run: rustup toolchain install 1.96.0 --profile minimal
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
       - run: cargo +1.96.0 check --no-default-features --locked
       - run: cargo +1.96.0 check --all-features --locked

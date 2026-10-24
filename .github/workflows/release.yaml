@@ -1,0 +1,125 @@
+name: release
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify the release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install pinned toolchain
+        run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+
+      - name: Tag matches the manifest version
+        run: |
+          set -euo pipefail
+          version="$(cargo metadata --no-deps --format-version 1 --locked | jq -r '.packages[] | select(.name == "ngsi-ld") | .version')"
+          if [[ "${GITHUB_REF_NAME}" != "v${version}" ]]; then
+            echo "tag ${GITHUB_REF_NAME} does not match version ${version} in Cargo.toml" >&2
+            exit 1
+          fi
+
+      - name: Tag is on master
+        run: |
+          set -euo pipefail
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/master; then
+            echo "tag ${GITHUB_REF_NAME} points at a commit that is not on master" >&2
+            exit 1
+          fi
+
+      # Release candidates are left out of the changelog (cliff.toml ignores -rc tags), so only the others regenerate it.
+      # The version matches the one CHANGELOG.md is generated with locally, so both render the same text.
+      - name: Regenerate the changelog
+        if: ${{ !contains(github.ref_name, '-rc.') }}
+        uses: orhun/git-cliff-action@v4
+        with:
+          version: v2.14.2
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: git-cliff/CHANGELOG.md
+
+      # Generated before the tag existed, the committed file dates the tag's section by the day it was generated; here
+      # it is dated by the tagged commit. Only that one date may differ.
+      - name: Changelog is up to date
+        if: ${{ !contains(github.ref_name, '-rc.') }}
+        run: |
+          set -euo pipefail
+          heading="^## \[${GITHUB_REF_NAME//./\\.}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          undated="## [${GITHUB_REF_NAME}]"
+          if ! diff -u <(sed -E "s/${heading}/${undated}/" CHANGELOG.md) <(sed -E "s/${heading}/${undated}/" git-cliff/CHANGELOG.md); then
+            echo "CHANGELOG.md is not what git cliff generates for ${GITHUB_REF_NAME}; run git cliff --tag ${GITHUB_REF_NAME} -o CHANGELOG.md and commit it before tagging" >&2
+            exit 1
+          fi
+
+      - run: cargo test --workspace --all-features --locked
+
+  publish:
+    name: publish to crates.io
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install pinned toolchain
+        run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+      - run: cargo publish --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  release:
+    name: create the GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        id: changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --current --strip all
+
+      - name: Determine release type
+        id: release_type
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+            echo "makeLatest=false" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "makeLatest=true" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: false
+          makeLatest: ${{ steps.release_type.outputs.makeLatest }}
+          prerelease: ${{ steps.release_type.outputs.prerelease }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.content }}
+          token: ${{ secrets.GITHUB_TOKEN }}
