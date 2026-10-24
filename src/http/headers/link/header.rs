@@ -21,9 +21,8 @@ use std::{fmt, iter, str::FromStr};
 /// decode as one list.
 ///
 /// ```
-/// use http::header;
 /// use headers::HeaderMapExt;
-/// use http::HeaderMap;
+/// use http::{HeaderMap, header};
 /// use iri_rs::IriRefBuf;
 /// use ngsi_ld::http::headers::Link;
 ///
@@ -32,7 +31,11 @@ use std::{fmt, iter, str::FromStr};
 /// headers.typed_insert(Link::try_json_ld_context(context)?);
 /// assert_eq!(
 ///     headers[&header::LINK],
-///     r#"<https://example.org/context.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json""#
+///     concat!(
+///         r#"<https://example.org"#,
+///         r#"/context.jsonld>; rel="http://www.w3.org/ns"#,
+///         r#"/json-ld#context"; type="application/ld+json""#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

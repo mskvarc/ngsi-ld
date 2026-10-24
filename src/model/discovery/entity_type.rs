@@ -26,7 +26,11 @@ use jstrict::{Value as Json, object::Entry};
 /// ```
 /// use ngsi_ld::model::discovery::EntityTypeList;
 ///
-/// let text = r#"{"id":"urn:ngsi-ld:EntityTypeList:1","type":"EntityTypeList","typeList":["Vehicle","OffStreetParking"]}"#;
+/// let text = concat!(
+///     r#"{"id":"urn:ngsi-ld:EntityTypeList:1","#,
+///     r#""type":"EntityTypeList","typeList":["Vehicle","#,
+///     r#""OffStreetParking"]}"#
+/// );
 /// let list = EntityTypeList::parse(text)?;
 /// assert_eq!(list.type_list.len(), 2);
 /// assert_eq!(list.render().to_string(), text);
@@ -102,7 +106,10 @@ impl EntityTypeList {
 /// ```
 /// use ngsi_ld::model::discovery::EntityTypeDetails;
 ///
-/// let text = r#"{"id":"https://example.org/Vehicle","type":"EntityType","attributeNames":["speed"],"typeName":"Vehicle"}"#;
+/// let text = concat!(
+///     r#"{"id":"https://example.org/Vehicle","type":"EntityType","#,
+///     r#""attributeNames":["speed"],"typeName":"Vehicle"}"#
+/// );
 /// let vehicle = EntityTypeDetails::parse(text)?;
 /// assert_eq!(vehicle.type_name.as_ref(), "Vehicle");
 /// assert_eq!(vehicle.render().to_string(), text);
@@ -190,12 +197,23 @@ impl EntityTypeDetails {
 /// use ngsi_ld::model::discovery::EntityTypeInfo;
 ///
 /// let text = concat!(
-///     r#"{"id":"https://example.org/Vehicle","type":"EntityTypeInfo","attributeDetails":[{"id":"https://example.org/speed","#,
-///     r#""type":"Attribute","attributeName":"speed","attributeTypes":["Property"]}],"entityCount":2,"typeName":"Vehicle"}"#
+///     concat!(
+///         r#"{"id":"https://example.org/Vehicle","#,
+///         r#""type":"EntityTypeInfo","#,
+///         r#""attributeDetails":[{"id":"https://example.org/speed","#
+///     ),
+///     concat!(
+///         r#""type":"Attribute","attributeName":"speed","#,
+///         r#""attributeTypes":["Property"]}],"entityCount":2,"#,
+///         r#""typeName":"Vehicle"}"#
+///     )
 /// );
 /// let vehicle = EntityTypeInfo::parse(text)?;
 /// assert_eq!(vehicle.entity_count, 2);
-/// assert_eq!(vehicle.attribute_details[0].attribute_name.as_ref(), "speed");
+/// assert_eq!(
+///     vehicle.attribute_details[0].attribute_name.as_ref(),
+///     "speed"
+/// );
 /// assert_eq!(vehicle.render().to_string(), text);
 /// # Ok::<(), anyhow::Error>(())
 /// ```

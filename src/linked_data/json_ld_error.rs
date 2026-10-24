@@ -14,17 +14,24 @@ use jsonld::{
 /// in its message and the processor's own error, when there is one, as its source.
 ///
 /// ```
-/// use ngsi_ld::{linked_data::{ProcessingError, ContextProcessor}, model::{Context, ContextEntry, InlineContext}};
+/// use ngsi_ld::{
+///     linked_data::{ContextProcessor, ProcessingError},
+///     model::{Context, ContextEntry, InlineContext},
+/// };
 ///
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() -> anyhow::Result<()> {
 /// let processor = ContextProcessor::try_new()?;
-/// let alias = Context::Single(ContextEntry::Inline(r#"{"x":{"@id":"@context"}}"#.parse::<InlineContext>()?));
-/// let refused = processor.process_offline(&alias).await;
-/// assert!(matches!(
-///     refused,
-///     Err(ProcessingError::Processing(error)) if error.to_string() == "the JSON-LD processor detected `invalid keyword alias`"
+/// let alias = Context::Single(ContextEntry::Inline(
+///     r#"{"x": {"@id": "@context"}}"#.parse::<InlineContext>()?,
 /// ));
+/// let Err(ProcessingError::Processing(error)) = processor.process_offline(&alias).await else {
+///     anyhow::bail!("expected the processor to refuse the context");
+/// };
+/// assert_eq!(
+///     error.to_string(),
+///     "the JSON-LD processor detected `invalid keyword alias`"
+/// );
 /// # Ok(())
 /// # }
 /// ```

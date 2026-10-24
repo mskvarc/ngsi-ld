@@ -33,12 +33,18 @@ use jstrict::{Object, Value as Json, object::Entry};
 /// define fails the read.
 ///
 /// ```
-/// use ngsi_ld::snapshot::{SnapshotNotification, SettledStatus};
+/// use ngsi_ld::snapshot::{SettledStatus, SnapshotNotification};
 ///
 /// let notification = SnapshotNotification::parse(
-///     r#"{"id":"urn:ngsi-ld:Notification:1","type":"SnapshotNotification","expiresAt":"2030-01-01T00:00:00Z",
-///         "notifiedAt":"2024-05-01T10:05:00Z","snapshotId":"urn:ngsi-ld:Snapshot:1","snapshotPriority":5,
-///         "snapshotStatus":"success"}"#,
+///     r#"{
+///       "id": "urn:ngsi-ld:Notification:1",
+///       "type": "SnapshotNotification",
+///       "expiresAt": "2030-01-01T00:00:00Z",
+///       "notifiedAt": "2024-05-01T10:05:00Z",
+///       "snapshotId": "urn:ngsi-ld:Snapshot:1",
+///       "snapshotPriority": 5,
+///       "snapshotStatus": "success"
+///     }"#,
 /// )?;
 /// assert_eq!(notification.status(), SettledStatus::Success);
 /// assert!(!notification.announces_deletion());
@@ -75,7 +81,7 @@ impl SnapshotNotification {
     ///
     /// ```
     /// use iri_rs::iri;
-    /// use ngsi_ld::snapshot::{SnapshotNotification, SettledStatus, SnapshotPriority};
+    /// use ngsi_ld::snapshot::{SettledStatus, SnapshotNotification, SnapshotPriority};
     ///
     /// let notification = SnapshotNotification::builder()
     ///     .id(iri!("urn:ngsi-ld:Notification:1"))
@@ -87,7 +93,14 @@ impl SnapshotNotification {
     ///     .build();
     /// assert_eq!(
     ///     notification.render().to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Notification:1","type":"SnapshotNotification","expiresAt":"2030-01-01T00:00:00Z","notifiedAt":"2024-05-01T10:05:00Z","snapshotId":"urn:ngsi-ld:Snapshot:1","snapshotPriority":5,"snapshotStatus":"success"}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Notification:1","#,
+    ///         r#""type":"SnapshotNotification","#,
+    ///         r#""expiresAt":"2030-01-01T00:00:00Z","#,
+    ///         r#""notifiedAt":"2024-05-01T10:05:00Z","#,
+    ///         r#""snapshotId":"urn:ngsi-ld:Snapshot:1","#,
+    ///         r#""snapshotPriority":5,"snapshotStatus":"success"}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

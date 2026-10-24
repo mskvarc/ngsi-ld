@@ -178,8 +178,9 @@ query_method!(
     /// Query Temporal Evolution of Entities (clauses 6.18.3.2 and 6.24.3.1), in aggregated temporal
     /// representation (`format=aggregatedValues`, clause 4.5.19).
     ///
-    /// The same checks as [`query`](Temporal::query) apply, and the temporal query must name the aggregation methods
-    /// ([`ArgumentError::AggregationWithoutMethods`](crate::http::operation::ArgumentError::AggregationWithoutMethods)).
+    /// The same checks as [`query`](Temporal::query) apply, and the temporal query must name the aggregation methods,
+    /// or `send()` reports
+    /// [`ArgumentError::AggregationWithoutMethods`](crate::http::operation::ArgumentError::AggregationWithoutMethods).
     query_aggregated, AggregatedTemporalEntity,
     format => Aggregated, [],
     completeness => Complete

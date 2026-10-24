@@ -72,22 +72,41 @@ impl<T: Transport, M: Answering> Entities<'_, T, M> {
     /// # }
     /// use iri_rs::iri;
     /// use langtag::LangTagBuf;
-    /// use ngsi_ld::{client::Client, http::BatchOutcome, model::{EntityId, SimplifiedFragment}};
+    /// use ngsi_ld::{
+    ///     client::Client,
+    ///     http::BatchOutcome,
+    ///     model::{EntityId, SimplifiedFragment},
+    /// };
     /// use url::Url;
     ///
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> anyhow::Result<()> {
-    /// let client = Client::builder().base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?).transport(Offline).build()?;
+    /// let client = Client::builder()
+    ///     .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
+    ///     .transport(Offline)
+    ///     .build()?;
     /// let id = EntityId::from(iri!("urn:ngsi-ld:Building:store001"));
-    /// let fragment = SimplifiedFragment::builder().value("name", "Grand-Place").build()?;
+    /// let fragment = SimplifiedFragment::builder()
+    ///     .value("name", "Grand-Place")
+    ///     .build()?;
     ///
-    /// // The language as text, parsed by the call: text that is not a tag is refused before any request.
-    /// let outcome = client.entities().merge_simplified(&id, &fragment).lang("fr").send().await?;
+    /// // The language as text, parsed by the call, which refuses a non-tag before any request.
+    /// let outcome = client
+    ///     .entities()
+    ///     .merge_simplified(&id, &fragment)
+    ///     .lang("fr")
+    ///     .send()
+    ///     .await?;
     /// assert_eq!(outcome, BatchOutcome::Done);
     ///
     /// // Or as a language tag parsed beforehand.
     /// let french: LangTagBuf = "fr".parse()?;
-    /// let outcome = client.entities().merge_simplified(&id, &fragment).lang(&french).send().await?;
+    /// let outcome = client
+    ///     .entities()
+    ///     .merge_simplified(&id, &fragment)
+    ///     .lang(&french)
+    ///     .send()
+    ///     .await?;
     /// assert_eq!(outcome, BatchOutcome::Done);
     /// # Ok(())
     /// # }

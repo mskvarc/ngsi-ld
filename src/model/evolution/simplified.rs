@@ -46,11 +46,19 @@ pub(super) mod values;
 /// use ngsi_ld::model::evolution::{SimplifiedTemporalEntity, TemporalValues};
 ///
 /// let vehicle = SimplifiedTemporalEntity::parse(
-///     r#"{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle",
-///         "speed": {"type": "Property", "values": [[120, "2018-08-01T12:03:00Z"], [80, "2018-08-01T12:05:00Z"]]}}"#,
+///     r#"{
+///       "id": "urn:ngsi-ld:Vehicle:B9211",
+///       "type": "Vehicle",
+///       "speed": {
+///         "type": "Property",
+///         "values": [[120, "2018-08-01T12:03:00Z"], [80, "2018-08-01T12:05:00Z"]]
+///       }
+///     }"#,
 /// )?;
-/// let speed = vehicle.attributes.values().next();
-/// assert!(matches!(speed, Some(TemporalValues::Property(points)) if points.len() == 2));
+/// let Some(TemporalValues::Property(points)) = vehicle.attributes.values().next() else {
+///     anyhow::bail!("expected the values of a Property");
+/// };
+/// assert_eq!(points.len(), 2);
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]

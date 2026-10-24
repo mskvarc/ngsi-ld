@@ -133,15 +133,31 @@ impl<'a, D: EntityDirection> IntoIterator for &'a Evolution<D> {
 /// name of one kind and the names clause 5.2.4 reserves for geometries holding `GeoProperty` instances.
 ///
 /// ```
-/// use ngsi_ld::model::{Property, Input, evolution::TemporalAttributes, AttributeName, Lossless};
+/// use ngsi_ld::model::{AttributeName, Input, Lossless, Property, evolution::TemporalAttributes};
 ///
 /// let speed: AttributeName = "speed".parse()?;
 /// let mut attributes = TemporalAttributes::<Input>::new();
-/// attributes.insert(speed.clone(), Property::builder(120).observed_at("2018-08-01T12:03:00Z".parse()?).build()?.into())?;
-/// attributes.insert(speed, Property::builder(80).observed_at("2018-08-01T12:05:00Z".parse()?).build()?.into())?;
+/// attributes.insert(
+///     speed.clone(),
+///     Property::builder(120)
+///         .observed_at("2018-08-01T12:03:00Z".parse()?)
+///         .build()?
+///         .into(),
+/// )?;
+/// attributes.insert(
+///     speed,
+///     Property::builder(80)
+///         .observed_at("2018-08-01T12:05:00Z".parse()?)
+///         .build()?
+///         .into(),
+/// )?;
 /// assert_eq!(
 ///     attributes.render(Lossless::Concise).to_string(),
-///     r#"{"speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"},{"value":80,"observedAt":"2018-08-01T12:05:00Z"}]}"#
+///     concat!(
+///         r#"{"speed":[{"value":120,"#,
+///         r#""observedAt":"2018-08-01T12:03:00Z"},{"value":80,"#,
+///         r#""observedAt":"2018-08-01T12:05:00Z"}]}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

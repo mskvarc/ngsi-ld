@@ -222,7 +222,10 @@ impl Attribute<Output> {
     ///     .build();
     /// assert_eq!(
     ///     deleted.render(Lossless::Normalized).to_string(),
-    ///     r#"{"type":"Relationship","object":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z"}"#
+    ///     concat!(
+    ///         r#"{"type":"Relationship","object":"urn:ngsi-ld:null","#,
+    ///         r#""deletedAt":"2024-01-02T00:00:00Z"}"#
+    ///     )
     /// );
     /// let bare = Attribute::deleted(AttributeKind::Relationship).build();
     /// assert_eq!(
@@ -238,12 +241,15 @@ impl Attribute<Output> {
     ///
     /// ```
     /// use iri_rs::iri;
-    /// use ngsi_ld::model::{Attribute, Property, Relationship, Output, EntityId, Lossless};
+    /// use ngsi_ld::model::{Attribute, EntityId, Lossless, Output, Property, Relationship};
     ///
     /// let speed: Attribute<Output> = Property::deleted().previous_value(80).build().into();
     /// assert_eq!(
     ///     speed.render(Lossless::Normalized).to_string(),
-    ///     r#"{"type":"Property","value":"urn:ngsi-ld:null","previousValue":80}"#
+    ///     concat!(
+    ///         r#"{"type":"Property","value":"urn:ngsi-ld:null","#,
+    ///         r#""previousValue":80}"#
+    ///     )
     /// );
     /// let owner: Attribute<Output> = Relationship::deleted()
     ///     .previous_object(EntityId::from(iri!("urn:ngsi-ld:Person:Bob")))
@@ -252,7 +258,11 @@ impl Attribute<Output> {
     ///     .into();
     /// assert_eq!(
     ///     owner.render(Lossless::Normalized).to_string(),
-    ///     r#"{"type":"Relationship","object":"urn:ngsi-ld:null","previousObject":"urn:ngsi-ld:Person:Bob","deletedAt":"2024-01-02T00:00:00Z"}"#
+    ///     concat!(
+    ///         r#"{"type":"Relationship","object":"urn:ngsi-ld:null","#,
+    ///         r#""previousObject":"urn:ngsi-ld:Person:Bob","#,
+    ///         r#""deletedAt":"2024-01-02T00:00:00Z"}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

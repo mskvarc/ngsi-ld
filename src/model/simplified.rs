@@ -232,9 +232,20 @@ impl SimplifiedValue {
     /// ```
     /// use ngsi_ld::model::SimplifiedEntity;
     ///
-    /// let vehicle = SimplifiedEntity::parse(r#"{"id": "urn:ngsi-ld:Vehicle:A4567", "type": "Vehicle", "speed": 55, "isParked": "urn:ngsi-ld:null"}"#)?;
-    /// let deleted: Vec<String> =
-    ///     vehicle.attributes.iter().filter(|(_, value)| value.is_deleted()).map(|(name, _)| name.to_string()).collect();
+    /// let vehicle = SimplifiedEntity::parse(
+    ///     r#"{
+    ///       "id": "urn:ngsi-ld:Vehicle:A4567",
+    ///       "type": "Vehicle",
+    ///       "speed": 55,
+    ///       "isParked": "urn:ngsi-ld:null"
+    ///     }"#,
+    /// )?;
+    /// let deleted: Vec<String> = vehicle
+    ///     .attributes
+    ///     .iter()
+    ///     .filter(|(_, value)| value.is_deleted())
+    ///     .map(|(name, _)| name.to_string())
+    ///     .collect();
     /// assert_eq!(deleted, ["isParked"]);
     /// # Ok::<(), anyhow::Error>(())
     /// ```

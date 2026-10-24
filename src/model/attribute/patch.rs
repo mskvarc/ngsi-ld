@@ -127,14 +127,21 @@ impl Attribute<Patch> {
     /// `"hasWeatherObserved": {"type": "Relationship", "object": "urn:ngsi-ld:null"}`.
     ///
     /// ```
-    /// use ngsi_ld::model::{Attribute, AttributeKind, Property, InstanceDeletion, Lossless};
+    /// use ngsi_ld::model::{Attribute, AttributeKind, InstanceDeletion, Lossless, Property};
     ///
     /// let level = Attribute::from(Property::builder(4).build()?)
     ///     .into_patch()
-    ///     .delete_sub_attribute("hasWeatherObserved", InstanceDeletion::new(AttributeKind::Relationship))?;
+    ///     .delete_sub_attribute(
+    ///         "hasWeatherObserved",
+    ///         InstanceDeletion::new(AttributeKind::Relationship),
+    ///     )?;
     /// assert_eq!(
     ///     level.render(Lossless::Normalized).to_string(),
-    ///     r#"{"type":"Property","value":4,"hasWeatherObserved":{"type":"Relationship","object":"urn:ngsi-ld:null"}}"#
+    ///     concat!(
+    ///         r#"{"type":"Property","value":4,"#,
+    ///         r#""hasWeatherObserved":{"type":"Relationship","#,
+    ///         r#""object":"urn:ngsi-ld:null"}}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

@@ -28,14 +28,33 @@ use http::{Method, Request, Response};
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, SystemAttributes, RetrieveRegistration}}, registration::RegistrationId};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{Operation, RetrieveRegistration, SystemAttributes},
+///     },
+///     registration::RegistrationId,
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
 /// let id = RegistrationId::from(iri!("urn:ngsi-ld:ContextSourceRegistration:csr1a3456"));
-/// let request = RetrieveRegistration::builder().id(&id).system_attributes(SystemAttributes::Include).build().to_request(&endpoint)?;
+/// let request = RetrieveRegistration::builder()
+///     .id(&id)
+///     .system_attributes(SystemAttributes::Include)
+///     .build()
+///     .to_request(&endpoint)?;
 /// assert_eq!(request.method(), "GET");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/csourceRegistrations/urn:ngsi-ld:ContextSourceRegistration:csr1a3456?options=sysAttrs");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/csourceRegistrations",
+///         "/urn:ngsi-ld:ContextSourceRegistration:csr1a3456",
+///         "?options=sysAttrs"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, bon::Builder)]

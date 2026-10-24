@@ -34,12 +34,17 @@ impl<T: Transport + Clone, M: Answering> Client<T, M> {
     /// # struct Offline;
     /// # impl ngsi_ld::client::Transport for Offline {
     /// #     type Error = Infallible;
-    /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> { Ok(Response::new(Bytes::new())) }
+    /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+    /// #         Ok(Response::new(Bytes::new()))
+    /// #     }
     /// # }
     /// use ngsi_ld::client::Client;
     /// use url::Url;
     ///
-    /// let client = Client::builder().base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?).transport(Offline).build()?;
+    /// let client = Client::builder()
+    ///     .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
+    ///     .transport(Offline)
+    ///     .build()?;
     /// let fleet = client.with_context_file("contexts/fleet.jsonld")?;
     /// # let _ = fleet;
     /// # Ok::<(), anyhow::Error>(())

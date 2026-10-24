@@ -55,7 +55,14 @@ use http::{Method, Request, Response};
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, TemporalSelection, RetrieveTemporalEvolution}}, model::{EntityId, Lossless}, query::temporal_query::TemporalProperty};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{Operation, RetrieveTemporalEvolution, TemporalSelection},
+///     },
+///     model::{EntityId, Lossless},
+///     query::temporal_query::TemporalProperty,
+/// };
 /// use std::num::NonZeroU64;
 /// use url::Url;
 ///
@@ -76,7 +83,11 @@ use http::{Method, Request, Response};
 /// let request = last_ten.to_request(&endpoint)?;
 /// assert_eq!(
 ///     request.uri(),
-///     "http://broker.test/ngsi-ld/v1/temporal/entities/urn:ngsi-ld:Vehicle:B9211?timeproperty=modifiedAt&lastN=10"
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/temporal/entities",
+///         "/urn:ngsi-ld:Vehicle:B9211?timeproperty=modifiedAt&",
+///         "lastN=10"
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -125,7 +136,8 @@ impl<'a, F> RetrieveTemporalEvolution<'a, F> {
 }
 
 impl<'a, F> RetrieveTemporalEvolution<'a, F, Projected> {
-    /// Starts the builder of a request for the temporal evolution of one entity a `pick` or `omit` may leave without its `id` or `type`.
+    /// Starts the builder of a request for the temporal evolution of one entity a `pick` or `omit` may leave without
+    /// its `id` or `type`.
     pub fn projected_builder() -> RetrieveTemporalEvolutionBuilder<'a, F, Projected> {
         Self::generic_builder(Projected)
     }

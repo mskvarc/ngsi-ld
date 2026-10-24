@@ -15,7 +15,12 @@
 //! ```
 //! use ngsi_ld::{model::Input, registration::CSourceRegistration};
 //!
-//! let text = r#"{"type":"ContextSourceRegistration","information":[{"entities":[{"type":"Vehicle"}],"propertyNames":["speed"]}],"endpoint":"http://my.csource.org:1026/"}"#;
+//! let text = concat!(
+//!     r#"{"type":"ContextSourceRegistration","#,
+//!     r#""information":[{"entities":[{"type":"Vehicle"}],"#,
+//!     r#""propertyNames":["speed"]}],"#,
+//!     r#""endpoint":"http://my.csource.org:1026/"}"#
+//! );
 //! let registration = CSourceRegistration::<Input>::parse(text)?;
 //! assert_eq!(registration.render().to_string(), text);
 //! # Ok::<(), anyhow::Error>(())
@@ -163,7 +168,13 @@ mod writer;
 ///     .build()?;
 /// assert_eq!(
 ///     registration.render().to_string(),
-///     r#"{"type":"ContextSourceRegistration","information":[{"entities":[{"type":"Vehicle"}],"propertyNames":["speed"]}],"endpoint":"http://my.csource.org:1026/","mode":"inclusive"}"#
+///     concat!(
+///         r#"{"type":"ContextSourceRegistration","#,
+///         r#""information":[{"entities":[{"type":"Vehicle"}],"#,
+///         r#""propertyNames":["speed"]}],"#,
+///         r#""endpoint":"http://my.csource.org:1026/","#,
+///         r#""mode":"inclusive"}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

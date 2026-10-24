@@ -90,8 +90,15 @@ pub struct ContextSourceAlias(String);
 /// use ngsi_ld::model::ContextSourceIdentity;
 ///
 /// let text = concat!(
-///     r#"{"id":"urn:ngsi-ld:ContextSource:cs1","type":"ContextSourceIdentity","contextSourceAlias":"broker-1","#,
-///     r#""contextSourceUptime":"P1DT2H","contextSourceTimeAt":"2024-05-01T10:00:00Z"}"#
+///     concat!(
+///         r#"{"id":"urn:ngsi-ld:ContextSource:cs1","#,
+///         r#""type":"ContextSourceIdentity","#,
+///         r#""contextSourceAlias":"broker-1","#
+///     ),
+///     concat!(
+///         r#""contextSourceUptime":"P1DT2H","#,
+///         r#""contextSourceTimeAt":"2024-05-01T10:00:00Z"}"#
+///     )
 /// );
 /// let identity = ContextSourceIdentity::parse(text)?;
 /// assert_eq!(identity.alias.as_ref(), "broker-1");

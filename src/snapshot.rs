@@ -7,13 +7,16 @@
 //! [`QueryDocument`]s.
 //!
 //! ```
-//! use ngsi_ld::snapshot::{Snapshot, QueryDocument};
+//! use ngsi_ld::snapshot::{QueryDocument, Snapshot};
 //!
 //! let vehicles = QueryDocument::builder().entities(["Vehicle"]).build()?;
 //! let snapshot = Snapshot::builder().query(vehicles).build()?;
 //! assert_eq!(
 //!     snapshot.render().to_string(),
-//!     r#"{"type":"Snapshot","snapshotQueries":[{"type":"Query","entities":[{"type":"Vehicle"}]}]}"#
+//!     concat!(
+//!         r#"{"type":"Snapshot","snapshotQueries":[{"type":"Query","#,
+//!         r#""entities":[{"type":"Vehicle"}]}]}"#
+//!     )
 //! );
 //! # Ok::<(), anyhow::Error>(())
 //! ```
@@ -97,13 +100,21 @@ mod writer;
 /// list (Table 5.2.41-1). It is read strictly: a member the tables do not define fails the read.
 ///
 /// ```
-/// use ngsi_ld::snapshot::{Snapshot, QueryDocument};
+/// use ngsi_ld::snapshot::{QueryDocument, Snapshot};
 ///
 /// let vehicles = QueryDocument::builder().entities(["Vehicle"]).build()?;
-/// let snapshot = Snapshot::builder().query(vehicles).lifetime("PT1H".parse()?).priority(7).build()?;
+/// let snapshot = Snapshot::builder()
+///     .query(vehicles)
+///     .lifetime("PT1H".parse()?)
+///     .priority(7)
+///     .build()?;
 /// assert_eq!(
 ///     snapshot.render().to_string(),
-///     r#"{"type":"Snapshot","snapshotQueries":[{"type":"Query","entities":[{"type":"Vehicle"}]}],"snapshotLifetime":"PT1H","snapshotPriority":7}"#
+///     concat!(
+///         r#"{"type":"Snapshot","snapshotQueries":[{"type":"Query","#,
+///         r#""entities":[{"type":"Vehicle"}]}],"#,
+///         r#""snapshotLifetime":"PT1H","snapshotPriority":7}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

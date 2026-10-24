@@ -42,11 +42,20 @@ const LINK: &str = "Link";
 /// };
 ///
 /// let message = MqttNotification::parse(
-///     r#"{"metadata": {"Content-Type": "application/json",
-///                      "Link": "<https://example.org/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
-///                      "X-Auth-Token": "secret"},
-///         "body": {"id": "urn:ngsi-ld:Notification:1", "type": "Notification", "subscriptionId": "urn:ngsi-ld:Subscription:1",
-///                  "notifiedAt": "2024-05-01T10:00:00Z", "data": []}}"#,
+///     r#"{
+///       "metadata": {
+///         "Content-Type": "application/json",
+///         "Link": "<https://example.org/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+///         "X-Auth-Token": "secret"
+///       },
+///       "body": {
+///         "id": "urn:ngsi-ld:Notification:1",
+///         "type": "Notification",
+///         "subscriptionId": "urn:ngsi-ld:Subscription:1",
+///         "notifiedAt": "2024-05-01T10:00:00Z",
+///         "data": []
+///       }
+///     }"#,
 /// )?;
 /// assert_eq!(message.content_type(), NgsiLdMediaType::Json);
 /// assert_eq!(message.receiver_info("X-Auth-Token"), Some("secret"));

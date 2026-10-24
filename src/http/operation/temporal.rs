@@ -50,7 +50,19 @@ pub(super) mod retrieve;
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, TemporalSelection, SimplifiedTemporal, RetrieveTemporalEvolution}}, model::EntityId, query::temporal_query::TemporalQuery};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{
+///             Operation,
+///             RetrieveTemporalEvolution,
+///             SimplifiedTemporal,
+///             TemporalSelection,
+///         },
+///     },
+///     model::EntityId,
+///     query::temporal_query::TemporalQuery,
+/// };
 /// use url::Url;
 ///
 /// let endpoint = Endpoint::builder()
@@ -66,7 +78,11 @@ pub(super) mod retrieve;
 /// let request = retrieve.to_request(&endpoint)?;
 /// assert_eq!(
 ///     request.uri(),
-///     "http://broker.test/ngsi-ld/v1/temporal/entities/urn:ngsi-ld:Vehicle:B9211?timerel=after&timeAt=2018-08-01T12%3A00%3A00Z&format=temporalValues"
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/temporal/entities",
+///         "/urn:ngsi-ld:Vehicle:B9211?timerel=after&",
+///         "timeAt=2018-08-01T12%3A00%3A00Z&format=temporalValues"
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -82,7 +98,14 @@ pub struct SimplifiedTemporal;
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, Aggregated, TemporalSelection, RetrieveTemporalEvolution}}, model::{evolution::AggregationMethod, EntityId}, query::temporal_query};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{Aggregated, Operation, RetrieveTemporalEvolution, TemporalSelection},
+///     },
+///     model::{EntityId, evolution::AggregationMethod},
+///     query::temporal_query,
+/// };
 /// use url::Url;
 ///
 /// let endpoint = Endpoint::builder()
@@ -101,7 +124,12 @@ pub struct SimplifiedTemporal;
 /// let request = retrieve.to_request(&endpoint)?;
 /// assert_eq!(
 ///     request.uri(),
-///     "http://broker.test/ngsi-ld/v1/temporal/entities/urn:ngsi-ld:Vehicle:B9211?timerel=after&timeAt=2018-08-01T12%3A00%3A00Z&aggrMethods=max&aggrPeriodDuration=PT1H&format=aggregatedValues"
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/temporal/entities",
+///         "/urn:ngsi-ld:Vehicle:B9211?timerel=after&",
+///         "timeAt=2018-08-01T12%3A00%3A00Z&aggrMethods=max&",
+///         "aggrPeriodDuration=PT1H&format=aggregatedValues"
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

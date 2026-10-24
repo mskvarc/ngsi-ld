@@ -13,8 +13,15 @@ use serde::{Deserialize, Serialize};
 /// use ngsi_ld::http::BatchOperationResult;
 ///
 /// let result: BatchOperationResult = serde_json::from_str(
-///     r#"{"success": ["urn:ngsi-ld:Vehicle:A4567"],
-///         "errors": [{"entityId": "urn:ngsi-ld:Vehicle:B9211", "error": {"type": "https://uri.etsi.org/ngsi-ld/errors/AlreadyExists"}}]}"#,
+///     r#"{
+///       "success": ["urn:ngsi-ld:Vehicle:A4567"],
+///       "errors": [
+///         {
+///           "entityId": "urn:ngsi-ld:Vehicle:B9211",
+///           "error": {"type": "https://uri.etsi.org/ngsi-ld/errors/AlreadyExists"}
+///         }
+///       ]
+///     }"#,
 /// )?;
 /// assert_eq!(result.success.len(), 1);
 /// assert_eq!(
@@ -52,19 +59,32 @@ impl BatchOperationResult {
     ///
     /// ```
     /// use iri_rs::iri;
-    /// use ngsi_ld::{http::{BatchEntityError, BatchOperationResult}, model::{ErrorType, ProblemDetails}};
+    /// use ngsi_ld::{
+    ///     http::{BatchEntityError, BatchOperationResult},
+    ///     model::{ErrorType, ProblemDetails},
+    /// };
     ///
     /// let result = BatchOperationResult {
     ///     success: vec![iri!("urn:ngsi-ld:Vehicle:A4567").into()],
     ///     errors: vec![BatchEntityError {
     ///         entity_id: iri!("urn:ngsi-ld:Vehicle:B9211").into(),
-    ///         error: ProblemDetails::builder().error_type(ErrorType::AlreadyExists).title("Already exists").detail("urn:ngsi-ld:Vehicle:B9211").build(),
+    ///         error: ProblemDetails::builder()
+    ///             .error_type(ErrorType::AlreadyExists)
+    ///             .title("Already exists")
+    ///             .detail("urn:ngsi-ld:Vehicle:B9211")
+    ///             .build(),
     ///         registration_id: None,
     ///     }],
     /// };
     /// assert_eq!(
     ///     result.render().to_string(),
-    ///     r#"{"success":["urn:ngsi-ld:Vehicle:A4567"],"errors":[{"entityId":"urn:ngsi-ld:Vehicle:B9211","error":{"type":"https://uri.etsi.org/ngsi-ld/errors/AlreadyExists","title":"Already exists","detail":"urn:ngsi-ld:Vehicle:B9211"}}]}"#
+    ///     concat!(
+    ///         r#"{"success":["urn:ngsi-ld:Vehicle:A4567"],"#,
+    ///         r#""errors":[{"entityId":"urn:ngsi-ld:Vehicle:B9211","#,
+    ///         r#""error":{"type":"https://uri.etsi.org/ngsi-ld/errors"#,
+    ///         r#"/AlreadyExists","title":"Already exists","#,
+    ///         r#""detail":"urn:ngsi-ld:Vehicle:B9211"}}]}"#
+    ///     )
     /// );
     /// ```
     #[must_use]

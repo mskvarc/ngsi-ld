@@ -49,7 +49,10 @@ pub(super) mod builder;
 /// [`Subscription`]: crate::subscription::Subscription
 ///
 /// ```
-/// use ngsi_ld::{model::DateTime, subscription::{SubscriptionFragment, SubscriptionMember, Activation}};
+/// use ngsi_ld::{
+///     model::DateTime,
+///     subscription::{Activation, SubscriptionFragment, SubscriptionMember},
+/// };
 ///
 /// let pause = SubscriptionFragment::builder()
 ///     .activation(Activation::Paused)
@@ -58,7 +61,10 @@ pub(super) mod builder;
 ///     .build()?;
 /// assert_eq!(
 ///     pause.render().to_string(),
-///     r#"{"type":"Subscription","throttling":"urn:ngsi-ld:null","isActive":false,"expiresAt":"2024-05-01T10:00:00Z"}"#
+///     concat!(
+///         r#"{"type":"Subscription","throttling":"urn:ngsi-ld:null","#,
+///         r#""isActive":false,"expiresAt":"2024-05-01T10:00:00Z"}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

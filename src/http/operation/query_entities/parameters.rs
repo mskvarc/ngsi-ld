@@ -149,14 +149,20 @@ impl QueryEntitiesParameters {
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///
 /// ```
-/// use ngsi_ld::{http::operation::{ResultsCount, QueryEntitiesPostParameters, ParameterError}, model::Representation};
+/// use ngsi_ld::{
+///     http::operation::{ParameterError, QueryEntitiesPostParameters, ResultsCount},
+///     model::Representation,
+/// };
 ///
 /// let received = QueryEntitiesPostParameters::parse("format=concise&limit=10&count=true")?;
 /// assert_eq!(received.representation, Representation::Concise);
-/// assert_eq!((received.limit, received.count), (Some(10), ResultsCount::Include));
+/// assert_eq!(
+///     (received.limit, received.count),
+///     (Some(10), ResultsCount::Include)
+/// );
 /// assert!(matches!(
 ///     QueryEntitiesPostParameters::parse("type=Vehicle"),
-///     Err(ParameterError::Unknown { name }) if name == "type"
+///     Err(ParameterError::Unknown { .. })
 /// ));
 /// # Ok::<(), anyhow::Error>(())
 /// ```

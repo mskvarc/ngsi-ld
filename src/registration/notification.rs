@@ -61,17 +61,19 @@ pub enum TriggerReason {
 /// use ngsi_ld::registration::{CSourceNotification, TriggerReason};
 ///
 /// let text = r#"{
-///     "id": "urn:ngsi-ld:Notification:2",
-///     "type": "ContextSourceNotification",
-///     "subscriptionId": "urn:ngsi-ld:Subscription:registrations",
-///     "notifiedAt": "2024-05-01T10:00:00Z",
-///     "triggerReason": "newlyMatching",
-///     "data": [{
-///         "id": "urn:ngsi-ld:ContextSourceRegistration:csr1",
-///         "type": "ContextSourceRegistration",
-///         "information": [{"entities": [{"type": "Vehicle"}]}],
-///         "endpoint": "http://my.csource.org:1026/"
-///     }]
+///   "id": "urn:ngsi-ld:Notification:2",
+///   "type": "ContextSourceNotification",
+///   "subscriptionId": "urn:ngsi-ld:Subscription:registrations",
+///   "notifiedAt": "2024-05-01T10:00:00Z",
+///   "triggerReason": "newlyMatching",
+///   "data": [
+///     {
+///       "id": "urn:ngsi-ld:ContextSourceRegistration:csr1",
+///       "type": "ContextSourceRegistration",
+///       "information": [{"entities": [{"type": "Vehicle"}]}],
+///       "endpoint": "http://my.csource.org:1026/"
+///     }
+///   ]
 /// }"#;
 /// let notification = CSourceNotification::parse(text)?;
 /// assert_eq!(notification.trigger_reason(), TriggerReason::NewlyMatching);
@@ -106,7 +108,13 @@ impl CSourceNotification {
     ///     .build();
     /// assert_eq!(
     ///     notification.render().to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Notification:2","type":"ContextSourceNotification","subscriptionId":"urn:ngsi-ld:Subscription:registrations","notifiedAt":"2024-05-01T10:00:00Z","triggerReason":"noLongerMatching","data":[]}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Notification:2","#,
+    ///         r#""type":"ContextSourceNotification","#,
+    ///         r#""subscriptionId":"urn:ngsi-ld:Subscription:registrations","#,
+    ///         r#""notifiedAt":"2024-05-01T10:00:00Z","#,
+    ///         r#""triggerReason":"noLongerMatching","data":[]}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

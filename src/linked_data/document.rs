@@ -42,17 +42,29 @@ mod subscription;
 /// the order of their members.
 ///
 /// ```
-/// use ngsi_ld::{linked_data::ContextProcessor, model::{Input, Entity, Lossless}};
+/// use ngsi_ld::{
+///     linked_data::ContextProcessor,
+///     model::{Entity, Input, Lossless},
+/// };
 ///
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() -> anyhow::Result<()> {
 /// let core = ContextProcessor::try_new()?.core().await?;
-/// let concise = Entity::<Input>::parse(r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":55}"#, Lossless::Concise)?;
+/// let concise = Entity::<Input>::parse(
+///     r#"{"id": "urn:ngsi-ld:Vehicle:A4567", "type": "Vehicle", "speed": 55}"#,
+///     Lossless::Concise,
+/// )?;
 /// let normalized = Entity::<Input>::parse(
-///     r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":55}}"#,
+///     concat!(
+///         r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","#,
+///         r#""speed":{"type":"Property","value":55}}"#
+///     ),
 ///     Lossless::Normalized,
 /// )?;
-/// assert_eq!(core.expand_document(&concise).await?, core.expand_document(&normalized).await?);
+/// assert_eq!(
+///     core.expand_document(&concise).await?,
+///     core.expand_document(&normalized).await?
+/// );
 /// # Ok(())
 /// # }
 /// ```

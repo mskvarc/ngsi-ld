@@ -51,16 +51,34 @@ use http::{Request, Response, StatusCode};
 /// `entityMapLifetime` go into the `Query` body (clause 5.2.23), and `local` stays in the query string.
 ///
 /// ```
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, CreateTemporalEntityMap}}, query::{SelectorType, temporal_query::TemporalQuery}};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{CreateTemporalEntityMap, Operation},
+///     },
+///     query::{SelectorType, temporal_query::TemporalQuery},
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
 /// let vehicles: SelectorType = "Vehicle".parse()?;
 /// let since = TemporalQuery::after("2024-05-01T10:00:00Z".parse()?);
-/// let creation = CreateTemporalEntityMap::builder().entity_type(&vehicles).temporal_q(&since).build();
+/// let creation = CreateTemporalEntityMap::builder()
+///     .entity_type(&vehicles)
+///     .temporal_q(&since)
+///     .build();
 /// let request = creation.to_request(&endpoint)?;
 /// assert_eq!(request.method(), "GET");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/temporal/entityMaps?type=Vehicle&timerel=after&timeAt=2024-05-01T10%3A00%3A00Z");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/temporal/entityMaps",
+///         "?type=Vehicle&timerel=after&",
+///         "timeAt=2024-05-01T10%3A00%3A00Z"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, bon::Builder)]

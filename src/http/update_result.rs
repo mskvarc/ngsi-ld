@@ -14,8 +14,12 @@ use serde::{Deserialize, Serialize};
 /// use ngsi_ld::http::UpdateResult;
 ///
 /// let result: UpdateResult = serde_json::from_str(
-///     r#"{"updated": ["https://example.org/speed"],
-///         "notUpdated": [{"attributeName": "https://example.org/brandName", "reason": "attribute exists"}]}"#,
+///     r#"{
+///       "updated": ["https://example.org/speed"],
+///       "notUpdated": [
+///         {"attributeName": "https://example.org/brandName", "reason": "attribute exists"}
+///       ]
+///     }"#,
 /// )?;
 /// assert_eq!(result.updated[0].to_string(), "https://example.org/speed");
 /// assert_eq!(result.not_updated[0].reason, "attribute exists");
@@ -64,7 +68,11 @@ impl UpdateResult {
     /// };
     /// assert_eq!(
     ///     result.render().to_string(),
-    ///     r#"{"updated":["https://example.org/color"],"notUpdated":[{"attributeName":"https://example.org/speed","reason":"attribute exists"}]}"#
+    ///     concat!(
+    ///         r#"{"updated":["https://example.org/color"],"#,
+    ///         r#""notUpdated":[{"attributeName":"https://example.org"#,
+    ///         r#"/speed","reason":"attribute exists"}]}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

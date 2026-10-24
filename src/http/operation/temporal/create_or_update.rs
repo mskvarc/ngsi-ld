@@ -96,16 +96,40 @@ impl BuildsRequest for CreateOrUpdateTemporalEvolution<'_> {
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, CreateOrUpdateSimplifiedTemporalEvolution}}, model::{evolution::{SimplifiedTemporalInput, TemporalValue, TemporalValues}, Value}};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{CreateOrUpdateSimplifiedTemporalEvolution, Operation},
+///     },
+///     model::{
+///         Value,
+///         evolution::{SimplifiedTemporalInput, TemporalValue, TemporalValues},
+///     },
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
-/// let speed = TemporalValues::Property(vec![TemporalValue { value: Value::from(120), time: "2018-08-01T12:03:00Z".parse()? }]);
-/// let vehicle = SimplifiedTemporalInput::builder().id(iri!("urn:ngsi-ld:Vehicle:B9211")).entity_type("Vehicle").values("speed", speed).build()?;
-/// let request = CreateOrUpdateSimplifiedTemporalEvolution { entity: &vehicle }.to_request(&endpoint)?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
+/// let speed = TemporalValues::Property(vec![TemporalValue {
+///     value: Value::from(120),
+///     time: "2018-08-01T12:03:00Z".parse()?,
+/// }]);
+/// let vehicle = SimplifiedTemporalInput::builder()
+///     .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+///     .entity_type("Vehicle")
+///     .values("speed", speed)
+///     .build()?;
+/// let request =
+///     CreateOrUpdateSimplifiedTemporalEvolution { entity: &vehicle }.to_request(&endpoint)?;
 /// assert_eq!(
 ///     request.body().as_ref(),
-///     br#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":{"type":"Property","values":[[120,"2018-08-01T12:03:00Z"]]}}"#
+///     concat!(
+///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+///         r#""speed":{"type":"Property","values":[[120,"#,
+///         r#""2018-08-01T12:03:00Z"]]}}"#
+///     )
+///     .as_bytes()
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

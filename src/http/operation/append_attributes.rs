@@ -54,7 +54,10 @@ pub(super) mod parameters;
 /// assert_eq!(request.method(), "POST");
 /// assert_eq!(
 ///     request.uri(),
-///     "http://broker.test/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567/attrs?options=noOverwrite"
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/entities",
+///         "/urn:ngsi-ld:Vehicle:A4567/attrs?options=noOverwrite"
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

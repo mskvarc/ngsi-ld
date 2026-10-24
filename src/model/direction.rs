@@ -251,7 +251,14 @@ impl Deletion {
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::model::{Attribute, AttributeKind, Property, InstanceDeletion, DatasetId, Lossless};
+/// use ngsi_ld::model::{
+///     Attribute,
+///     AttributeKind,
+///     DatasetId,
+///     InstanceDeletion,
+///     Lossless,
+///     Property,
+/// };
 ///
 /// let gps = InstanceDeletion::new(AttributeKind::Relationship)
 ///     .with_dataset_id(DatasetId::from(iri!("urn:ngsi-ld:dataset:gps")));
@@ -260,7 +267,12 @@ impl Deletion {
 ///     .delete_sub_attribute("hasWeatherObserved", gps)?;
 /// assert_eq!(
 ///     level.render(Lossless::Normalized).to_string(),
-///     r#"{"type":"Property","value":4,"hasWeatherObserved":{"type":"Relationship","object":"urn:ngsi-ld:null","datasetId":"urn:ngsi-ld:dataset:gps"}}"#
+///     concat!(
+///         r#"{"type":"Property","value":4,"#,
+///         r#""hasWeatherObserved":{"type":"Relationship","#,
+///         r#""object":"urn:ngsi-ld:null","#,
+///         r#""datasetId":"urn:ngsi-ld:dataset:gps"}}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

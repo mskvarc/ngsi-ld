@@ -47,8 +47,13 @@ pub enum ExecutionStatus {
 /// # use ngsi_ld::model::Output;
 ///
 /// let snapshot = Snapshot::<Output>::parse(
-///     r#"{"id":"urn:ngsi-ld:Snapshot:1","type":"Snapshot","snapshotStatus":"empty",
-///         "snapshotQueriesDetails":[{"resultStatus":"empty"}],"expiresAt":"2030-01-01T00:00:00Z"}"#,
+///     r#"{
+///       "id": "urn:ngsi-ld:Snapshot:1",
+///       "type": "Snapshot",
+///       "snapshotStatus": "empty",
+///       "snapshotQueriesDetails": [{"resultStatus": "empty"}],
+///       "expiresAt": "2030-01-01T00:00:00Z"
+///     }"#,
 /// )?;
 /// let details = &snapshot.output().queries_details[0];
 /// assert_eq!(details.result_status, ExecutionStatus::Empty);

@@ -22,16 +22,34 @@ impl SimplifiedTemporalEntity {
     ///
     /// ```
     /// use iri_rs::iri;
-    /// use ngsi_ld::model::{evolution::{SimplifiedTemporalEntity, TemporalValue, TemporalValues}, Value};
+    /// use ngsi_ld::model::{
+    ///     Value,
+    ///     evolution::{SimplifiedTemporalEntity, TemporalValue, TemporalValues},
+    /// };
     ///
     /// let speed = TemporalValues::Property(vec![
-    ///     TemporalValue { value: Value::from(120), time: "2018-08-01T12:03:00Z".parse()? },
-    ///     TemporalValue { value: Value::from("urn:ngsi-ld:null"), time: "2018-08-01T12:05:00Z".parse()? },
+    ///     TemporalValue {
+    ///         value: Value::from(120),
+    ///         time: "2018-08-01T12:03:00Z".parse()?,
+    ///     },
+    ///     TemporalValue {
+    ///         value: Value::from("urn:ngsi-ld:null"),
+    ///         time: "2018-08-01T12:05:00Z".parse()?,
+    ///     },
     /// ]);
-    /// let vehicle = SimplifiedTemporalEntity::builder().id(iri!("urn:ngsi-ld:Vehicle:B9211")).entity_type("Vehicle").values("speed", speed).build()?;
+    /// let vehicle = SimplifiedTemporalEntity::builder()
+    ///     .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+    ///     .entity_type("Vehicle")
+    ///     .values("speed", speed)
+    ///     .build()?;
     /// assert_eq!(
     ///     vehicle.render().to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":{"type":"Property","values":[[120,"2018-08-01T12:03:00Z"],["urn:ngsi-ld:null","2018-08-01T12:05:00Z"]]}}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+    ///         r#""speed":{"type":"Property","values":[[120,"#,
+    ///         r#""2018-08-01T12:03:00Z"],["urn:ngsi-ld:null","#,
+    ///         r#""2018-08-01T12:05:00Z"]]}}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

@@ -20,7 +20,16 @@ impl<T: Transport, M: Answering> Client<T, M> {
     /// # impl ngsi_ld::client::Transport for Offline {
     /// #     type Error = Infallible;
     /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
-    /// #         Ok(Response::new(Bytes::from_static(br#"{"id":"urn:ngsi-ld:ContextSource:cs1","type":"ContextSourceIdentity","contextSourceAlias":"broker-1","contextSourceUptime":"P1DT2H","contextSourceTimeAt":"2024-05-01T10:00:00Z"}"#)))
+    /// #         Ok(Response::new(Bytes::from_static(
+    /// #             concat!(
+    /// #                 r#"{"id":"urn:ngsi-ld:ContextSource:cs1","#,
+    /// #                 r#""type":"ContextSourceIdentity","#,
+    /// #                 r#""contextSourceAlias":"broker-1","#,
+    /// #                 r#""contextSourceUptime":"P1DT2H","#,
+    /// #                 r#""contextSourceTimeAt":"2024-05-01T10:00:00Z"}"#
+    /// #             )
+    /// #             .as_bytes(),
+    /// #         )))
     /// #     }
     /// # }
     /// use ngsi_ld::client::Client;

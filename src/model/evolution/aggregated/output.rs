@@ -19,14 +19,38 @@ impl AggregatedTemporalEntity {
     /// ```
     /// use indexmap::IndexMap;
     /// use iri_rs::iri;
-    /// use ngsi_ld::model::{evolution::{AggregatedAttribute, AggregatedKind, AggregatedTemporalEntity, AggregatedValue, AggregationMethod}, Value};
+    /// use ngsi_ld::model::{
+    ///     Value,
+    ///     evolution::{
+    ///         AggregatedAttribute,
+    ///         AggregatedKind,
+    ///         AggregatedTemporalEntity,
+    ///         AggregatedValue,
+    ///         AggregationMethod,
+    ///     },
+    /// };
     ///
-    /// let max = AggregatedValue { value: Value::from(120), start: "2018-08-01T12:00:00Z".parse()?, end: "2018-08-01T12:04:00Z".parse()? };
-    /// let speed = AggregatedAttribute { kind: AggregatedKind::Property, methods: IndexMap::from([(AggregationMethod::Max, vec![max])]) };
-    /// let vehicle = AggregatedTemporalEntity::builder().id(iri!("urn:ngsi-ld:Vehicle:B9211")).entity_type("Vehicle").attribute("speed", speed).build()?;
+    /// let max = AggregatedValue {
+    ///     value: Value::from(120),
+    ///     start: "2018-08-01T12:00:00Z".parse()?,
+    ///     end: "2018-08-01T12:04:00Z".parse()?,
+    /// };
+    /// let speed = AggregatedAttribute {
+    ///     kind: AggregatedKind::Property,
+    ///     methods: IndexMap::from([(AggregationMethod::Max, vec![max])]),
+    /// };
+    /// let vehicle = AggregatedTemporalEntity::builder()
+    ///     .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+    ///     .entity_type("Vehicle")
+    ///     .attribute("speed", speed)
+    ///     .build()?;
     /// assert_eq!(
     ///     vehicle.render().to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":{"type":"Property","max":[[120,"2018-08-01T12:00:00Z","2018-08-01T12:04:00Z"]]}}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+    ///         r#""speed":{"type":"Property","max":[[120,"#,
+    ///         r#""2018-08-01T12:00:00Z","2018-08-01T12:04:00Z"]]}}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

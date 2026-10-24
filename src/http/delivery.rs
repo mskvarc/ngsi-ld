@@ -51,23 +51,52 @@ pub enum DeliveryError {
 /// use headers::HeaderMapExt;
 /// use http::{HeaderName, Request};
 /// use iri_rs::IriRefBuf;
-/// use ngsi_ld::{http::{NotificationDelivery, headers::{ContentType, Link, NgsiLdTenant}}, model::{Output, Entity, NgsiLdMediaType, Lossless}, subscription::Notification};
+/// use ngsi_ld::{
+///     http::{
+///         NotificationDelivery,
+///         headers::{ContentType, Link, NgsiLdTenant},
+///     },
+///     model::{Entity, Lossless, NgsiLdMediaType, Output},
+///     subscription::Notification,
+/// };
 ///
 /// // The subscription's `receiverInfo` asked for this header.
 /// const AUTH_TOKEN: HeaderName = HeaderName::from_static("x-auth-token");
 /// let mut request = Request::post("http://receiver.test/notify")
 ///     .header(AUTH_TOKEN, "secret")
-///     .body(Bytes::from_static(br#"{"id":"urn:ngsi-ld:Notification:1","type":"Notification","subscriptionId":"urn:ngsi-ld:Subscription:1","notifiedAt":"2024-05-01T10:00:00Z","data":[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":80}}]}"#))?;
+///     .body(Bytes::from_static(
+///         concat!(
+///             r#"{"id":"urn:ngsi-ld:Notification:1","#,
+///             r#""type":"Notification","#,
+///             r#""subscriptionId":"urn:ngsi-ld:Subscription:1","#,
+///             r#""notifiedAt":"2024-05-01T10:00:00Z","#,
+///             r#""data":[{"id":"urn:ngsi-ld:Vehicle:A4567","#,
+///             r#""type":"Vehicle","speed":{"type":"Property","#,
+///             r#""value":80}}]}"#
+///         )
+///         .as_bytes(),
+///     ))?;
 /// let headers = request.headers_mut();
 /// headers.typed_insert(ContentType::NgsiLd(NgsiLdMediaType::Json));
-/// headers.typed_insert(Link::try_json_ld_context(IriRefBuf::new("https://example.org/context.jsonld")?)?);
+/// headers.typed_insert(Link::try_json_ld_context(IriRefBuf::new(
+///     "https://example.org/context.jsonld",
+/// )?)?);
 /// headers.typed_insert(NgsiLdTenant::try_new("t1".parse()?)?);
 /// let delivery = NotificationDelivery::read(request)?;
 /// assert_eq!(delivery.media_type(), NgsiLdMediaType::Json);
-/// assert_eq!(delivery.context().map(|context| context.as_str()), Some("https://example.org/context.jsonld"));
+/// assert_eq!(
+///     delivery.context().map(|context| context.as_str()),
+///     Some("https://example.org/context.jsonld")
+/// );
 /// assert_eq!(delivery.tenant().map(AsRef::as_ref), Some("t1"));
-/// assert_eq!(delivery.receiver_info(&AUTH_TOKEN).and_then(|value| value.to_str().ok()), Some("secret"));
-/// let notification = Notification::<Vec<Entity<Output>>>::parse(delivery.text()?, Lossless::Normalized)?;
+/// assert_eq!(
+///     delivery
+///         .receiver_info(&AUTH_TOKEN)
+///         .and_then(|value| value.to_str().ok()),
+///     Some("secret")
+/// );
+/// let notification =
+///     Notification::<Vec<Entity<Output>>>::parse(delivery.text()?, Lossless::Normalized)?;
 /// assert_eq!(notification.data().len(), 1);
 /// # Ok::<(), anyhow::Error>(())
 /// ```

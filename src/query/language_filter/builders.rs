@@ -13,7 +13,8 @@ use crate::{
     },
 };
 
-/// A language filter under construction, started by [`language`](crate::query::language_filter::language) or [`any`](crate::query::language_filter::any).
+/// A language filter under construction, started by [`language`](crate::query::language_filter::language) or
+/// [`any`](crate::query::language_filter::any).
 ///
 /// Tags are validated on the spot, without panicking; [`build`](Self::build) reports every invalid one. Weights
 /// are [`Quality`] values, valid by construction.

@@ -44,11 +44,17 @@ use std::{convert::Infallible, error::Error};
 /// };
 ///
 /// let text = r#"{
-///     "id": "urn:ngsi-ld:Notification:1",
-///     "type": "Notification",
-///     "subscriptionId": "urn:ngsi-ld:Subscription:mySubscription",
-///     "notifiedAt": "2024-05-01T10:00:00Z",
-///     "data": [{"id": "urn:ngsi-ld:Vehicle:A4567", "type": "Vehicle", "speed": {"type": "Property", "value": 55}}]
+///   "id": "urn:ngsi-ld:Notification:1",
+///   "type": "Notification",
+///   "subscriptionId": "urn:ngsi-ld:Subscription:mySubscription",
+///   "notifiedAt": "2024-05-01T10:00:00Z",
+///   "data": [
+///     {
+///       "id": "urn:ngsi-ld:Vehicle:A4567",
+///       "type": "Vehicle",
+///       "speed": {"type": "Property", "value": 55}
+///     }
+///   ]
 /// }"#;
 /// let notification = Notification::<Vec<Entity<Output>>>::parse(text, Lossless::Normalized)?;
 /// assert_eq!(
@@ -82,9 +88,16 @@ impl<T> Notification<T> {
     ///
     /// ```
     /// use iri_rs::iri;
-    /// use ngsi_ld::{model::{Entity, Lossless}, subscription::Notification};
+    /// use ngsi_ld::{
+    ///     model::{Entity, Lossless},
+    ///     subscription::Notification,
+    /// };
     ///
-    /// let vehicle = Entity::output_builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").property("speed", 55).build()?;
+    /// let vehicle = Entity::output_builder()
+    ///     .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
+    ///     .entity_type("Vehicle")
+    ///     .property("speed", 55)
+    ///     .build()?;
     /// let notification = Notification::builder()
     ///     .id(iri!("urn:ngsi-ld:Notification:1"))
     ///     .subscription_id(iri!("urn:ngsi-ld:Subscription:mySubscription"))
@@ -93,7 +106,14 @@ impl<T> Notification<T> {
     ///     .build();
     /// assert_eq!(
     ///     notification.render(Lossless::Concise).to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Notification:1","type":"Notification","subscriptionId":"urn:ngsi-ld:Subscription:mySubscription","notifiedAt":"2024-05-01T10:00:00Z","data":[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":55}]}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Notification:1","#,
+    ///         r#""type":"Notification","#,
+    ///         r#""subscriptionId":"urn:ngsi-ld:Subscription:mySubscription","#,
+    ///         r#""notifiedAt":"2024-05-01T10:00:00Z","#,
+    ///         r#""data":[{"id":"urn:ngsi-ld:Vehicle:A4567","#,
+    ///         r#""type":"Vehicle","speed":55}]}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

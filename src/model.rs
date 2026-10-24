@@ -7,13 +7,16 @@
 //! A document a broker returns is read in the representation it was asked for, and written in any other:
 //!
 //! ```
-//! use ngsi_ld::model::{Output, Entity, Lossless, Representation};
+//! use ngsi_ld::model::{Entity, Lossless, Output, Representation};
 //!
-//! let concise = r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":80}"#;
+//! let concise = r#"{"id": "urn:ngsi-ld:Vehicle:A4567", "type": "Vehicle", "speed": 80}"#;
 //! let vehicle = Entity::<Output>::parse(concise, Lossless::Concise)?;
 //! assert_eq!(
 //!     vehicle.render(Representation::Normalized).to_string(),
-//!     r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":80}}"#
+//!     concat!(
+//!         r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","#,
+//!         r#""speed":{"type":"Property","value":80}}"#
+//!     )
 //! );
 //! # Ok::<(), anyhow::Error>(())
 //! ```
@@ -21,8 +24,9 @@
 //! # Entities
 //!
 //! [`Entity`], [`EntityDirection`], [`Completeness`], [`Complete`], [`Projected`], [`EntityFragment`], [`ScopeChange`],
-//! [`SimplifiedEntity`], [`SimplifiedValue`], [`SimplifiedFragment`], [`SimplifiedChange`], [`SimplifiedAttributeChange`],
-//! [`Feature`], [`FeatureCollection`], [`GeoJsonType`], [`IdDraft`], [`TypeDraft`], [`ScopeDraft`].
+//! [`SimplifiedEntity`], [`SimplifiedValue`], [`SimplifiedFragment`], [`SimplifiedChange`],
+//! [`SimplifiedAttributeChange`], [`Feature`], [`FeatureCollection`], [`GeoJsonType`], [`IdDraft`], [`TypeDraft`],
+//! [`ScopeDraft`].
 //!
 //! # Attributes
 //!

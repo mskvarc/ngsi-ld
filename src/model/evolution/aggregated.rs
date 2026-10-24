@@ -226,8 +226,14 @@ fn aggregated_value(json: Json) -> Result<AggregatedValue, DocumentError> {
 /// use ngsi_ld::model::evolution::{AggregatedTemporalEntity, AggregationMethod};
 ///
 /// let vehicle = AggregatedTemporalEntity::parse(
-///     r#"{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle",
-///         "speed": {"type": "Property", "max": [[120, "2018-08-01T12:00:00Z", "2018-08-01T12:04:00Z"]]}}"#,
+///     r#"{
+///       "id": "urn:ngsi-ld:Vehicle:B9211",
+///       "type": "Vehicle",
+///       "speed": {
+///         "type": "Property",
+///         "max": [[120, "2018-08-01T12:00:00Z", "2018-08-01T12:04:00Z"]]
+///       }
+///     }"#,
 /// )?;
 /// let speed = vehicle.attributes.values().next();
 /// assert_eq!(

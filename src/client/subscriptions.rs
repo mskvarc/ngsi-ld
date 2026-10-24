@@ -40,23 +40,45 @@ use bon::bon;
 /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
 /// #         let mut response = Response::new(Bytes::new());
 /// #         *response.status_mut() = StatusCode::CREATED;
-/// #         response.headers_mut().insert(LOCATION, http::HeaderValue::from_static("/ngsi-ld/v1/subscriptions/urn:ngsi-ld:Subscription:1"));
+/// #         response.headers_mut().insert(
+/// #             LOCATION,
+/// #             http::HeaderValue::from_static(
+/// #                 "/ngsi-ld/v1/subscriptions/urn:ngsi-ld:Subscription:1",
+/// #             ),
+/// #         );
 /// #         Ok(response)
 /// #     }
 /// # }
 /// use anyhow::Context;
-/// use ngsi_ld::{client::Client, query::q, subscription::{Subscription, Endpoint, SubscriptionFragment, NotificationParams, Activation}};
+/// use ngsi_ld::{
+///     client::Client,
+///     query::q,
+///     subscription::{
+///         Activation,
+///         Endpoint,
+///         NotificationParams,
+///         Subscription,
+///         SubscriptionFragment,
+///     },
+/// };
 ///
 /// async fn watch_fast_vehicles(client: &Client<Offline>) -> anyhow::Result<()> {
 ///     let subscription = Subscription::builder()
 ///         .entities(["Vehicle"])
 ///         .watched_attributes(["speed"])
 ///         .q(q::attr("speed").gt(50).build()?)
-///         .notification(NotificationParams::builder(Endpoint::builder("http://my.endpoint.org/notify").build()?).build()?)
+///         .notification(
+///             NotificationParams::builder(
+///                 Endpoint::builder("http://my.endpoint.org/notify").build()?,
+///             )
+///             .build()?,
+///         )
 ///         .build()?;
 ///     let created = client.subscriptions().create(&subscription).send().await?;
 ///     let id = created.id().context("the broker named no subscription")?;
-///     let pause = SubscriptionFragment::builder().activation(Activation::Paused).build()?;
+///     let pause = SubscriptionFragment::builder()
+///         .activation(Activation::Paused)
+///         .build()?;
 ///     client.subscriptions().update(&id, &pause).send().await?;
 ///     Ok(())
 /// }

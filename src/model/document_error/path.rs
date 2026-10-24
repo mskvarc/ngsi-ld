@@ -28,12 +28,27 @@ pub enum PathSegment {
 /// The members and array elements leading from the top of a document to a problem, written `a.b.0`.
 ///
 /// ```
-/// use ngsi_ld::{model::{Input, PathSegment}, subscription::Subscription};
+/// use ngsi_ld::{
+///     model::{Input, PathSegment},
+///     subscription::Subscription,
+/// };
 ///
-/// let text = r#"{"type":"Subscription","entities":[{"type":"Vehicle"},{"id":"urn:ngsi-ld:Vehicle:A4567"}],"notification":{"endpoint":{"uri":"http://my.endpoint.org/notify"}}}"#;
-/// let path = Subscription::<Input>::parse(text).err().map(|error| error.path);
-/// assert_eq!(path.as_ref().map(ToString::to_string).as_deref(), Some("entities.1"));
-/// assert_eq!(path.as_ref().and_then(|path| path.segments().last()), Some(&PathSegment::Index(1)));
+/// let text = r#"{
+///   "type": "Subscription",
+///   "entities": [{"type": "Vehicle"}, {"id": "urn:ngsi-ld:Vehicle:A4567"}],
+///   "notification": {"endpoint": {"uri": "http://my.endpoint.org/notify"}}
+/// }"#;
+/// let path = Subscription::<Input>::parse(text)
+///     .err()
+///     .map(|error| error.path);
+/// assert_eq!(
+///     path.as_ref().map(ToString::to_string).as_deref(),
+///     Some("entities.1")
+/// );
+/// assert_eq!(
+///     path.as_ref().and_then(|path| path.segments().last()),
+///     Some(&PathSegment::Index(1))
+/// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub struct MemberPath(Vec<PathSegment>);

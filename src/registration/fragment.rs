@@ -53,7 +53,10 @@ use url::Url;
 /// fragment, it is only written.
 ///
 /// ```
-/// use ngsi_ld::{model::DateTime, registration::{RegistrationFragment, RegistrationMember}};
+/// use ngsi_ld::{
+///     model::DateTime,
+///     registration::{RegistrationFragment, RegistrationMember},
+/// };
 ///
 /// let fragment = RegistrationFragment::builder()
 ///     .endpoint("http://my.csource.org:1027/")
@@ -62,7 +65,12 @@ use url::Url;
 ///     .build()?;
 /// assert_eq!(
 ///     fragment.render().to_string(),
-///     r#"{"type":"ContextSourceRegistration","endpoint":"http://my.csource.org:1027/","location":"urn:ngsi-ld:null","expiresAt":"2030-01-01T00:00:00Z"}"#
+///     concat!(
+///         r#"{"type":"ContextSourceRegistration","#,
+///         r#""endpoint":"http://my.csource.org:1027/","#,
+///         r#""location":"urn:ngsi-ld:null","#,
+///         r#""expiresAt":"2030-01-01T00:00:00Z"}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

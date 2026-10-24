@@ -54,16 +54,34 @@ impl InstanceSelection<'_> {
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, DeleteAttribute, InstanceSelection}}, model::{EntityId, AttributeName}};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{DeleteAttribute, InstanceSelection, Operation},
+///     },
+///     model::{AttributeName, EntityId},
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
 /// let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"));
 /// let speed: AttributeName = "speed".parse()?;
-/// let every_instance = DeleteAttribute::builder().id(&id).name(&speed).instances(InstanceSelection::All).build();
+/// let every_instance = DeleteAttribute::builder()
+///     .id(&id)
+///     .name(&speed)
+///     .instances(InstanceSelection::All)
+///     .build();
 /// let request = every_instance.to_request(&endpoint)?;
 /// assert_eq!(request.method(), "DELETE");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567/attrs/speed?deleteAll=true");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/entities",
+///         "/urn:ngsi-ld:Vehicle:A4567/attrs/speed?deleteAll=true"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, bon::Builder)]

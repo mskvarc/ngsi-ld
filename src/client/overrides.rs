@@ -27,15 +27,27 @@ impl<T: Transport + Clone, M: Answering> Client<T, M> {
     /// # struct Offline;
     /// # impl ngsi_ld::client::Transport for Offline {
     /// #     type Error = Infallible;
-    /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> { Ok(Response::new(Bytes::new())) }
+    /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+    /// #         Ok(Response::new(Bytes::new()))
+    /// #     }
     /// # }
     /// use iri_rs::IriRefBuf;
     /// use ngsi_ld::client::Client;
     /// use url::Url;
     ///
-    /// let client = Client::builder().base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?).transport(Offline).build()?;
+    /// let client = Client::builder()
+    ///     .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
+    ///     .transport(Offline)
+    ///     .build()?;
     /// let fleet = client.with_context(IriRefBuf::new("https://example.org/fleet.jsonld")?)?;
-    /// assert_eq!(fleet.endpoint().context().and_then(|context| context.link_target()).map(|target| target.as_str()), Some("https://example.org/fleet.jsonld"));
+    /// assert_eq!(
+    ///     fleet
+    ///         .endpoint()
+    ///         .context()
+    ///         .and_then(|context| context.link_target())
+    ///         .map(|target| target.as_str()),
+    ///     Some("https://example.org/fleet.jsonld")
+    /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```
     ///

@@ -14,15 +14,31 @@ use crate::{
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members and restrictions.
 ///
 /// ```
-/// use ngsi_ld::{model::MemberProblem, registration::{Problem, RegistrationInfo, RegistrationField, RegistrationInfoMember}};
+/// use ngsi_ld::{
+///     model::MemberProblem,
+///     registration::{Problem, RegistrationField, RegistrationInfo, RegistrationInfoMember},
+/// };
 ///
-/// let error = RegistrationInfo::builder().property_names(["1x"]).build().err();
+/// let error = RegistrationInfo::builder()
+///     .property_names(["1x"])
+///     .build()
+///     .err();
 /// let problems = error.as_ref().map(|error| error.problems());
-/// assert!(matches!(
-///     problems,
-///     Some([Problem::Member(MemberProblem::InvalidAttributeName { member, index: 0, .. })])
-///         if *member == RegistrationField::from(RegistrationInfoMember::PropertyNames)
-/// ));
+/// let Some(
+///     [
+///         Problem::Member(MemberProblem::InvalidAttributeName {
+///             member, index: 0, ..
+///         }),
+///     ],
+/// ) = problems
+/// else {
+///     anyhow::bail!("expected one invalid attribute name");
+/// };
+/// assert_eq!(
+///     *member,
+///     RegistrationField::from(RegistrationInfoMember::PropertyNames)
+/// );
+/// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]

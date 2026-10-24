@@ -50,9 +50,9 @@ pub(super) mod retrieving;
 /// The entity operations of a [`Client`](crate::client::Client), from
 /// [`Client::entities`](crate::client::Client::entities).
 ///
-/// Each operation is a builder that finishes with `send()`. Query-language arguments (`entity_type`, `q`, `geo_q`, `scope_q`, `csf`, `pick`, `omit`,
-/// `lang`, `ordering`) take the query builders, so a call reads `.q(q::attr("speed").gt(50))` without a `?` per
-/// argument; every problem in them is reported by `send()` as
+/// Each operation is a builder that finishes with `send()`. Query-language arguments (`entity_type`, `q`, `geo_q`,
+/// `scope_q`, `csf`, `pick`, `omit`, `lang`, `ordering`) take the query builders, so a call reads
+/// `.q(q::attr("speed").gt(50))` without a `?` per argument; every problem in them is reported by `send()` as
 /// [`ArgumentError::InvalidArgument`](crate::http::operation::ArgumentError::InvalidArgument).
 ///
 /// Retrieve Entity and Query Entities exist once per representation family: a lossless one answered with
@@ -75,22 +75,38 @@ pub(super) mod retrieving;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
 /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
-/// #         let mut response = Response::new(Bytes::from_static(br#"["urn:ngsi-ld:Vehicle:A4567"]"#));
+/// #         let mut response =
+/// #             Response::new(Bytes::from_static(br#"["urn:ngsi-ld:Vehicle:A4567"]"#));
 /// #         *response.status_mut() = StatusCode::CREATED;
 /// #         Ok(response)
 /// #     }
 /// # }
 /// use iri_rs::iri;
-/// use ngsi_ld::{client::Client, http::BatchCreateOutcome, model::{Entity, EntityFragment}};
+/// use ngsi_ld::{
+///     client::Client,
+///     http::BatchCreateOutcome,
+///     model::{Entity, EntityFragment},
+/// };
 ///
 /// async fn park(client: &Client<Offline>) -> anyhow::Result<()> {
-///     let vehicles = [Entity::builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").property("speed", 80).build()?];
-///     if let BatchCreateOutcome::Partial(result) = client.entities().batch_create(&vehicles).send().await? {
+///     let vehicles = [Entity::builder()
+///         .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
+///         .entity_type("Vehicle")
+///         .property("speed", 80)
+///         .build()?];
+///     if let BatchCreateOutcome::Partial(result) =
+///         client.entities().batch_create(&vehicles).send().await?
+///     {
 ///         for error in &result.errors {
 ///             println!("{} failed: {:?}", error.entity_id, error.error.error_type);
 ///         }
 ///     }
-///     let stopped = [EntityFragment::for_entity(iri!("urn:ngsi-ld:Vehicle:A4567"), "Vehicle").property("speed", 0).delete("isParked").build()?];
+///     let stopped = [
+///         EntityFragment::for_entity(iri!("urn:ngsi-ld:Vehicle:A4567"), "Vehicle")
+///             .property("speed", 0)
+///             .delete("isParked")
+///             .build()?,
+///     ];
 ///     client.entities().batch_merge(&stopped).send().await?;
 ///     Ok(())
 /// }

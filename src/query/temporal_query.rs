@@ -9,12 +9,19 @@
 //! ```
 //! use ngsi_ld::query::temporal_query::{self, TemporalProperty};
 //!
-//! let query = temporal_query::between("2017-12-13T14:20:00Z".parse()?, "2017-12-13T14:40:00Z".parse()?)
-//!     .time_property(TemporalProperty::ModifiedAt)
-//!     .build()?;
+//! let query = temporal_query::between(
+//!     "2017-12-13T14:20:00Z".parse()?,
+//!     "2017-12-13T14:40:00Z".parse()?,
+//! )
+//! .time_property(TemporalProperty::ModifiedAt)
+//! .build()?;
 //! assert_eq!(
 //!     query.render().to_string(),
-//!     r#"{"timerel":"between","timeAt":"2017-12-13T14:20:00Z","endTimeAt":"2017-12-13T14:40:00Z","timeproperty":"modifiedAt"}"#
+//!     concat!(
+//!         r#"{"timerel":"between","timeAt":"2017-12-13T14:20:00Z","#,
+//!         r#""endTimeAt":"2017-12-13T14:40:00Z","#,
+//!         r#""timeproperty":"modifiedAt"}"#
+//!     )
 //! );
 //! # Ok::<(), anyhow::Error>(())
 //! ```

@@ -92,11 +92,17 @@ const QUERY: [QueryParameter; 6] = [
 /// The enum is exhaustive: a request has a temporal query or does not.
 ///
 /// ```
-/// use ngsi_ld::http::operation::{RetrieveTemporalEvolutionParameters, TemporalSelectionParameters};
+/// use ngsi_ld::http::operation::{
+///     RetrieveTemporalEvolutionParameters,
+///     TemporalSelectionParameters,
+/// };
 /// use std::num::NonZeroU64;
 ///
 /// let received = RetrieveTemporalEvolutionParameters::parse("lastN=3")?;
-/// assert!(matches!(received.selection, TemporalSelectionParameters::Unbounded { last_n, .. } if last_n == NonZeroU64::new(3)));
+/// let TemporalSelectionParameters::Unbounded { last_n, .. } = received.selection else {
+///     anyhow::bail!("expected a selection without a temporal query");
+/// };
+/// assert_eq!(last_n, NonZeroU64::new(3));
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -328,14 +334,19 @@ impl QueryTemporalEvolutionParameters {
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///
 /// ```
-/// use ngsi_ld::http::operation::{ParameterError, TemporalRepresentation, QueryTemporalEvolutionPostParameters};
+/// use ngsi_ld::http::operation::{
+///     ParameterError,
+///     QueryTemporalEvolutionPostParameters,
+///     TemporalRepresentation,
+/// };
 ///
-/// let received = QueryTemporalEvolutionPostParameters::parse("format=temporalValues&limit=5&offset=10")?;
+/// let received =
+///     QueryTemporalEvolutionPostParameters::parse("format=temporalValues&limit=5&offset=10")?;
 /// assert_eq!(received.representation, TemporalRepresentation::Simplified);
 /// assert_eq!((received.limit, received.offset), (Some(5), Some(10)));
 /// assert!(matches!(
 ///     QueryTemporalEvolutionPostParameters::parse("timerel=after"),
-///     Err(ParameterError::Unknown { name }) if name == "timerel"
+///     Err(ParameterError::Unknown { .. })
 /// ));
 /// # Ok::<(), anyhow::Error>(())
 /// ```

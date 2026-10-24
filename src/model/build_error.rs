@@ -26,8 +26,8 @@ use std::{error::Error, fmt};
 /// assert_eq!(
 ///     error.as_deref(),
 ///     Some(
-///         "2 problem(s): invalid identifier: not a valid URI or IRI; `location` cannot be added: the \
-///          attribute must be a GeoProperty"
+///         "2 problem(s): invalid identifier: not a valid URI or IRI; \
+///          `location` cannot be added: the attribute must be a GeoProperty"
 ///     )
 /// );
 /// ```

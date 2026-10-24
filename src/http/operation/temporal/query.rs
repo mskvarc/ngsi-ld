@@ -79,10 +79,19 @@ use jstrict::Object;
 /// query string.
 ///
 /// ```
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, QueryTemporalEvolution}}, model::Lossless, query::{SelectorType, temporal_query::TemporalQuery}};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{Operation, QueryTemporalEvolution},
+///     },
+///     model::Lossless,
+///     query::{SelectorType, temporal_query::TemporalQuery},
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
 /// let vehicles: SelectorType = "Vehicle".parse()?;
 /// let since = TemporalQuery::after("2018-08-01T12:00:00Z".parse()?);
 /// let query = QueryTemporalEvolution::builder()
@@ -92,7 +101,14 @@ use jstrict::Object;
 ///     .build();
 /// let request = query.to_request(&endpoint)?;
 /// assert_eq!(request.method(), "GET");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/temporal/entities?type=Vehicle&timerel=after&timeAt=2018-08-01T12%3A00%3A00Z");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/temporal/entities",
+///         "?type=Vehicle&timerel=after&",
+///         "timeAt=2018-08-01T12%3A00%3A00Z"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, bon::Builder)]
@@ -178,7 +194,8 @@ impl<'a, F> QueryTemporalEvolution<'a, F> {
 }
 
 impl<'a, F> QueryTemporalEvolution<'a, F, Projected> {
-    /// Starts the builder of a query of the temporal evolution of entities a `pick` or `omit` may leave without their `id` or `type`.
+    /// Starts the builder of a query of the temporal evolution of entities a `pick` or `omit` may leave without their
+    /// `id` or `type`.
     pub fn projected_builder() -> QueryTemporalEvolutionBuilder<'a, F, Projected> {
         Self::generic_builder(Projected)
     }

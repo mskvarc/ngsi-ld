@@ -33,21 +33,40 @@ impl TemporalEntity<Output> {
     ///
     /// ```
     /// use iri_rs::iri;
-    /// use ngsi_ld::model::{Attribute, AttributeKind, Property, evolution::TemporalEntity, InstanceId, Lossless};
+    /// use ngsi_ld::model::{
+    ///     Attribute,
+    ///     AttributeKind,
+    ///     InstanceId,
+    ///     Lossless,
+    ///     Property,
+    ///     evolution::TemporalEntity,
+    /// };
     ///
     /// let vehicle = TemporalEntity::output_builder()
     ///     .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
     ///     .entity_type("Vehicle")
     ///     .output_attribute(
     ///         "speed",
-    ///         Property::output_builder(Property::builder(120).observed_at("2018-08-01T12:03:00Z".parse()?))
-    ///             .instance_id("urn:ngsi-ld:attribute:instance:1".parse::<InstanceId>()?),
+    ///         Property::output_builder(
+    ///             Property::builder(120).observed_at("2018-08-01T12:03:00Z".parse()?),
+    ///         )
+    ///         .instance_id("urn:ngsi-ld:attribute:instance:1".parse::<InstanceId>()?),
     ///     )
-    ///     .output_attribute("speed", Attribute::deleted(AttributeKind::Property).deleted_at("2018-08-01T12:05:00Z".parse()?))
+    ///     .output_attribute(
+    ///         "speed",
+    ///         Attribute::deleted(AttributeKind::Property).deleted_at("2018-08-01T12:05:00Z".parse()?),
+    ///     )
     ///     .build()?;
     /// assert_eq!(
     ///     vehicle.render(Lossless::Concise).to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z","instanceId":"urn:ngsi-ld:attribute:instance:1"},{"value":"urn:ngsi-ld:null","deletedAt":"2018-08-01T12:05:00Z"}]}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+    ///         r#""speed":[{"value":120,"#,
+    ///         r#""observedAt":"2018-08-01T12:03:00Z","#,
+    ///         r#""instanceId":"urn:ngsi-ld:attribute:instance:1"},"#,
+    ///         r#"{"value":"urn:ngsi-ld:null","#,
+    ///         r#""deletedAt":"2018-08-01T12:05:00Z"}]}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

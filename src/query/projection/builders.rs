@@ -12,8 +12,8 @@ use crate::{
 };
 use std::mem;
 
-/// A projection under construction, started by [`attributes`](crate::query::projection::attributes), [`linked`](crate::query::projection::linked) or
-/// [`member`](crate::query::projection::member).
+/// A projection under construction, started by [`attributes`](crate::query::projection::attributes),
+/// [`linked`](crate::query::projection::linked) or [`member`](crate::query::projection::member).
 ///
 /// Names are validated on the spot, without panicking; [`build`](Self::build) reports every invalid one.
 ///

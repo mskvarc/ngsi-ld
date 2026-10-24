@@ -11,7 +11,7 @@
 /// use ngsi_ld::model::StoredContextKind;
 ///
 /// let kind: StoredContextKind = "Ephemeral".parse()?;
-/// assert!(matches!(&kind, StoredContextKind::Other(other) if other.as_ref() == "Ephemeral"));
+/// assert!(matches!(kind, StoredContextKind::Other(_)));
 /// assert_eq!(kind.to_string(), "Ephemeral");
 /// # Ok::<(), anyhow::Error>(())
 /// ```

@@ -6,14 +6,28 @@ use crate::{http::path::ResourcePath, registration::RegistrationId};
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, DeleteRegistration}}, registration::RegistrationId};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{DeleteRegistration, Operation},
+///     },
+///     registration::RegistrationId,
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
 /// let id = RegistrationId::from(iri!("urn:ngsi-ld:ContextSourceRegistration:csr1a3456"));
 /// let request = DeleteRegistration { id: &id }.to_request(&endpoint)?;
 /// assert_eq!(request.method(), "DELETE");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/csourceRegistrations/urn:ngsi-ld:ContextSourceRegistration:csr1a3456");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/csourceRegistrations",
+///         "/urn:ngsi-ld:ContextSourceRegistration:csr1a3456"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

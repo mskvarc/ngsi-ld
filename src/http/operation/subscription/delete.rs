@@ -50,7 +50,10 @@ use http::{Method, Request, Response};
 /// assert_eq!(request.method(), "DELETE");
 /// assert_eq!(
 ///     request.uri(),
-///     "http://broker.test/ngsi-ld/v1/csourceSubscriptions/urn:ngsi-ld:Subscription:registrations"
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/csourceSubscriptions",
+///         "/urn:ngsi-ld:Subscription:registrations"
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

@@ -12,14 +12,18 @@ use crate::{
 /// The enum is `#[non_exhaustive]`: later versions of the specification restrict more members.
 ///
 /// ```
-/// use ngsi_ld::{model::MemberProblem, subscription::{Problem, Endpoint, EndpointMember}};
+/// use ngsi_ld::{
+///     model::MemberProblem,
+///     subscription::{Endpoint, EndpointMember, Problem},
+/// };
 ///
 /// let error = Endpoint::builder("not a url").build().err();
 /// let problems = error.as_ref().map(|error| error.problems());
-/// assert!(matches!(
-///     problems,
-///     Some([Problem::Member(MemberProblem::InvalidUrl { member, .. })]) if *member == EndpointMember::Uri.into()
-/// ));
+/// let Some([Problem::Member(MemberProblem::InvalidUrl { member, .. })]) = problems else {
+///     anyhow::bail!("expected one invalid URL");
+/// };
+/// assert!(*member == EndpointMember::Uri.into());
+/// # Ok::<(), anyhow::Error>(())
 /// ```
 // `url::ParseError` carries no `Hash`, so neither can the problem that chains it.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]

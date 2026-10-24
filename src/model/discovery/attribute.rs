@@ -26,7 +26,11 @@ use jstrict::{Object, Value as Json, object::Entry};
 /// ```
 /// use ngsi_ld::model::discovery::AttributeList;
 ///
-/// let text = r#"{"id":"urn:ngsi-ld:AttributeList:1","type":"AttributeList","attributeList":["speed","brandName"]}"#;
+/// let text = concat!(
+///     r#"{"id":"urn:ngsi-ld:AttributeList:1","#,
+///     r#""type":"AttributeList","attributeList":["speed","#,
+///     r#""brandName"]}"#
+/// );
 /// let list = AttributeList::parse(text)?;
 /// assert_eq!(list.attribute_list.len(), 2);
 /// assert_eq!(list.render().to_string(), text);
@@ -156,7 +160,10 @@ impl EntityTypeAttribute {
 /// ```
 /// use ngsi_ld::model::discovery::AttributeDetails;
 ///
-/// let text = r#"{"id":"https://example.org/speed","type":"Attribute","attributeName":"speed","typeNames":["Vehicle"]}"#;
+/// let text = concat!(
+///     r#"{"id":"https://example.org/speed","type":"Attribute","#,
+///     r#""attributeName":"speed","typeNames":["Vehicle"]}"#
+/// );
 /// let speed = AttributeDetails::parse(text)?;
 /// assert_eq!(speed.type_names.as_ref().map(Vec::len), Some(1));
 /// assert_eq!(speed.render().to_string(), text);
@@ -227,7 +234,11 @@ impl AttributeDetails {
 /// ```
 /// use ngsi_ld::model::{AttributeKind, discovery::AttributeInfo};
 ///
-/// let text = r#"{"id":"https://example.org/speed","type":"Attribute","attributeName":"speed","attributeCount":3,"attributeTypes":["Property"],"typeNames":["Vehicle"]}"#;
+/// let text = concat!(
+///     r#"{"id":"https://example.org/speed","type":"Attribute","#,
+///     r#""attributeName":"speed","attributeCount":3,"#,
+///     r#""attributeTypes":["Property"],"typeNames":["Vehicle"]}"#
+/// );
 /// let speed = AttributeInfo::parse(text)?;
 /// assert_eq!(speed.attribute_count, Some(3));
 /// assert_eq!(speed.attribute_types, Some(vec![AttributeKind::Property]));

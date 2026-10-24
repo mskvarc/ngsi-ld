@@ -87,11 +87,11 @@ impl ActiveContext {
     /// its Fully Qualified Name (clause 5.5.7), and the document's `@context`, when it has one, becomes this
     /// context's user `@context`.
     ///
-    /// Unlike [`compact_document`](Self::compact_document), re-contextualisation reaches into the query-language members: the
-    /// attributes a `q`, `csf`, `pick`, `omit` or ordering names, and the entity types a type selection names, are
-    /// translated like every other name. A query-language term is a bare term (clause 4.9), so a name the target
-    /// context has no term for cannot be written in one and is refused, where a member that holds an IRI takes the
-    /// Fully Qualified Name.
+    /// Unlike [`compact_document`](Self::compact_document), re-contextualisation reaches into the query-language
+    /// members: the attributes a `q`, `csf`, `pick`, `omit` or ordering names, and the entity types a type selection
+    /// names, are translated like every other name. A query-language term is a bare term (clause 4.9), so a name the
+    /// target context has no term for cannot be written in one and is refused, where a member that holds an IRI takes
+    /// the Fully Qualified Name.
     ///
     /// ```
     /// use ngsi_ld::{

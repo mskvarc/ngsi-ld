@@ -20,10 +20,17 @@ use jstrict::{Object, Value as Json};
 /// use iri_rs::iri;
 /// use ngsi_ld::snapshot::SnapshotClone;
 ///
-/// let clone = SnapshotClone::builder().id(iri!("urn:ngsi-ld:Snapshot:2")).lifetime("P1D".parse()?).priority(3).build()?;
+/// let clone = SnapshotClone::builder()
+///     .id(iri!("urn:ngsi-ld:Snapshot:2"))
+///     .lifetime("P1D".parse()?)
+///     .priority(3)
+///     .build()?;
 /// assert_eq!(
 ///     clone.render().to_string(),
-///     r#"{"id":"urn:ngsi-ld:Snapshot:2","type":"Snapshot","snapshotLifetime":"P1D","snapshotPriority":3}"#
+///     concat!(
+///         r#"{"id":"urn:ngsi-ld:Snapshot:2","type":"Snapshot","#,
+///         r#""snapshotLifetime":"P1D","snapshotPriority":3}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

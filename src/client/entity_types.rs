@@ -25,11 +25,23 @@ use bon::bon;
 /// # struct Offline;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
-/// #     async fn send(&self, request: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+/// #     async fn send(
+/// #         &self,
+/// #         request: Request<Bytes>,
+/// #     ) -> Result<Response<Bytes>, Infallible> {
 /// #         let body: &'static [u8] = if request.uri().path().ends_with("/types") {
-/// #             br#"{"id":"urn:ngsi-ld:EntityTypeList:1","type":"EntityTypeList","typeList":["Vehicle"]}"#
+/// #             concat!(
+/// #                 r#"{"id":"urn:ngsi-ld:EntityTypeList:1","#,
+/// #                 r#""type":"EntityTypeList","typeList":["Vehicle"]}"#
+/// #             )
+/// #             .as_bytes()
 /// #         } else {
-/// #             br#"{"id":"https://example.org/Vehicle","type":"EntityTypeInfo","attributeDetails":[],"entityCount":2,"typeName":"Vehicle"}"#
+/// #             concat!(
+/// #                 r#"{"id":"https://example.org/Vehicle","#,
+/// #                 r#""type":"EntityTypeInfo","attributeDetails":[],"#,
+/// #                 r#""entityCount":2,"typeName":"Vehicle"}"#
+/// #             )
+/// #             .as_bytes()
 /// #         };
 /// #         Ok(Response::new(Bytes::from_static(body)))
 /// #     }
@@ -38,7 +50,11 @@ use bon::bon;
 ///
 /// async fn count_vehicles(client: &Client<Offline>) -> anyhow::Result<Option<u64>> {
 ///     let types = client.entity_types().list().send().await?;
-///     let Some(vehicle) = types.type_list.iter().find(|name| name.as_ref() == "Vehicle") else {
+///     let Some(vehicle) = types
+///         .type_list
+///         .iter()
+///         .find(|name| name.as_ref() == "Vehicle")
+///     else {
 ///         return Ok(None);
 ///     };
 ///     let info = client.entity_types().retrieve(vehicle).send().await?;

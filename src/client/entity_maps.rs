@@ -37,20 +37,36 @@ use std::num::NonZeroU32;
 /// Each operation is a builder that finishes with `send()`.
 ///
 /// ```
-/// # use ngsi_ld::http::headers::NgsiLdEntityMap;
-/// # use headers::Header;
 /// # use bytes::Bytes;
+/// # use headers::Header;
 /// # use http::{HeaderValue, Method, Request, Response, StatusCode};
+/// # use ngsi_ld::http::headers::NgsiLdEntityMap;
 /// # use std::convert::Infallible;
 /// # struct Offline;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
-/// #     async fn send(&self, request: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
-/// #         let map = br#"{"id":"urn:ngsi-ld:EntityMap:1","type":"EntityMap","expiresAt":"2030-01-01T00:00:00Z","entityMap":{"urn:ngsi-ld:Vehicle:A4567":["@none"]},"linkedMaps":{}}"#;
+/// #     async fn send(
+/// #         &self,
+/// #         request: Request<Bytes>,
+/// #     ) -> Result<Response<Bytes>, Infallible> {
+/// #         let map = concat!(
+/// #             r#"{"id":"urn:ngsi-ld:EntityMap:1","type":"EntityMap","#,
+/// #             r#""expiresAt":"2030-01-01T00:00:00Z","#,
+/// #             r#""entityMap":{"urn:ngsi-ld:Vehicle:A4567":["@none"]},"#,
+/// #             r#""linkedMaps":{}}"#
+/// #         )
+/// #         .as_bytes();
 /// #         let mut response = Response::new(Bytes::from_static(map));
-/// #         if request.method() == Method::GET && request.uri().path().ends_with("/entityMaps") {
+/// #         if request.method() == Method::GET
+/// #             && request.uri().path().ends_with("/entityMaps")
+/// #         {
 /// #             *response.status_mut() = StatusCode::CREATED;
-/// #             response.headers_mut().insert(NgsiLdEntityMap::name(), HeaderValue::from_static("/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1"));
+/// #             response.headers_mut().insert(
+/// #                 NgsiLdEntityMap::name(),
+/// #                 HeaderValue::from_static(
+/// #                     "/ngsi-ld/v1/entityMaps/urn:ngsi-ld:EntityMap:1",
+/// #                 ),
+/// #             );
 /// #         } else if request.method() != Method::GET {
 /// #             *response.status_mut() = StatusCode::NO_CONTENT;
 /// #             *response.body_mut() = Bytes::new();
@@ -61,7 +77,12 @@ use std::num::NonZeroU32;
 /// use ngsi_ld::{client::Client, model::DateTime};
 ///
 /// async fn pin_the_vehicles(client: &Client<Offline>) -> anyhow::Result<usize> {
-///     let created = client.entity_maps().create().entity_type("Vehicle").send().await?;
+///     let created = client
+///         .entity_maps()
+///         .create()
+///         .entity_type("Vehicle")
+///         .send()
+///         .await?;
 ///     let id = &created.body().id;
 ///     let later: DateTime = "2030-06-01T00:00:00Z".parse()?;
 ///     client.entity_maps().update(id, &later).send().await?;

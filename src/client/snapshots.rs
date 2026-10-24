@@ -15,8 +15,8 @@ use bon::bon;
 
 /// The snapshot operations of a [`Client`] (clauses 6.36 to 6.38).
 ///
-/// Each operation is a builder that finishes with `send()`; operations of the Core and Temporal APIs are aimed at a snapshot through
-/// [`Client::on_snapshot`].
+/// Each operation is a builder that finishes with `send()`; operations of the Core and Temporal APIs are aimed at a
+/// snapshot through [`Client::on_snapshot`].
 ///
 /// ```
 /// # use bytes::Bytes;
@@ -28,12 +28,20 @@ use bon::bon;
 /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
 /// #         let mut response = Response::new(Bytes::new());
 /// #         *response.status_mut() = StatusCode::CREATED;
-/// #         response.headers_mut().insert(LOCATION, http::HeaderValue::from_static("/ngsi-ld/v1/snapshots/urn:ngsi-ld:Snapshot:1"));
+/// #         response.headers_mut().insert(
+/// #             LOCATION,
+/// #             http::HeaderValue::from_static(
+/// #                 "/ngsi-ld/v1/snapshots/urn:ngsi-ld:Snapshot:1",
+/// #             ),
+/// #         );
 /// #         Ok(response)
 /// #     }
 /// # }
 /// use anyhow::Context;
-/// use ngsi_ld::{client::Client, snapshot::{Snapshot, QueryDocument}};
+/// use ngsi_ld::{
+///     client::Client,
+///     snapshot::{QueryDocument, Snapshot},
+/// };
 ///
 /// async fn freeze_vehicles(client: &Client<Offline>) -> anyhow::Result<()> {
 ///     let vehicles = QueryDocument::builder().entities(["Vehicle"]).build()?;

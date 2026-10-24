@@ -32,19 +32,29 @@ impl Entity<Output> {
     ///
     /// ```
     /// use iri_rs::iri;
-    /// use ngsi_ld::model::{Property, Entity, Representation};
+    /// use ngsi_ld::model::{Entity, Property, Representation};
     ///
     /// let created = "2024-05-01T10:00:00Z".parse()?;
     /// let vehicle = Entity::output_builder()
     ///     .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
     ///     .entity_type("Vehicle")
     ///     .property("brandName", "Mercedes")
-    ///     .output_attribute("speed", Property::output_builder(80).created_at(created).previous_value(70))
+    ///     .output_attribute(
+    ///         "speed",
+    ///         Property::output_builder(80)
+    ///             .created_at(created)
+    ///             .previous_value(70),
+    ///     )
     ///     .created_at(created)
     ///     .build()?;
     /// assert_eq!(
     ///     vehicle.render(Representation::Concise).to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","brandName":"Mercedes","speed":{"value":80,"previousValue":70,"createdAt":"2024-05-01T10:00:00Z"},"createdAt":"2024-05-01T10:00:00Z"}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","#,
+    ///         r#""brandName":"Mercedes","speed":{"value":80,"#,
+    ///         r#""previousValue":70,"createdAt":"2024-05-01T10:00:00Z"},"#,
+    ///         r#""createdAt":"2024-05-01T10:00:00Z"}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

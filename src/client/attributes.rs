@@ -26,10 +26,19 @@ use bon::bon;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
 /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
-/// #         Ok(Response::new(Bytes::from_static(br#"{"id":"https://example.org/speed","type":"Attribute","attributeName":"speed","typeNames":["Vehicle"]}"#)))
+/// #         Ok(Response::new(Bytes::from_static(
+/// #             concat!(
+/// #                 r#"{"id":"https://example.org/speed","type":"Attribute","#,
+/// #                 r#""attributeName":"speed","typeNames":["Vehicle"]}"#
+/// #             )
+/// #             .as_bytes(),
+/// #         )))
 /// #     }
 /// # }
-/// use ngsi_ld::{client::Client, model::{AttributeName, EntityTypeName}};
+/// use ngsi_ld::{
+///     client::Client,
+///     model::{AttributeName, EntityTypeName},
+/// };
 ///
 /// async fn types_with_speed(client: &Client<Offline>) -> anyhow::Result<Vec<EntityTypeName>> {
 ///     let speed: AttributeName = "speed".parse()?;

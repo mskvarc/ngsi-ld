@@ -84,9 +84,18 @@ enum CollectionMember {
 /// ```
 /// use ngsi_ld::model::{Feature, SimplifiedEntity};
 ///
-/// let text = r#"{"id":"urn:ngsi-ld:OffStreetParking:Downtown1","type":"Feature","geometry":{"type":"Point","coordinates":[-8.5,41.1]},"properties":{"type":"OffStreetParking","availableSpotNumber":121}}"#;
+/// let text = concat!(
+///     r#"{"id":"urn:ngsi-ld:OffStreetParking:Downtown1","#,
+///     r#""type":"Feature","geometry":{"type":"Point","#,
+///     r#""coordinates":[-8.5,41.1]},"#,
+///     r#""properties":{"type":"OffStreetParking","#,
+///     r#""availableSpotNumber":121}}"#
+/// );
 /// let parking = Feature::<SimplifiedEntity>::parse(text)?;
-/// assert_eq!(parking.entity.id.as_str(), "urn:ngsi-ld:OffStreetParking:Downtown1");
+/// assert_eq!(
+///     parking.entity.id.as_str(),
+///     "urn:ngsi-ld:OffStreetParking:Downtown1"
+/// );
 /// assert!(parking.geometry.is_some());
 /// assert_eq!(parking.render().to_string(), text);
 /// # Ok::<(), anyhow::Error>(())

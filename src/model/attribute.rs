@@ -225,16 +225,21 @@ impl Attribute<Output> {
     /// previous payload as well; a Property whose value only holds the Null as a member is not deleted.
     ///
     /// ```
-    /// use ngsi_ld::model::{Attribute, Output, Lossless};
+    /// use ngsi_ld::model::{Attribute, Lossless, Output};
     ///
     /// let bare = Attribute::<Output>::parse(r#""urn:ngsi-ld:null""#, Lossless::Normalized)?;
     /// assert!(bare.is_deleted());
     /// let record = Attribute::<Output>::parse(
-    ///     r#"{"type": "Relationship", "object": "urn:ngsi-ld:null", "previousObject": "urn:ngsi-ld:Person:Bob", "deletedAt": "2024-01-02T00:00:00Z"}"#,
+    ///     concat!(
+    ///         r#"{"type": "Relationship", "object": "urn:ngsi-ld:null","#,
+    ///         r#" "previousObject": "urn:ngsi-ld:Person:Bob","#,
+    ///         r#" "deletedAt": "2024-01-02T00:00:00Z"}"#
+    ///     ),
     ///     Lossless::Normalized,
     /// )?;
     /// assert!(record.is_deleted());
-    /// let speed = Attribute::<Output>::parse(r#"{"type": "Property", "value": 80}"#, Lossless::Normalized)?;
+    /// let speed =
+    ///     Attribute::<Output>::parse(r#"{"type": "Property", "value": 80}"#, Lossless::Normalized)?;
     /// assert!(!speed.is_deleted());
     /// # Ok::<(), anyhow::Error>(())
     /// ```

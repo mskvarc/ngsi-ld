@@ -35,24 +35,39 @@ use url::Url;
 /// # struct Offline;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
-/// #     async fn send(&self, request: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+/// #     async fn send(
+/// #         &self,
+/// #         request: Request<Bytes>,
+/// #     ) -> Result<Response<Bytes>, Infallible> {
 /// #         let mut response = Response::new(request.body().clone());
 /// #         if request.method() == Method::POST {
 /// #             *response.status_mut() = StatusCode::CREATED;
-/// #             response.headers_mut().insert(LOCATION, http::HeaderValue::from_static("/ngsi-ld/v1/jsonldContexts/urn:ngsi-ld:context:c1"));
+/// #             response.headers_mut().insert(
+/// #                 LOCATION,
+/// #                 http::HeaderValue::from_static(
+/// #                     "/ngsi-ld/v1/jsonldContexts/urn:ngsi-ld:context:c1",
+/// #                 ),
+/// #             );
 /// #         } else if request.method() == Method::DELETE {
 /// #             *response.status_mut() = StatusCode::NO_CONTENT;
 /// #         } else {
-/// #             *response.body_mut() = Bytes::from_static(br#"{"@context":{"speed":"https://example.org/speed"}}"#);
+/// #             *response.body_mut() = Bytes::from_static(
+/// #                 br#"{"@context":{"speed":"https://example.org/speed"}}"#,
+/// #             );
 /// #         }
 /// #         Ok(response)
 /// #     }
 /// # }
 /// use anyhow::Context as _;
-/// use ngsi_ld::{client::Client, model::{Context, ContextEntry, InlineContext}};
+/// use ngsi_ld::{
+///     client::Client,
+///     model::{Context, ContextEntry, InlineContext},
+/// };
 ///
 /// async fn host_context(client: &Client<Offline>) -> anyhow::Result<()> {
-///     let context = Context::Single(ContextEntry::Inline(r#"{"speed":"https://example.org/speed"}"#.parse::<InlineContext>()?));
+///     let context = Context::Single(ContextEntry::Inline(
+///         r#"{"speed":"https://example.org/speed"}"#.parse::<InlineContext>()?,
+///     ));
 ///     let stored = client.contexts().add(&context).send().await?;
 ///     let id = stored.id().context("the broker named no context")?;
 ///     assert_eq!(client.contexts().serve(&id).send().await?, context);

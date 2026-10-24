@@ -98,21 +98,39 @@ pub enum ContextLoadError<E> {
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
 /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
-/// #         let mut response = Response::new(Bytes::from_static(br#"{"@context":{"speed":"https://example.org/speed"}}"#));
-/// #         response.headers_mut().insert(CONTENT_TYPE, http::HeaderValue::from_static("text/plain"));
+/// #         let mut response = Response::new(Bytes::from_static(
+/// #             br#"{"@context":{"speed":"https://example.org/speed"}}"#,
+/// #         ));
+/// #         response
+/// #             .headers_mut()
+/// #             .insert(CONTENT_TYPE, http::HeaderValue::from_static("text/plain"));
 /// #         Ok(response)
 /// #     }
 /// # }
-/// use ngsi_ld::{client::{Client, MediaTypeCheck}, linked_data::ContextProcessor, model::{Context, AttributeName}};
+/// use ngsi_ld::{
+///     client::{Client, MediaTypeCheck},
+///     linked_data::ContextProcessor,
+///     model::{AttributeName, Context},
+/// };
 /// use url::Url;
 ///
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() -> anyhow::Result<()> {
-/// let client = Client::builder().base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?).transport(Offline).build()?;
+/// let client = Client::builder()
+///     .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
+///     .transport(Offline)
+///     .build()?;
 /// // Raw files served as `text/plain` hold contexts too.
-/// let loader = client.context_loader().media_type(MediaTypeCheck::Ignored).build();
-/// let context = Context::from(iri_rs::IriRefBuf::new("https://example.org/context.jsonld")?);
-/// let active = ContextProcessor::try_new()?.process(&context, &loader).await?;
+/// let loader = client
+///     .context_loader()
+///     .media_type(MediaTypeCheck::Ignored)
+///     .build();
+/// let context = Context::from(iri_rs::IriRefBuf::new(
+///     "https://example.org/context.jsonld",
+/// )?);
+/// let active = ContextProcessor::try_new()?
+///     .process(&context, &loader)
+///     .await?;
 /// let speed: AttributeName = "speed".parse()?;
 /// assert_eq!(active.expand(&speed)?.as_str(), "https://example.org/speed");
 /// # Ok(())

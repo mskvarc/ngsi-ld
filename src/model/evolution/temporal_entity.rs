@@ -51,17 +51,28 @@ use std::num::NonZeroU64;
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::model::{Property, evolution::TemporalEntity, Lossless};
+/// use ngsi_ld::model::{Lossless, Property, evolution::TemporalEntity};
 ///
 /// let vehicle = TemporalEntity::builder()
 ///     .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
 ///     .entity_type("Vehicle")
-///     .property("speed", Property::builder(120).observed_at("2018-08-01T12:03:00Z".parse()?))
-///     .property("speed", Property::builder(80).observed_at("2018-08-01T12:05:00Z".parse()?))
+///     .property(
+///         "speed",
+///         Property::builder(120).observed_at("2018-08-01T12:03:00Z".parse()?),
+///     )
+///     .property(
+///         "speed",
+///         Property::builder(80).observed_at("2018-08-01T12:05:00Z".parse()?),
+///     )
 ///     .build()?;
 /// assert_eq!(
 ///     vehicle.render(Lossless::Concise).to_string(),
-///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"},{"value":80,"observedAt":"2018-08-01T12:05:00Z"}]}"#
+///     concat!(
+///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+///         r#""speed":[{"value":120,"#,
+///         r#""observedAt":"2018-08-01T12:03:00Z"},{"value":80,"#,
+///         r#""observedAt":"2018-08-01T12:05:00Z"}]}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -217,10 +228,14 @@ impl<C: Completeness> TemporalEntity<Output, C> {
     /// use ngsi_ld::model::{Lossless, Output, evolution::TemporalEntity};
     ///
     /// let vehicle = TemporalEntity::<Output>::parse(
-    ///     r#"{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle", "speed": [
+    ///     r#"{
+    ///       "id": "urn:ngsi-ld:Vehicle:B9211",
+    ///       "type": "Vehicle",
+    ///       "speed": [
     ///         {"type": "Property", "value": 120, "observedAt": "2018-08-01T12:03:00Z"},
     ///         {"type": "Property", "value": 80, "observedAt": "2018-08-01T12:05:00Z"}
-    ///     ]}"#,
+    ///       ]
+    ///     }"#,
     ///     Lossless::Normalized,
     /// )?;
     /// assert_eq!(
@@ -264,23 +279,37 @@ impl<C: Completeness> TemporalEntity<Output, C> {
     /// by `time_property` (clause 4.11), the ones the whole request selects.
     ///
     /// ```
-    /// use ngsi_ld::{model::{Output, evolution::TemporalEntity, Lossless}, query::temporal_query::TemporalProperty};
+    /// use ngsi_ld::{
+    ///     model::{Lossless, Output, evolution::TemporalEntity},
+    ///     query::temporal_query::TemporalProperty,
+    /// };
     /// use std::num::NonZeroU64;
     ///
     /// let read = |text: &str| TemporalEntity::<Output>::parse(text, Lossless::Concise);
-    /// let mut recent = read(
-    ///     r#"{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle", "speed": [{"value": 80, "observedAt": "2018-08-01T12:05:00Z"}]}"#,
-    /// )?;
+    /// let mut recent = read(concat!(
+    ///     r#"{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle","#,
+    ///     r#" "speed": [{"value": 80,"#,
+    ///     r#" "observedAt": "2018-08-01T12:05:00Z"}]}"#
+    /// ))?;
     /// let older = read(
     ///     r#"{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle", "speed": [
     ///         {"value": 100, "observedAt": "2018-08-01T12:03:00Z"},
     ///         {"value": 120, "observedAt": "2018-08-01T12:01:00Z"}
     ///     ]}"#,
     /// )?;
-    /// recent.absorb_last(older, NonZeroU64::try_from(2)?, TemporalProperty::ObservedAt);
+    /// recent.absorb_last(
+    ///     older,
+    ///     NonZeroU64::try_from(2)?,
+    ///     TemporalProperty::ObservedAt,
+    /// );
     /// assert_eq!(
     ///     recent.render(Lossless::Concise).to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"value":80,"observedAt":"2018-08-01T12:05:00Z"},{"value":100,"observedAt":"2018-08-01T12:03:00Z"}]}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+    ///         r#""speed":[{"value":80,"#,
+    ///         r#""observedAt":"2018-08-01T12:05:00Z"},{"value":100,"#,
+    ///         r#""observedAt":"2018-08-01T12:03:00Z"}]}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```
@@ -296,19 +325,32 @@ impl TemporalEntity<Output> {
     /// is for entities.
     ///
     /// ```
-    /// use ngsi_ld::model::{Output, evolution::TemporalEntity, Lossless};
+    /// use ngsi_ld::model::{Lossless, Output, evolution::TemporalEntity};
     ///
     /// let read = TemporalEntity::<Output>::parse(
-    ///     r#"{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle", "speed": [
-    ///         {"type": "Property", "value": 120, "observedAt": "2018-08-01T12:03:00Z",
-    ///          "instanceId": "urn:ngsi-ld:attribute:instance:1", "createdAt": "2018-08-01T12:03:01Z"}
-    ///     ]}"#,
+    ///     r#"{
+    ///       "id": "urn:ngsi-ld:Vehicle:B9211",
+    ///       "type": "Vehicle",
+    ///       "speed": [
+    ///         {
+    ///           "type": "Property",
+    ///           "value": 120,
+    ///           "observedAt": "2018-08-01T12:03:00Z",
+    ///           "instanceId": "urn:ngsi-ld:attribute:instance:1",
+    ///           "createdAt": "2018-08-01T12:03:01Z"
+    ///         }
+    ///       ]
+    ///     }"#,
     ///     Lossless::Normalized,
     /// )?;
     /// let input = read.into_input()?;
     /// assert_eq!(
     ///     input.render(Lossless::Concise).to_string(),
-    ///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"}]}"#
+    ///     concat!(
+    ///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+    ///         r#""speed":[{"value":120,"#,
+    ///         r#""observedAt":"2018-08-01T12:03:00Z"}]}"#
+    ///     )
     /// );
     /// # Ok::<(), anyhow::Error>(())
     /// ```

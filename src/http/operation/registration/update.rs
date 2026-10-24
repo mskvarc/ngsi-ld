@@ -28,15 +28,36 @@ use http::{Method, Request, Response};
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, UpdateRegistration}}, model::DateTime, registration::{RegistrationFragment, RegistrationId}};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{Operation, UpdateRegistration},
+///     },
+///     model::DateTime,
+///     registration::{RegistrationFragment, RegistrationId},
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
 /// let id = RegistrationId::from(iri!("urn:ngsi-ld:ContextSourceRegistration:csr1a3456"));
-/// let postpone = RegistrationFragment::builder().expires_at("2030-01-01T00:00:00Z".parse::<DateTime>()?).build()?;
-/// let request = UpdateRegistration { id: &id, fragment: &postpone }.to_request(&endpoint)?;
+/// let postpone = RegistrationFragment::builder()
+///     .expires_at("2030-01-01T00:00:00Z".parse::<DateTime>()?)
+///     .build()?;
+/// let request = UpdateRegistration {
+///     id: &id,
+///     fragment: &postpone,
+/// }
+/// .to_request(&endpoint)?;
 /// assert_eq!(request.method(), "PATCH");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/csourceRegistrations/urn:ngsi-ld:ContextSourceRegistration:csr1a3456");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/csourceRegistrations",
+///         "/urn:ngsi-ld:ContextSourceRegistration:csr1a3456"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

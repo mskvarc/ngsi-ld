@@ -93,14 +93,18 @@ pub enum Shape {
 /// `operationSpace` of a registration, and the `geometry` of a `Feature`.
 ///
 /// ```
-/// use ngsi_ld::model::geometry::{Geometry, Shape, BoundingBox, Position};
+/// use ngsi_ld::model::geometry::{BoundingBox, Geometry, Position, Shape};
 ///
 /// let point = Shape::Point(Position::try_new(13.3986, 52.5547)?);
 /// let corner = Position::try_new(13.3986, 52.5547)?;
-/// let geometry = Geometry::from(point).with_bbox(BoundingBox::try_new(corner.clone(), corner)?)?;
+/// let geometry =
+///     Geometry::from(point).with_bbox(BoundingBox::try_new(corner.clone(), corner)?)?;
 /// assert_eq!(
 ///     geometry.to_string(),
-///     r#"{"type":"Point","coordinates":[13.3986,52.5547],"bbox":[13.3986,52.5547,13.3986,52.5547]}"#
+///     concat!(
+///         r#"{"type":"Point","coordinates":[13.3986,52.5547],"#,
+///         r#""bbox":[13.3986,52.5547,13.3986,52.5547]}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

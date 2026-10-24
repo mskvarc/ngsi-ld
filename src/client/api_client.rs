@@ -50,7 +50,9 @@ use url::Url;
 /// # struct Offline;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
-/// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> { Ok(Response::new(Bytes::new())) }
+/// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+/// #         Ok(Response::new(Bytes::new()))
+/// #     }
 /// # }
 /// use iri_rs::IriRefBuf;
 /// use ngsi_ld::client::Client;
@@ -61,7 +63,10 @@ use url::Url;
 ///     .context(IriRefBuf::new("https://example.org/context.jsonld")?)
 ///     .transport(Offline)
 ///     .build()?;
-/// assert_eq!(client.endpoint().base_url().as_str(), "http://localhost:9090/ngsi-ld/v1/");
+/// assert_eq!(
+///     client.endpoint().base_url().as_str(),
+///     "http://localhost:9090/ngsi-ld/v1/"
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 ///
@@ -271,12 +276,20 @@ impl<T: Transport, M: Answering> Client<T, M> {
     /// # struct Offline;
     /// # impl Transport for Offline {
     /// #     type Error = Infallible;
-    /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> { Ok(Response::new(Bytes::from_static(b"[]"))) }
+    /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+    /// #         Ok(Response::new(Bytes::from_static(b"[]")))
+    /// #     }
     /// # }
     /// use ngsi_ld::{client::Client, model::SimplifiedEntity};
     ///
     /// async fn every_vehicle(client: &Client<Offline>) -> anyhow::Result<Vec<SimplifiedEntity>> {
-    ///     let first = client.entities().query_simplified().entity_type("Vehicle").limit(100).send().await?;
+    ///     let first = client
+    ///         .entities()
+    ///         .query_simplified()
+    ///         .entity_type("Vehicle")
+    ///         .limit(100)
+    ///         .send()
+    ///         .await?;
     ///     Ok(client.pages(first).try_collect().await?)
     /// }
     /// ```

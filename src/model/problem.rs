@@ -143,8 +143,13 @@ impl From<ErrorType> for String {
 /// use ngsi_ld::model::{ErrorType, ProblemDetails};
 ///
 /// let problem: ProblemDetails = serde_json::from_str(
-///     r#"{"type": "https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound", "title": "Resource not found.",
-///         "detail": "urn:ngsi-ld:Device:widget001 was not found", "status": 404, "instance": "urn:ngsi-ld:Device:widget001"}"#,
+///     r#"{
+///       "type": "https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound",
+///       "title": "Resource not found.",
+///       "detail": "urn:ngsi-ld:Device:widget001 was not found",
+///       "status": 404,
+///       "instance": "urn:ngsi-ld:Device:widget001"
+///     }"#,
 /// )?;
 /// assert_eq!(problem.error_type, Some(ErrorType::ResourceNotFound));
 /// assert_eq!(problem.status, Some(404));
@@ -168,7 +173,12 @@ impl From<ErrorType> for String {
 ///     .build();
 /// assert_eq!(
 ///     problem.render().to_string(),
-///     r#"{"type":"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound","title":"Resource not found.","detail":"urn:ngsi-ld:Device:widget001 was not found","status":404,"instance":"urn:ngsi-ld:Device:widget001"}"#
+///     concat!(
+///         r#"{"type":"https://uri.etsi.org/ngsi-ld/errors"#,
+///         r#"/ResourceNotFound","title":"Resource not found.","#,
+///         r#""detail":"urn:ngsi-ld:Device:widget001 was not found","#,
+///         r#""status":404,"instance":"urn:ngsi-ld:Device:widget001"}"#
+///     )
 /// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]

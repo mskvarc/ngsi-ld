@@ -1,10 +1,11 @@
 //! The operations of the NGSI-LD API, one request type each, with the parameters of its clause 6 table as typed
 //! fields.
 //!
-//! Every type implements [`Operation`]: it builds its HTTP request through the crate's one request pipeline and reads the response into the outcomes its table lists.
+//! Every type implements [`Operation`]: it builds its HTTP request through the crate's one request pipeline and reads
+//! the response into the outcomes its table lists.
 //!
-//! The binding is sans-IO: an operation turns into an `http::Request` against an [`Endpoint`](crate::http::Endpoint), and an
-//! `http::Response`, however it was obtained, turns into the operation's outcome.
+//! The binding is sans-IO: an operation turns into an `http::Request` against an [`Endpoint`](crate::http::Endpoint),
+//! and an `http::Response`, however it was obtained, turns into the operation's outcome.
 //!
 //! ```
 //! use bytes::Bytes;
@@ -70,11 +71,11 @@
 //! # Temporal evolution
 //!
 //! Retrieve and Query Temporal Evolution choose the representation by type, as Retrieve and Query Entities do: a
-//! [`Lossless`](crate::model::Lossless) format answers with [`TemporalEntity`](crate::model::evolution::TemporalEntity) values,
-//! [`SimplifiedTemporal`] with [`SimplifiedTemporalEntity`](crate::model::evolution::SimplifiedTemporalEntity) values and
-//! [`Aggregated`] with [`AggregatedTemporalEntity`](crate::model::evolution::AggregatedTemporalEntity) values (clause
-//! 6.3.12). A broker that cannot answer at once answers 206 Partial Content with a `Content-Range` (clause 6.3.10),
-//! read into the [`Coverage`](crate::http::Coverage) of the answer.
+//! [`Lossless`](crate::model::Lossless) format answers with [`TemporalEntity`](crate::model::evolution::TemporalEntity)
+//! values, [`SimplifiedTemporal`] with [`SimplifiedTemporalEntity`](crate::model::evolution::SimplifiedTemporalEntity)
+//! values and [`Aggregated`] with [`AggregatedTemporalEntity`](crate::model::evolution::AggregatedTemporalEntity)
+//! values (clause 6.3.12). A broker that cannot answer at once answers 206 Partial Content with a `Content-Range`
+//! (clause 6.3.10), read into the [`Coverage`](crate::http::Coverage) of the answer.
 //!
 //! [`CreateOrUpdateTemporalEvolution`], [`CreateOrUpdateSimplifiedTemporalEvolution`], [`AddTemporalAttributes`],
 //! [`DeleteTemporalAttribute`], [`ModifyAttributeInstance`], [`DeleteAttributeInstance`], [`DeleteTemporalEvolution`],

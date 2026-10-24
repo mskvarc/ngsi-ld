@@ -96,7 +96,10 @@ impl EntitySource {
 /// use ngsi_ld::registration::{EntityMap, EntitySource};
 ///
 /// let text = concat!(
-///     r#"{"id":"urn:ngsi-ld:EntityMap:1","type":"EntityMap","expiresAt":"2030-01-01T00:00:00Z","#,
+///     concat!(
+///         r#"{"id":"urn:ngsi-ld:EntityMap:1","type":"EntityMap","#,
+///         r#""expiresAt":"2030-01-01T00:00:00Z","#
+///     ),
 ///     r#""entityMap":{"urn:ngsi-ld:Vehicle:A4567":["@none"]},"linkedMaps":{}}"#
 /// );
 /// let map = EntityMap::parse(text)?;

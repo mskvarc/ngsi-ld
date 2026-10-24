@@ -60,7 +60,14 @@ pub(super) mod retrieving;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
 /// #     async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
-/// #         let mut response = Response::new(Bytes::from_static(br#"[{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle", "speed": [{"type": "Property", "value": 80, "observedAt": "2018-08-01T12:05:00Z"}]}]"#));
+/// #         let mut response = Response::new(Bytes::from_static(
+/// #             concat!(
+/// #                 r#"[{"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle","#,
+/// #                 r#" "speed": [{"type": "Property", "value": 80,"#,
+/// #                 r#" "observedAt": "2018-08-01T12:05:00Z"}]}]"#
+/// #             )
+/// #             .as_bytes(),
+/// #         ));
 /// #         *response.status_mut() = StatusCode::OK;
 /// #         Ok(response)
 /// #     }

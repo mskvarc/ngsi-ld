@@ -7,8 +7,8 @@
 //!
 //! # Quick start
 //!
-//! With `default-features = false`, the crate is the data model and the query languages. An entity is built with its builder,
-//! which checks every rule the specification gives it, and rendered in the representation asked for:
+//! An entity is built with its builder, which checks every rule the specification gives it, and rendered in the
+//! representation asked for:
 //!
 //! ```
 //! use iri_rs::iri;
@@ -21,13 +21,16 @@
 //!     .build()?;
 //! assert_eq!(
 //!     vehicle.render(Representation::Normalized).to_string(),
-//!     r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":80}}"#
+//!     concat!(
+//!         r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","#,
+//!         r#""speed":{"type":"Property","value":80}}"#
+//!     )
 //! );
 //! # Ok::<(), anyhow::Error>(())
 //! ```
 //!
-//! With the `http` feature, a `Client` sends the operations of the API over any `Transport`; the `reqwest` feature
-//! provides one. Here the transport is a stand-in that answers every request as a broker answers a created entity:
+//! A `Client` sends the operations of the API over any `Transport`, and the default `reqwest` feature provides one.
+//! Here the transport is a stand-in that answers every request as a broker answers a created entity:
 //!
 //! ```
 //! # #[cfg(feature = "http")]
@@ -38,10 +41,15 @@
 //! #     pub struct Offline;
 //! #     impl ngsi_ld::client::Transport for Offline {
 //! #         type Error = Infallible;
-//! #         async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+//! #         async fn send(
+//! #             &self,
+//! #             _: Request<Bytes>,
+//! #         ) -> Result<Response<Bytes>, Infallible> {
+//! #             let location = "/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567";
 //! #             let mut response = Response::new(Bytes::new());
 //! #             *response.status_mut() = StatusCode::CREATED;
-//! #             response.headers_mut().insert(LOCATION, HeaderValue::from_static("/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567"));
+//! #             let location = HeaderValue::from_static(location);
+//! #             response.headers_mut().insert(LOCATION, location);
 //! #             Ok(response)
 //! #         }
 //! #     }
@@ -56,8 +64,15 @@
 //! use ngsi_ld::{client::Client, http::CreateOutcome, model::Entity};
 //! use url::Url;
 //!
-//! let client = Client::builder().base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?).transport(Offline).build()?;
-//! let vehicle = Entity::builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").property("speed", 80).build()?;
+//! let client = Client::builder()
+//!     .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
+//!     .transport(Offline)
+//!     .build()?;
+//! let vehicle = Entity::builder()
+//!     .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
+//!     .entity_type("Vehicle")
+//!     .property("speed", 80)
+//!     .build()?;
 //! let outcome = client.entities().create(&vehicle).send().await?;
 //! assert!(matches!(outcome, CreateOutcome::Created { .. }));
 //! # Ok(())

@@ -9,18 +9,42 @@
 //! since its names are fully qualified (clause 6.3.6).
 //!
 //! ```
-//! use http::header;
 //! use headers::HeaderMapExt;
-//! use http::StatusCode;
+//! use http::{StatusCode, header};
 //! use iri_rs::iri;
-//! use ngsi_ld::{http::{answer, headers::{Link, NgsiLdResultsCount}}, model::{Entity, Representation}};
+//! use ngsi_ld::{
+//!     http::{
+//!         answer,
+//!         headers::{Link, NgsiLdResultsCount},
+//!     },
+//!     model::{Entity, Representation},
+//! };
 //!
-//! let vehicle = Entity::builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").property("speed", 80).build()?;
-//! let mut response = answer::list([vehicle.render(Representation::Normalized)], &Link::try_core_context()?);
-//! response.headers_mut().typed_insert(NgsiLdResultsCount::new(1));
+//! let vehicle = Entity::builder()
+//!     .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
+//!     .entity_type("Vehicle")
+//!     .property("speed", 80)
+//!     .build()?;
+//! let mut response = answer::list(
+//!     [vehicle.render(Representation::Normalized)],
+//!     &Link::try_core_context()?,
+//! );
+//! response
+//!     .headers_mut()
+//!     .typed_insert(NgsiLdResultsCount::new(1));
 //! assert_eq!(response.status(), StatusCode::OK);
-//! assert_eq!(response.headers()[&header::CONTENT_TYPE], "application/json");
-//! assert_eq!(response.body().as_ref(), br#"[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":80}}]"#);
+//! assert_eq!(
+//!     response.headers()[&header::CONTENT_TYPE],
+//!     "application/json"
+//! );
+//! assert_eq!(
+//!     response.body().as_ref(),
+//!     concat!(
+//!         r#"[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","#,
+//!         r#""speed":{"type":"Property","value":80}}]"#
+//!     )
+//!     .as_bytes()
+//! );
 //! # Ok::<(), anyhow::Error>(())
 //! ```
 //!

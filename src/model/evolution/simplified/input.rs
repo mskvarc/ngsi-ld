@@ -27,11 +27,20 @@ use bon::bon;
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::model::{evolution::{SimplifiedTemporalInput, TemporalValue, TemporalValues}, Value};
+/// use ngsi_ld::model::{
+///     Value,
+///     evolution::{SimplifiedTemporalInput, TemporalValue, TemporalValues},
+/// };
 ///
 /// let speed = TemporalValues::Property(vec![
-///     TemporalValue { value: Value::from(120), time: "2018-08-01T12:03:00Z".parse()? },
-///     TemporalValue { value: Value::from(80), time: "2018-08-01T12:05:00Z".parse()? },
+///     TemporalValue {
+///         value: Value::from(120),
+///         time: "2018-08-01T12:03:00Z".parse()?,
+///     },
+///     TemporalValue {
+///         value: Value::from(80),
+///         time: "2018-08-01T12:05:00Z".parse()?,
+///     },
 /// ]);
 /// let vehicle = SimplifiedTemporalInput::builder()
 ///     .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
@@ -40,7 +49,11 @@ use bon::bon;
 ///     .build()?;
 /// assert_eq!(
 ///     vehicle.render().to_string(),
-///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":{"type":"Property","values":[[120,"2018-08-01T12:03:00Z"],[80,"2018-08-01T12:05:00Z"]]}}"#
+///     concat!(
+///         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+///         r#""speed":{"type":"Property","values":[[120,"#,
+///         r#""2018-08-01T12:03:00Z"],[80,"2018-08-01T12:05:00Z"]]}}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```

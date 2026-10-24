@@ -107,7 +107,11 @@ impl FromStr for StoredContextKind {
 /// ```
 /// use ngsi_ld::model::{ContextMetadata, StoredContextKind};
 ///
-/// let text = r#"{"URL":"https://example.org/context.jsonld","localId":"urn:ngsi-ld:context:c1","kind":"Cached","createdAt":"2024-05-01T10:00:00Z","numberOfHits":3}"#;
+/// let text = concat!(
+///     r#"{"URL":"https://example.org/context.jsonld","#,
+///     r#""localId":"urn:ngsi-ld:context:c1","kind":"Cached","#,
+///     r#""createdAt":"2024-05-01T10:00:00Z","numberOfHits":3}"#
+/// );
 /// let metadata = ContextMetadata::parse(text)?;
 /// assert_eq!(metadata.kind, StoredContextKind::Cached);
 /// assert_eq!(metadata.number_of_hits, Some(3));
@@ -233,8 +237,10 @@ impl ContextMetadata {
 /// ```
 /// use ngsi_ld::model::{Context, LocalContext};
 ///
-/// let text =
-///     r#"{"@context":{"speed":"https://example.org/speed"},"note":"discarded by the broker"}"#;
+/// let text = concat!(
+///     r#"{"@context":{"speed":"https://example.org/speed"},"#,
+///     r#""note":"discarded by the broker"}"#
+/// );
 /// let document = LocalContext::parse(text)?;
 /// assert!(matches!(document.context, Context::Single(_)));
 /// assert_eq!(document.extra_members.len(), 1);

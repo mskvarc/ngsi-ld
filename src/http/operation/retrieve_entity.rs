@@ -55,7 +55,13 @@ pub(super) mod parameters;
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, SystemAttributes, RetrieveEntity}}, model::{EntityId, Lossless}};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{Operation, RetrieveEntity, SystemAttributes},
+///     },
+///     model::{EntityId, Lossless},
+/// };
 /// use url::Url;
 ///
 /// let endpoint = Endpoint::builder()
@@ -69,7 +75,14 @@ pub(super) mod parameters;
 ///     .build();
 /// let request = retrieve.to_request(&endpoint)?;
 /// assert_eq!(request.method(), "GET");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567?format=concise&options=sysAttrs");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/entities",
+///         "/urn:ngsi-ld:Vehicle:A4567?format=concise&",
+///         "options=sysAttrs"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, bon::Builder)]

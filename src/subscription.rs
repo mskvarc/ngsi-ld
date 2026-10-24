@@ -7,9 +7,9 @@
 //! [`Notification`] without an HTTP client.
 //!
 //! `Subscription<Input>` is what Create Subscription sends, `Subscription<Output>` what Retrieve and Query
-//! Subscriptions return, and a [`SubscriptionFragment`] what Update Subscription
-//! sends. A second type parameter, the [`SubscriptionKind`], tells a context information subscription from a Context Source
-//! Registration Subscription (clause 5.11).
+//! Subscriptions return, and a [`SubscriptionFragment`] what Update Subscription sends. A second type parameter, the
+//! [`SubscriptionKind`], tells a context information subscription from a Context Source Registration Subscription
+//! (clause 5.11).
 //!
 //! The readers and errors of this module also serve the context source registrations of
 //! [`registration`](crate::registration), which are read and checked the same way.
@@ -17,7 +17,11 @@
 //! ```
 //! use ngsi_ld::{model::Input, subscription::Subscription};
 //!
-//! let text = r#"{"type":"Subscription","entities":[{"type":"Vehicle"}],"notification":{"endpoint":{"uri":"http://my.endpoint.org/notify"}}}"#;
+//! let text = concat!(
+//!     r#"{"type":"Subscription","entities":[{"type":"Vehicle"}],"#,
+//!     r#""notification":{"endpoint":{"uri":"http://my.endpoint.org"#,
+//!     r#"/notify"}}}"#
+//! );
 //! let subscription = Subscription::<Input>::parse(text)?;
 //! assert_eq!(subscription.render().to_string(), text);
 //! # Ok::<(), anyhow::Error>(())
@@ -124,17 +128,30 @@ pub(crate) mod writer;
 /// read one with [`Subscription::parse`].
 ///
 /// ```
-/// use ngsi_ld::{query::q, subscription::{Subscription, Endpoint, NotificationParams}};
+/// use ngsi_ld::{
+///     query::q,
+///     subscription::{Endpoint, NotificationParams, Subscription},
+/// };
 ///
 /// let subscription = Subscription::builder()
 ///     .entities(["Vehicle"])
 ///     .watched_attributes(["speed"])
 ///     .q(q::attr("speed").gt(50).build()?)
-///     .notification(NotificationParams::builder(Endpoint::builder("http://my.endpoint.org/notify").build()?).build()?)
+///     .notification(
+///         NotificationParams::builder(
+///             Endpoint::builder("http://my.endpoint.org/notify").build()?,
+///         )
+///         .build()?,
+///     )
 ///     .build()?;
 /// assert_eq!(
 ///     subscription.render().to_string(),
-///     r#"{"type":"Subscription","entities":[{"type":"Vehicle"}],"watchedAttributes":["speed"],"q":"speed>50","notification":{"endpoint":{"uri":"http://my.endpoint.org/notify"}}}"#
+///     concat!(
+///         r#"{"type":"Subscription","entities":[{"type":"Vehicle"}],"#,
+///         r#""watchedAttributes":["speed"],"q":"speed>50","#,
+///         r#""notification":{"endpoint":{"uri":"http://my.endpoint.org"#,
+///         r#"/notify"}}}"#
+///     )
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -327,10 +344,10 @@ impl<D: SubscriptionDirection, K: SubscriptionKind> Subscription<D, K> {
     }
 
     /// Writes the subscription with its members in the order Annex C.4 writes them: `id`, `type`, `subscriptionName`,
-    /// `description`, `entities`, `watchedAttributes`, `notificationTrigger`, `timeInterval`, `throttling`, `q`, `geoQ`,
-    /// `scopeQ`, `temporalQ` or `csf`, `datasetId`, `lang`, `expandValues`, `jsonKeys`, `localOnly`, `splitEntities`,
-    /// `notification`, `isActive`, `expiresAt`, `jsonldContext`, `ngsildConformance`, `status`, `createdAt`,
-    /// `modifiedAt`, and its `@context` last when it has one.
+    /// `description`, `entities`, `watchedAttributes`, `notificationTrigger`, `timeInterval`, `throttling`, `q`,
+    /// `geoQ`, `scopeQ`, `temporalQ` or `csf`, `datasetId`, `lang`, `expandValues`, `jsonKeys`, `localOnly`,
+    /// `splitEntities`, `notification`, `isActive`, `expiresAt`, `jsonldContext`, `ngsildConformance`, `status`,
+    /// `createdAt`, `modifiedAt`, and its `@context` last when it has one.
     #[must_use]
     pub fn render(&self) -> RawJson {
         let mut object = subscription_object(self);

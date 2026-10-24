@@ -33,17 +33,29 @@ use bon::bon;
 /// # struct Offline;
 /// # impl ngsi_ld::client::Transport for Offline {
 /// #     type Error = Infallible;
-/// #     async fn send(&self, request: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+/// #     async fn send(
+/// #         &self,
+/// #         request: Request<Bytes>,
+/// #     ) -> Result<Response<Bytes>, Infallible> {
 /// #         let mut response = Response::new(Bytes::from_static(b"[]"));
 /// #         if request.method() == http::Method::POST {
 /// #             *response.status_mut() = StatusCode::CREATED;
-/// #             response.headers_mut().insert(LOCATION, http::HeaderValue::from_static("/ngsi-ld/v1/csourceRegistrations/urn:ngsi-ld:ContextSourceRegistration:1"));
+/// #             response.headers_mut().insert(
+/// #                 LOCATION,
+/// #                 http::HeaderValue::from_static(concat!(
+/// #                     "/ngsi-ld/v1/csourceRegistrations",
+/// #                     "/urn:ngsi-ld:ContextSourceRegistration:1"
+/// #                 )),
+/// #             );
 /// #         }
 /// #         Ok(response)
 /// #     }
 /// # }
 /// use anyhow::Context;
-/// use ngsi_ld::{client::Client, registration::{CSourceRegistration, RegistrationInfo}};
+/// use ngsi_ld::{
+///     client::Client,
+///     registration::{CSourceRegistration, RegistrationInfo},
+/// };
 ///
 /// async fn register_speed_source(client: &Client<Offline>) -> anyhow::Result<()> {
 ///     let registration = CSourceRegistration::builder("http://my.csource.org:1026")
@@ -52,9 +64,18 @@ use bon::bon;
 ///             .property_names(["speed"])
 ///             .build()?])
 ///         .build()?;
-///     let created = client.registrations().register(&registration).send().await?;
+///     let created = client
+///         .registrations()
+///         .register(&registration)
+///         .send()
+///         .await?;
 ///     let id = created.id().context("the broker named no registration")?;
-///     let sources = client.registrations().query().entity_type("Vehicle").send().await?;
+///     let sources = client
+///         .registrations()
+///         .query()
+///         .entity_type("Vehicle")
+///         .send()
+///         .await?;
 ///     assert!(sources.items().is_empty());
 ///     client.registrations().delete(&id).send().await?;
 ///     Ok(())

@@ -15,17 +15,24 @@ use crate::{
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members and restrictions.
 ///
 /// ```
-/// use ngsi_ld::{model::MemberProblem, subscription::{Problem, Endpoint, EndpointMember}};
+/// use ngsi_ld::{
+///     model::MemberProblem,
+///     subscription::{Endpoint, EndpointMember, Problem},
+/// };
 ///
 /// let error = Endpoint::builder("not a url").timeout(0).build().err();
 /// let problems = error.as_ref().map(|error| error.problems());
-/// assert!(matches!(
-///     problems,
-///     Some([
+/// let Some(
+///     [
 ///         Problem::Member(MemberProblem::InvalidUrl { .. }),
 ///         Problem::Member(MemberProblem::NotPositive { member, .. }),
-///     ]) if *member == EndpointMember::Timeout.into()
-/// ));
+///     ],
+/// ) = problems
+/// else {
+///     anyhow::bail!("expected an invalid URL and a timeout that is not positive");
+/// };
+/// assert!(*member == EndpointMember::Timeout.into());
+/// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]

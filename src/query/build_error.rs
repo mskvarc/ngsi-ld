@@ -23,14 +23,21 @@ use crate::{
 /// ```
 /// use ngsi_ld::query::{Problem, q};
 ///
-/// let error = q::attr("speed limit").gt(50).and(q::attr("9lives").exists()).build().err();
+/// let error = q::attr("speed limit")
+///     .gt(50)
+///     .and(q::attr("9lives").exists())
+///     .build()
+///     .err();
 /// let problems = error.as_ref().map(|error| error.problems());
-/// assert!(matches!(problems, Some([Problem::InvalidName { .. }, Problem::InvalidName { .. }])));
+/// assert!(matches!(
+///     problems,
+///     Some([Problem::InvalidName { .. }, Problem::InvalidName { .. }])
+/// ));
 /// assert_eq!(
 ///     error.map(|error| error.to_string()).as_deref(),
 ///     Some(
-///         "2 problem(s): not a valid name: ` ` at byte 5 is not a name character; not a valid name: a name must \
-///          start with a letter, found `9` at byte 0"
+///         "2 problem(s): not a valid name: ` ` at byte 5 is not a name character; \
+///          not a valid name: a name must start with a letter, found `9` at byte 0"
 ///     )
 /// );
 /// ```

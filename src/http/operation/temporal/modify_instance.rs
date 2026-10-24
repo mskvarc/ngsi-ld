@@ -30,18 +30,42 @@ use jstrict::{Object, Value as Json};
 ///
 /// ```
 /// use iri_rs::iri;
-/// use ngsi_ld::{http::{Endpoint, operation::{Operation, ModifyAttributeInstance}}, model::{Attribute, Property, EntityId, InstanceId, AttributeName}};
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{ModifyAttributeInstance, Operation},
+///     },
+///     model::{Attribute, AttributeName, EntityId, InstanceId, Property},
+/// };
 /// use url::Url;
 ///
-/// let endpoint = Endpoint::builder().base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?).build()?;
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
 /// let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:B9211"));
 /// let speed: AttributeName = "speed".parse()?;
 /// let instance = InstanceId::from(iri!("urn:ngsi-ld:Instance:1"));
-/// let corrected = Attribute::from(Property::builder(110).observed_at("2018-08-01T12:03:00Z".parse()?).build()?);
-/// let modify = ModifyAttributeInstance::builder().id(&id).name(&speed).instance_id(&instance).instance(&corrected).build();
+/// let corrected = Attribute::from(
+///     Property::builder(110)
+///         .observed_at("2018-08-01T12:03:00Z".parse()?)
+///         .build()?,
+/// );
+/// let modify = ModifyAttributeInstance::builder()
+///     .id(&id)
+///     .name(&speed)
+///     .instance_id(&instance)
+///     .instance(&corrected)
+///     .build();
 /// let request = modify.to_request(&endpoint)?;
 /// assert_eq!(request.method(), "PATCH");
-/// assert_eq!(request.uri(), "http://broker.test/ngsi-ld/v1/temporal/entities/urn:ngsi-ld:Vehicle:B9211/attrs/speed/urn:ngsi-ld:Instance:1");
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/temporal/entities",
+///         "/urn:ngsi-ld:Vehicle:B9211/attrs/speed",
+///         "/urn:ngsi-ld:Instance:1"
+///     )
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, bon::Builder)]

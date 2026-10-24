@@ -32,9 +32,9 @@ pub(crate) mod writer;
 /// default) or of the temporal evolution of entities ([`TemporalEvolutionQuery`]), as a snapshot holds them in
 /// `snapshotQueries` and `snapshotTemporalQueries` (Table 5.2.41-1).
 ///
-/// It is named [`QueryDocument`] because [`Query`](crate::query::q::Query) is the query language of clause 4.9. The `POST` bindings of
-/// Query Entities and Query Temporal Evolution write the same members from the fields of their operations; a
-/// snapshot keeps its queries, so they are documents a client builds and a broker gives back.
+/// It is named [`QueryDocument`] because [`Query`](crate::query::q::Query) is the query language of clause 4.9. The
+/// `POST` bindings of Query Entities and Query Temporal Evolution write the same members from the fields of their
+/// operations; a snapshot keeps its queries, so they are documents a client builds and a broker gives back.
 ///
 /// Every member of Table 5.2.23-1 is typed with the query languages and written in the JSON type the table gives
 /// it. `temporalQ` and `aggrParams` exist on temporal queries only, where `temporalQ` is mandatory.
