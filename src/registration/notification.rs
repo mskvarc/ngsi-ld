@@ -2,7 +2,10 @@
 //! Registration Subscription when the registrations matching it change, or periodically.
 
 #[cfg(feature = "linked-data")]
-use crate::seal::Seal;
+use crate::{
+    model::name::mapping::{CarriesContext, MapNames, NameMapping},
+    seal::Seal,
+};
 use crate::{
     model::{
         Context,
@@ -10,7 +13,6 @@ use crate::{
         DocumentError,
         Output,
         RawJson,
-        name::mapping::{CarriesContext, MapNames, NameMapping},
         reader::{array, once, required, token, within},
     },
     registration::{CSourceRegistration, Problem, writer::registration_object},
