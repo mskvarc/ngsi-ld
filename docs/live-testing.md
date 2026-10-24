@@ -1,4 +1,4 @@
-# Live testing
+# Live Testing
 
 Most of the crate's tests run without a network. The binding tests in `tests/binding.rs` check the exact request each operation builds and how each response is decoded. The golden tests read and write the Annex C examples.
 
@@ -18,7 +18,7 @@ Start a broker and point these variables at its API root, the URL that `/entitie
 | `NGSI_LD_TEST_BROKER_URL` | the live tests in `tests/live.rs` | `http://localhost:9090/ngsi-ld/v1/` |
 | `NGSI_LD_TEST_NOTIFICATION_HOST` | the notification tests in `tests/live/subscriptions.rs` and `tests/live/registrations.rs` | `host.docker.internal` |
 
-## Running the examples
+## Running the Examples
 
 ```sh
 NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --all-features --example query_pagination
@@ -36,7 +36,7 @@ These need no broker:
 - `context_source`: acting as a context source
 - `sans_io`: the HTTP layer without a client
 
-## Running the live tests
+## Running the Live Tests
 
 ```sh
 NGSI_LD_TEST_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo test --all-features --test live -- --ignored
@@ -44,7 +44,7 @@ NGSI_LD_TEST_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo test --all-featu
 
 Each test uses its own ids, entity types and tenants, unique to that run. So the tests can run in parallel, and you can rerun them without cleaning out the broker. They send no `@context`, which means every term expands under the core context's default vocabulary. A broker that can't fetch remote contexts can still run them.
 
-### Notification tests
+### Notification Tests
 
 The notification tests start a receiver inside the test process. It listens on every interface, on a free port. The tests then subscribe with an endpoint on the host in `NGSI_LD_TEST_NOTIFICATION_HOST`, which has to be the address the broker uses to reach the machine running the tests. If the broker runs in a container on the same machine, that's `host.docker.internal`. Docker Desktop defines that name, and on Docker Engine for Linux the compose stack below maps it.
 
@@ -52,7 +52,7 @@ The notification tests start a receiver inside the test process. It listens on e
 NGSI_LD_TEST_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ NGSI_LD_TEST_NOTIFICATION_HOST=host.docker.internal cargo test --all-features --test live -- --ignored
 ```
 
-### Registration tests
+### Registration Tests
 
 The tests in `tests/live/registrations.rs` change the broker's registry of context sources, and a broker checks that registry for every request it might distribute (clause 5.12). Run them last, one at a time, so that no other test sends a request while the registry is changing:
 
@@ -61,7 +61,7 @@ NGSI_LD_TEST_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ NGSI_LD_TEST_NOTIFICAT
 NGSI_LD_TEST_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ NGSI_LD_TEST_NOTIFICATION_HOST=host.docker.internal cargo test --all-features --test live -- --ignored --test-threads=1 registrations::
 ```
 
-## Recording a deviation
+## Recording a Deviation
 
 When a broker's answer doesn't match the specification, the test keeps asserting the specification. Give it a comment that starts with `Known deviation`, cites the clause and says plainly what the broker did, then add the test to the table below.
 
@@ -69,7 +69,7 @@ Sometimes the clause only says a broker *should* do something. Record that the s
 
 Never change the library to accept a deviation, and never weaken an assertion to let a broker pass. When a deviation goes away, the test starts passing again, and its comment and table row come out.
 
-## The compose stack
+## The Compose Stack
 
 `tests/live/compose.yaml` runs Scorpio, the NGSI-LD broker of the FIWARE ecosystem, in its all-in-one form (`scorpiobroker/all-in-one-runner:java-6.0.2`). It listens on port 9090 and stores its data in PostgreSQL with PostGIS (`postgis/postgis:17-3.5`). Both images are amd64 only, so on any other architecture they run under emulation.
 
@@ -82,7 +82,7 @@ docker compose -f tests/live/compose.yaml down -v
 
 The API root is `http://localhost:9090/ngsi-ld/v1/`. Scorpio creates a tenant the first time an entity is created in it, and a request without an `NGSILD-Tenant` header goes to the default tenant.
 
-### Observed deviations
+### Observed Deviations
 
 Seen with `scorpiobroker/all-in-one-runner:java-6.0.2`. Each row is a live test that asserts the specification and fails against this broker.
 

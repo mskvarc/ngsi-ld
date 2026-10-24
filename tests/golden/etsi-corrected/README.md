@@ -1,4 +1,4 @@
-# Corrected Annex C examples
+# Corrected Annex C Examples
 
 Fixed copies of three examples from [`../etsi/`](../etsi/). Each one parses as a valid v1.9.1 document and writes back unchanged. All three also point `@context` at the v1.9 core context instead of v1.6.
 

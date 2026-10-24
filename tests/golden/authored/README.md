@@ -1,4 +1,4 @@
-# Authored fixtures
+# Authored Fixtures
 
 These fixtures are written by hand from the representation rules in ETSI GS CIM 009 v1.9.1. They cover the attribute kinds that the Annex C examples in [`../etsi/`](../etsi/) are too old to include.
 
@@ -22,6 +22,6 @@ They're licensed under MIT No Attribution (see [`LICENSE.md`](LICENSE.md)), whic
 
 `notification-normalized.json`, `notification-concise.json` and `notification-simplified.json` are notifications (clause 5.3.1) carrying the vehicle in each form. Each is what a subscriber receives when its subscription asks for that `format` (clause 5.8.6).
 
-## Canonical form
+## Canonical Form
 
-Every file here is in the crate's canonical form, which `docs/design.md` defines. The golden tests depend on that: they write each document back out and compare the text, member order included.
+Every file here is written in the order the crate writes members. An entity has `id`, then `type`, then its attributes in their order, with `@context` last. Inside an attribute, `type` comes first, then `objectType` for the relationship kinds, the payload, `valueType` and `unitCode`, `observedAt`, and finally the sub-attributes. A notification has `id`, `type`, `subscriptionId`, `notifiedAt` and then `data`. The golden tests depend on that order: they write each document back out and compare the text, member order included.

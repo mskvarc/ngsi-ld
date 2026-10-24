@@ -1,4 +1,4 @@
-# Bundled contexts
+# Bundled Contexts
 
 The crate embeds these two JSON-LD contexts with `include_str!`, so it can process the NGSI-LD core context without going to the network. Clause 4.4 makes the core context part of every `@context`. Both files are unmodified copies.
 

@@ -1,4 +1,4 @@
-# Annex C examples
+# Annex C Examples
 
 These are the JSON examples from Annex C of the NGSI-LD specification, as ETSI publishes them. They come unchanged from the `examples/` directory of the [ETSI NGSI-LD OpenAPI repository](https://forge.etsi.org/rep/cim/ngsi-ld-openapi), tag `v1.8.1`, commit `e034261635afd95f161974aaf19467270216c431`. ETSI licenses them under BSD-3-Clause (see [`LICENSE.md`](LICENSE.md)), and that licence covers only the files in this directory.
 
