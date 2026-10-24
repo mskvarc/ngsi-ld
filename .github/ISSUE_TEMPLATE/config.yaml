@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/mskvarc/ngsi-ld/security/policy
+    about: Never open a public issue for a vulnerability. Report it privately, as the security policy describes.
+  - name: Discussions
+    url: https://github.com/mskvarc/ngsi-ld/discussions
+    about: Ask a question, share an idea or show what you built.
+  - name: Documentation
+    url: https://docs.rs/ngsi-ld
+    about: The API reference on docs.rs.

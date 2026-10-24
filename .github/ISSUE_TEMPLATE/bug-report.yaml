@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a panic, a wrong result, a compile error, or a document the crate reads or writes incorrectly.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search the existing issues first, in case this is already reported.
+
+        Do not use this form for a security vulnerability. Report it privately, following the [security policy](https://github.com/mskvarc/ngsi-ld/security/policy).
+
+        If the crate works as designed but the design disagrees with the specification, use the Specification conformance form. If a broker answers differently from the specification, report that to the broker.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: What went wrong, with the exact error, panic message or compiler output.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: The smallest program that shows the problem, with the document or HTTP exchange it reads. Remove credentials and private data first.
+      render: rust
+    validations:
+      required: true
+  - type: textarea
+    id: dependency
+    attributes:
+      label: Dependency line
+      description: The `ngsi-ld` line from your `Cargo.toml`, so the version and the enabled features are both visible.
+      placeholder: 'ngsi-ld = { version = "1.0.0", default-features = false, features = ["http"] }'
+      render: toml
+    validations:
+      required: true
+  - type: input
+    id: rustc
+    attributes:
+      label: Rust version
+      description: The output of `rustc --version`.
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: The operating system and target, if the problem depends on them, as TLS and proxy problems often do.
+      placeholder: x86_64-unknown-linux-gnu
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: "This is not a security vulnerability. Vulnerabilities are reported privately, following the [security policy](https://github.com/mskvarc/ngsi-ld/security/policy)."
+          required: true
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I removed credentials, tokens and private data from the report.
+          required: true

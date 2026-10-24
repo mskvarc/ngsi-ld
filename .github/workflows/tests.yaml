@@ -1,4 +1,4 @@
-name: unit
+name: tests
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 concurrency:
-  group: unit-${{ github.ref }}
+  group: tests-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -17,7 +17,7 @@ env:
   CARGO_PROFILE_TEST_DEBUG: line-tables-only
 
 jobs:
-  unit-test:
+  test:
     name: cargo test
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,51 @@
+name: Specification conformance
+description: Report a place where the crate does not follow ETSI GS CIM 009 v1.9.1.
+labels: ["bug", "specification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The crate implements NGSI-LD v1.9.1. Behaviour from another version of the specification is a feature request.
+
+        If a broker answers differently from the specification, report that to the broker. The crate keeps following the specification.
+  - type: input
+    id: clause
+    attributes:
+      label: Clause
+      description: The clause of ETSI GS CIM 009 v1.9.1 the crate does not follow.
+      placeholder: "5.2.5"
+    validations:
+      required: true
+  - type: textarea
+    id: specification
+    attributes:
+      label: What the specification says
+      description: Quote the text that requires the behaviour.
+    validations:
+      required: true
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: What the crate does
+      description: The code, and the output or error that shows the difference.
+      render: rust
+    validations:
+      required: true
+  - type: textarea
+    id: dependency
+    attributes:
+      label: Dependency line
+      description: The `ngsi-ld` line from your `Cargo.toml`.
+      placeholder: 'ngsi-ld = "1.0.0"'
+      render: toml
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: This is about the crate, not about how a broker behaves.
+          required: true

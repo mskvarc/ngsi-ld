@@ -1,0 +1,38 @@
+name: Question
+description: Ask how to do something with the crate.
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check the [documentation](https://docs.rs/ngsi-ld) and the examples in the repository first. If something is broken, use the Bug report form instead.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: The code you are working with, and what happened.
+      render: rust
+    validations:
+      required: false
+  - type: textarea
+    id: dependency
+    attributes:
+      label: Dependency line
+      description: The `ngsi-ld` line from your `Cargo.toml`.
+      placeholder: 'ngsi-ld = "1.0.0"'
+      render: toml
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked the documentation and the existing issues.
+          required: true

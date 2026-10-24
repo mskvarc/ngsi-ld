@@ -22,10 +22,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/OWNER/ngsi-ld/actions/workflows/unit.yaml"><img alt="unit" src="https://github.com/OWNER/ngsi-ld/actions/workflows/unit.yaml/badge.svg"></a>
-  <a href="https://github.com/OWNER/ngsi-ld/actions/workflows/clippy.yaml"><img alt="clippy" src="https://github.com/OWNER/ngsi-ld/actions/workflows/clippy.yaml/badge.svg"></a>
-  <a href="https://github.com/OWNER/ngsi-ld/actions/workflows/doc.yaml"><img alt="doc" src="https://github.com/OWNER/ngsi-ld/actions/workflows/doc.yaml/badge.svg"></a>
-  <a href="https://github.com/OWNER/ngsi-ld/actions/workflows/deny.yaml"><img alt="deny" src="https://github.com/OWNER/ngsi-ld/actions/workflows/deny.yaml/badge.svg"></a>
+  <a href="https://github.com/mskvarc/ngsi-ld/actions/workflows/tests.yaml"><img alt="tests" src="https://github.com/mskvarc/ngsi-ld/actions/workflows/tests.yaml/badge.svg"></a>
+  <a href="https://github.com/mskvarc/ngsi-ld/actions/workflows/clippy.yaml"><img alt="clippy" src="https://github.com/mskvarc/ngsi-ld/actions/workflows/clippy.yaml/badge.svg"></a>
+  <a href="https://github.com/mskvarc/ngsi-ld/actions/workflows/deny.yaml"><img alt="deny" src="https://github.com/mskvarc/ngsi-ld/actions/workflows/deny.yaml/badge.svg"></a>
 </p>
 
 ---
@@ -112,6 +111,10 @@ The crate implements NGSI-LD as the specification defines it and expects the bro
 ## Documentation
 
 The API reference is on [docs.rs](https://docs.rs/ngsi-ld). The [architecture overview](docs/architecture.md) explains how the crate is built, and the [live testing guide](docs/live-testing.md) covers running it against a real broker.
+
+## Community
+
+Report bugs and suggest features in [issues](https://github.com/mskvarc/ngsi-ld/issues), and ask questions in [discussions](https://github.com/mskvarc/ngsi-ld/discussions). Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Licence
 

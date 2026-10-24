@@ -96,7 +96,6 @@ The changelog is generated from commit messages with `git-cliff`, and a commit t
 
 - Keep a pull request to one concern.
 - A change to an API follows [Changing an API](docs/code-organization.md#changing-an-api): every caller is updated in the same pull request, and nothing is kept around for compatibility.
-- Do not add personal identifiers (names, email addresses, handles) to code, fixtures, examples, headers or manifests.
 
 ## Licence
 

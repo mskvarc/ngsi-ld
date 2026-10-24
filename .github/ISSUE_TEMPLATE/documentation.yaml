@@ -1,0 +1,32 @@
+name: Documentation
+description: Report documentation that is wrong, unclear or missing, on docs.rs or in the repository.
+labels: ["documentation"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where
+      description: The docs.rs page or the file in the repository.
+      placeholder: https://docs.rs/ngsi-ld/latest/ngsi_ld/model/index.html
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording
+      description: How it should read, if you have something in mind.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true

@@ -120,7 +120,7 @@ The programs in `examples/` and the doc tests show a caller how to use the crate
 - Ids are fixed and read like the specification's, such as `urn:ngsi-ld:Vehicle:A4567`. An example that talks to a broker deletes its own entities at the start and again at the end. Resources the broker names (subscriptions, registrations, snapshots, entity maps) are created without an id and read back from `Location`.
 - An example may be a directory (`examples/<name>/main.rs` with modules) when it is too long for one file. Its modules serve only that example.
 - Each example is self-contained. Setup such as building a client is repeated, not shared through a module.
-- Examples are exempt from the rules about typed errors, strings and booleans, builders, derives and macros, clones and shadowing, documentation on private items, and duplication. The lints, the formatting, the single import block and the rules on broker neutrality, personal identifiers, emoji and Markdown still apply.
+- Examples are exempt from the rules about typed errors, strings and booleans, builders, derives and macros, clones and shadowing, documentation on private items, and duplication. The lints, the formatting, the single import block and the rules on broker neutrality, emoji and Markdown still apply.
 
 ## Tests
 
