@@ -2,7 +2,7 @@
 //! or scope query (NGSI-LD clauses 4.9, 4.10, 4.15, 4.17, 4.19, 4.21 and 4.23).
 
 use crate::{
-    model::{NameError, ScopeError, TemporalError},
+    model::{InvalidJson, NameError, ScopeError, TemporalError},
     query::{
         QualityError,
         geoquery::DistanceError,
@@ -10,7 +10,6 @@ use crate::{
         type_selection::SelectableTypeError,
     },
 };
-use jstrict::parse::Error as JsonError;
 use langtag::InvalidLangTag;
 
 /// What a query-language parser expected where it found something else.
@@ -101,7 +100,7 @@ pub enum Expected {
 /// geo-relationship or scope query.
 ///
 /// Every variant carries the byte offset in the input where the problem starts.
-// `jstrict`'s parse error carries no `Clone` or equality, so neither can the error that chains it.
+// `langtag`'s error carries no `Clone` and `TemporalError` no equality, so neither can the error that chains them.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum ParseError {
@@ -171,7 +170,7 @@ pub enum ParseError {
         position: usize,
         /// Why the string is invalid.
         #[source]
-        source: JsonError,
+        source: InvalidJson,
     },
     /// A language range is neither `*` nor a language tag (IETF RFC 5646).
     #[error("invalid language tag at byte {position}")]

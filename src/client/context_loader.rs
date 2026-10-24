@@ -4,18 +4,14 @@ use crate::{
     client::{Client, ClientError, Transport},
     http::headers::{Accept, any_content_type::any_media_type},
     linked_data::RemoteContextLoader,
-    model::{ContextId, NgsiLdMediaType, RawJson, keyword::CONTEXT},
+    model::{ContextId, InvalidJson, NgsiLdMediaType, RawJson, keyword::CONTEXT},
 };
 use bon::bon;
 use bytes::Bytes;
 use headers::HeaderMapExt;
 use http::{Request, StatusCode};
 use iri_rs::Iri;
-use jstrict::{
-    Object,
-    Value as Json,
-    parse::{Error as ParseError, parse_slice_value},
-};
+use jstrict::{Object, Value as Json, parse::parse_slice_value};
 use mediatype::{MediaType, MediaTypeBuf, names};
 
 /// Where a [`ContextLoader`] fetches a context. The two sources are the only ones the loader has, so the enum is
@@ -77,7 +73,7 @@ pub enum ContextLoadError<E> {
     NotJson {
         /// Why the body is not JSON.
         #[source]
-        source: ParseError,
+        source: InvalidJson,
     },
     /// The broker refused to serve the context, or the call failed.
     #[error("the broker did not serve the context")]
@@ -182,7 +178,9 @@ impl<T: Transport> ContextLoader<'_, T> {
             (MediaTypeCheck::Required, found) => return Err(ContextLoadError::MediaType { found }),
             (MediaTypeCheck::Ignored, _) => {}
         }
-        let document = parse_slice_value(response.body()).map_err(|source| ContextLoadError::NotJson { source })?;
+        let document = parse_slice_value(response.body()).map_err(|error| ContextLoadError::NotJson {
+            source: InvalidJson::of(&error),
+        })?;
         Ok(RawJson::from_json(document))
     }
 

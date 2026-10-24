@@ -2,7 +2,7 @@
 
 use crate::{
     linked_data::{JsonLdError, RemoteContextLoader},
-    model::{CORE_CONTEXT, RawJson, keyword::CONTEXT},
+    model::{CORE_CONTEXT, InvalidJson, RawJson, keyword::CONTEXT},
 };
 use iri_rs::{Iri, IriBuf, iri};
 use jsonld::{
@@ -11,10 +11,7 @@ use jsonld::{
     RemoteDocument,
     syntax::{Context as SyntaxContext, TryFromJson},
 };
-use jstrict::{
-    Value as Json,
-    parse::{Error as ParseError, parse_str_value},
-};
+use jstrict::{Value as Json, parse::parse_str_value};
 use std::future;
 
 /// The NGSI-LD core context v1.9, as ETSI publishes it at [`CORE_CONTEXT`].
@@ -35,7 +32,7 @@ const DATA_INTEGRITY_DOCUMENT: &str = include_str!("core_context/data-integrity-
 pub enum BundledContextError {
     /// A bundled document is not JSON.
     #[error("a bundled context document is not JSON")]
-    Json(#[source] ParseError),
+    Json(#[source] InvalidJson),
     /// The core context document holds no `@context` member.
     #[error("the bundled core context document holds no @context")]
     MissingContext,
@@ -81,8 +78,8 @@ impl BundledContexts {
     /// Returns [`BundledContextError::Json`] if a bundled document is not JSON, and the other variants if the core
     /// context document holds no valid `@context`.
     pub(crate) fn read() -> Result<Self, BundledContextError> {
-        let core = parse_str_value(CORE_CONTEXT_DOCUMENT).map_err(BundledContextError::Json)?;
-        let data_integrity = parse_str_value(DATA_INTEGRITY_DOCUMENT).map_err(BundledContextError::Json)?;
+        let core = parse_str_value(CORE_CONTEXT_DOCUMENT).map_err(|error| BundledContextError::Json(InvalidJson::of(&error)))?;
+        let data_integrity = parse_str_value(DATA_INTEGRITY_DOCUMENT).map_err(|error| BundledContextError::Json(InvalidJson::of(&error)))?;
         let context = core
             .as_object()
             .and_then(|document| document.get_unique(CONTEXT).ok().flatten())

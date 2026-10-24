@@ -355,7 +355,10 @@ fn unterminated_string_reports_the_missing_quote() {
 #[test]
 fn raw_control_character_in_a_string_is_refused() {
     let error = "name==\"a\tb\"".parse::<Query>().unwrap_err();
-    assert!(matches!(error, ParseError::InvalidString { position: 6, .. }), "{error:?}");
+    assert!(
+        matches!(&error, ParseError::InvalidString { position: 6, source } if source.position() == 2),
+        "{error:?}"
+    );
 }
 
 #[test]

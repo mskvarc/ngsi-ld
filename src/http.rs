@@ -40,7 +40,8 @@
 //!
 //! # Responses
 //!
-//! [`ResponseContext`], [`ResponseHead`], [`ResponseError`], [`BodyError`], [`Retrieved`], [`Page`], [`Coverage`].
+//! [`ResponseContext`], [`ResponseHead`], [`ResponseError`], [`BodyError`], [`ShapeError`], [`Retrieved`], [`Page`],
+//! [`Coverage`].
 //!
 //! # Outcomes
 //!
@@ -79,7 +80,7 @@ pub use crate::http::{
     page::Page,
     query_parameter::QueryParameter,
     request::error::{ContextDeliveryError, RequestError},
-    response::{BodyError, ResponseError},
+    response::{BodyError, ResponseError, ShapeError},
     response_context::ResponseContext,
     response_head::ResponseHead,
     retrieved::Retrieved,

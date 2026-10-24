@@ -1,7 +1,7 @@
 //! Raw JSON: data the specification keeps outside JSON-LD interpretation.
 
 use crate::model::{nesting::grow, null::NGSI_LD_NULL};
-use jstrict::{Print, Value as Json};
+use jstrict::{Print, Value as Json, parse::Error as ParseError};
 use std::{
     fmt::{self, Debug, Display, Formatter},
     hash::{Hash, Hasher},
@@ -9,10 +9,33 @@ use std::{
     str::FromStr,
 };
 
-/// The text is not valid JSON.
+/// The text is not valid JSON (IETF RFC 8259).
+///
+/// ```
+/// use ngsi_ld::model::RawJson;
+///
+/// let refused = "[1, 2,]".parse::<RawJson>();
+/// assert_eq!(refused.map_err(|error| error.position()), Err(6));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
-#[error("not valid JSON")]
-pub struct InvalidJson;
+#[error("not valid JSON at byte {position}")]
+pub struct InvalidJson {
+    /// The byte offset in the text where the JSON stops being valid.
+    position: usize,
+}
+
+impl InvalidJson {
+    /// Returns the byte offset in the text where the JSON stops being valid.
+    #[must_use]
+    pub const fn position(&self) -> usize {
+        self.position
+    }
+
+    /// The parser's error, reduced to its position: the parser's error type is not part of the crate's API.
+    pub(crate) const fn of(error: &ParseError) -> Self {
+        Self { position: error.position() }
+    }
+}
 
 /// A JSON value the crate carries verbatim, with its member order and number spelling: the `json` of a
 /// `JsonProperty` (NGSI-LD clause 4.5.24), which is never expanded, the values of the foreign members of a geometry
@@ -184,7 +207,7 @@ impl FromStr for RawJson {
     type Err = InvalidJson;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
-        text.parse().map(Self).map_err(|_| InvalidJson)
+        text.parse().map(Self).map_err(|error| InvalidJson::of(&error))
     }
 }
 

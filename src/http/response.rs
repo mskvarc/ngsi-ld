@@ -6,7 +6,7 @@ use crate::{
         ResponseHead,
         headers::{Location, OptionalHeader},
     },
-    model::{DocumentError, ProblemDetails, RawJson},
+    model::{DocumentError, InvalidJson, ProblemDetails, RawJson},
     registration::Problem as RegistrationProblem,
     snapshot::Problem as SnapshotProblem,
     subscription::{Problem as SubscriptionProblem, ReadErrorKind},
@@ -15,7 +15,7 @@ use bytes::Bytes;
 use headers::{Header, HeaderMapExt};
 use http::{HeaderMap, HeaderName, Response, StatusCode};
 use iri_rs::IriRefBuf;
-use jstrict::{DeserializeError, Value as Json, parse};
+use jstrict::{DeserializeError, Value as Json};
 use mediatype::{MediaTypeBuf, MediaTypeList};
 use serde::de::DeserializeOwned;
 use std::str::{self, Utf8Error};
@@ -132,10 +132,10 @@ pub enum BodyError {
     Utf8(#[from] Utf8Error),
     /// The body is not JSON.
     #[error("the body is not JSON")]
-    Json(#[from] parse::Error),
+    Json(#[from] InvalidJson),
     /// The JSON does not have the shape the status code promises.
     #[error("the body does not have the expected shape")]
-    Shape(#[from] DeserializeError),
+    Shape(#[from] ShapeError),
     /// The body is not the JSON array of entities a query answers with.
     #[error("the body is not a JSON array")]
     NotAnArray,
@@ -153,6 +153,14 @@ pub enum BodyError {
     #[error("the body is not a valid snapshot")]
     Snapshot(#[source] DocumentError<ReadErrorKind<SnapshotProblem>>),
 }
+
+/// Why a JSON body does not have the shape of the typed result the status code promises, such as the
+/// `BatchOperationResult` of clause 5.2.16; it displays the member that is missing or of the wrong type.
+///
+/// The deserializer's error type is not part of the crate's API: a [`ShapeError`] carries its message.
+#[derive(Debug, Clone, thiserror::Error)]
+#[error(transparent)]
+pub struct ShapeError(DeserializeError);
 
 /// Reads a body that is a JSON array, each element with `read`; `error` turns the error of an element, placed under
 /// its index, into the body error.
@@ -197,7 +205,7 @@ impl Success {
 
     /// Reads the body as a typed value.
     pub(crate) fn deserialize<T: DeserializeOwned>(&self) -> Result<T, ResponseError> {
-        jstrict::from_value(self.json()?).map_err(|source| self.body_error(BodyError::Shape(source)))
+        jstrict::from_value(self.json()?).map_err(|source| self.body_error(ShapeError(source)))
     }
 
     /// The headers.
@@ -232,7 +240,7 @@ impl Success {
 
 /// Parses a body as JSON.
 fn body_json(body: &Bytes) -> Result<Json, BodyError> {
-    Ok(str::from_utf8(body)?.parse::<Json>()?)
+    str::from_utf8(body)?.parse::<Json>().map_err(|error| InvalidJson::of(&error).into())
 }
 
 /// Separates success from failure. A 1xx, 2xx or 3xx status is a success for the operation to read; every
@@ -279,7 +287,11 @@ fn available_representations(body: &[u8]) -> Vec<MediaTypeBuf> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        http::{BodyError, ResponseError, response::classify},
+        http::{
+            BodyError,
+            ResponseError,
+            response::{Success, classify},
+        },
         model::{ErrorType, ProblemDetails},
     };
     use bytes::Bytes;
@@ -398,8 +410,17 @@ mod tests {
     fn an_error_body_that_is_not_json_is_a_body_error_with_its_status() {
         assert!(matches!(
             classify(response(502, "<html>bad gateway</html>")).unwrap_err(),
-            ResponseError::Body { status: StatusCode::BAD_GATEWAY, source, .. } if matches!(*source, BodyError::Json(_))
+            ResponseError::Body { status: StatusCode::BAD_GATEWAY, source, .. } if matches!(*source, BodyError::Json(json) if json.position() == 0)
         ));
+    }
+
+    #[test]
+    fn a_success_body_out_of_shape_is_a_shape_error_that_displays_the_mismatch() {
+        let ResponseError::Body { source, .. } = Success(response(200, r#"{"a":1}"#)).deserialize::<Vec<u8>>().unwrap_err() else {
+            panic!("expected a body error")
+        };
+        let BodyError::Shape(shape) = *source else { panic!("expected a shape error") };
+        assert_eq!(shape.to_string(), "invalid type: map, expected a sequence");
     }
 
     #[test]

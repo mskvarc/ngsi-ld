@@ -8,7 +8,7 @@
 //! the depth ([`grow`]), so a query nested any number of levels deep is read without overflowing the stack.
 
 use crate::{
-    model::{Number, TemporalError, Term, Uri, nesting::grow},
+    model::{InvalidJson, Number, TemporalError, Term, Uri, nesting::grow},
     query::{
         Expected,
         ParseError,
@@ -260,7 +260,12 @@ fn string(input: &mut Input<'_>) -> Outcome<String> {
     let character = alt((('\\', any).void(), none_of(['"', '\\']).void()));
     let body = repeat::<_, _, (), _, _>(0.., character);
     let text = ('"', body, cut_err(expecting(Expected::ClosingQuote, '"'))).take().parse_next(input)?;
-    let json = parse_str_value(text).map_err(|source| Failure::fatal(ParseError::InvalidString { position, source }))?;
+    let json = parse_str_value(text).map_err(|error| {
+        Failure::fatal(ParseError::InvalidString {
+            position,
+            source: InvalidJson::of(&error),
+        })
+    })?;
     json.into_string().map(String::from).ok_or_else(|| Failure::expected(Expected::Value, position))
 }
 

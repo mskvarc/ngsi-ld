@@ -1,4 +1,4 @@
-use crate::model::RawJson;
+use crate::model::{InvalidJson, RawJson};
 use pretty_assertions::assert_eq;
 use std::hash::{BuildHasher, RandomState};
 
@@ -18,6 +18,13 @@ fn raw_json_compares_in_member_order_and_hashes_consistently() {
     assert_ne!(raw("1.0"), raw("1"));
     assert_ne!(raw("[1]"), raw(r#"{"0":1}"#));
     assert_eq!(format!("{json:?}"), r#"RawJson({"a":[1,{"b":null}],"c":"x"})"#);
+}
+
+#[test]
+fn text_that_is_not_json_is_refused_at_the_byte_where_it_stops_being_json() {
+    let error: InvalidJson = "[1, 2,]".parse::<RawJson>().unwrap_err();
+    assert_eq!(error.position(), 6);
+    assert_eq!(error.to_string(), "not valid JSON at byte 6");
 }
 
 #[test]
