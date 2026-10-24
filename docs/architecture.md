@@ -4,7 +4,7 @@
 
 ## The Specification Decides
 
-Where the specification and anything else disagree, the specification wins. The OpenAPI document is only a checklist, and no code is generated from it. The golden tests use the Annex C examples ETSI publishes. The crate doesn't work around any broker: the decoder is lenient only where the specification leaves room.
+Where the specification and anything else disagree, the specification wins. The OpenAPI document is only a checklist, and no code is generated from it. The golden tests use the Annex C examples ETSI publishes. The crate doesn't work around any broker: the decoder is lenient only where the specification leaves room. An operation that runs into a broker's deviation fails, so only conformant brokers are supported. Handling the known quirks of a named broker is planned, but its design isn't settled yet.
 
 ## Requests and Responses Are Separate Types
 

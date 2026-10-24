@@ -9,6 +9,7 @@
   <a href="#overview">Overview</a> ·
   <a href="#getting-started">Getting Started</a> ·
   <a href="#features">Features</a> ·
+  <a href="#broker-compatibility">Broker Compatibility</a> ·
   <a href="#licence">Licence</a>
 </p>
 
@@ -81,6 +82,10 @@ More complete programs are in [examples](examples/), and the [live testing guide
 ## Features
 
 Without features you get the data model and the query languages, and no HTTP client or async runtime. `http` adds the client, which runs over any transport, and `reqwest` provides one. `linked-data` processes the `@context` as JSON-LD. `chrono`, `geo-types` and `geojson` add conversions to those crates' types.
+
+## Broker Compatibility
+
+The crate implements NGSI-LD as the specification defines it and expects the broker to do the same. Brokers often deviate, mostly in the less used parts of the API, and the crate doesn't work around any of them. An operation that runs into a deviation fails with an error. Only conformant brokers are supported for now. A way to tell the client which broker it talks to, so it can handle that broker's known quirks, is planned.
 
 ## Documentation
 

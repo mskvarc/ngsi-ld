@@ -76,6 +76,12 @@
 //! | `geo-types` | Conversions between the geometries of [`model::geometry`] and `geo-types`. |
 //! | `geojson` | Conversions between the geometries of [`model::geometry`] and the `geojson` crate. |
 //! | `chrono` | Conversions between the temporal values of [`model`] ([`DateTime`](model::DateTime), [`Date`](model::Date), [`Time`](model::Time)) and `chrono`. |
+//!
+//! # Broker compatibility
+//!
+//! The crate implements NGSI-LD as the specification defines it and expects the broker to do the same. It works
+//! around no broker's deviations: an operation that runs into one fails with an error. Only conformant brokers are
+//! supported for now; handling the known quirks of a named broker is planned.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
