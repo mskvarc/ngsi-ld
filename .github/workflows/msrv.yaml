@@ -1,9 +1,15 @@
 name: msrv
 
+# On a pull request this runs only when the manifest or the lock file changes, as a dependency update is what usually
+# raises the msrv. Clippy's `incompatible_msrv` lint catches a newer standard library API in the code itself.
 on:
   push:
     branches: [master]
   pull_request:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/msrv.yaml"
 
 concurrency:
   group: msrv-${{ github.ref }}

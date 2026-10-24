@@ -4,6 +4,10 @@ on:
   push:
     branches: [master]
   pull_request:
+    paths:
+      - "**/*.rs"
+      - "rustfmt.toml"
+      - ".github/workflows/fmt.yaml"
 
 concurrency:
   group: fmt-${{ github.ref }}

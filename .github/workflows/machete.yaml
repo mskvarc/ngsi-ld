@@ -4,6 +4,12 @@ on:
   push:
     branches: [master]
   pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "examples/**"
+      - "Cargo.toml"
+      - ".github/workflows/machete.yaml"
 
 concurrency:
   group: machete-${{ github.ref }}

@@ -4,6 +4,11 @@ on:
   push:
     branches: [master]
   pull_request:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "deny.toml"
+      - ".github/workflows/deny.yaml"
   schedule:
     - cron: "17 6 * * 1"
   workflow_dispatch:
