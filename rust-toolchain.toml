@@ -1,4 +1,4 @@
 # Stable, so the published crate never depends on a nightly-only behaviour. rustfmt runs on nightly (`cargo +nightly fmt`) for its unstable import options.
 [toolchain]
-channel = "1.99.0"
+channel = "1.99.1"
 components = ["clippy"]
