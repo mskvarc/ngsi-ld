@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.1.0] - 2026-10-24
+
+### 🚀 Features
+- add a way to obtain raw response body
+
 ## [v1.0.0] - 2026-10-24
 
 ### 🚀 Features
