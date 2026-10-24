@@ -1,6 +1,6 @@
 //! The instances of one attribute, told apart by `datasetId` (NGSI-LD clause 4.5.5).
 
-use crate::model::DatasetId;
+use crate::{model::DatasetId, seal::Seal};
 use std::slice::{Iter, IterMut};
 
 /// The private supertrait that keeps `InstanceKey` implemented by this crate alone.
@@ -24,7 +24,8 @@ pub trait InstanceKey: sealed::Sealed {
 
     /// Whether this instance is the whole member and so cannot stand among other instances: a deletion written as
     /// the bare NGSI-LD Null (clauses 4.5.3.3 and 5.4), which no instance array can hold (clause 4.5.0).
-    fn excludes_other_instances(&self) -> bool {
+    #[doc(hidden)]
+    fn excludes_other_instances(&self, _: Seal) -> bool {
         false
     }
 }
@@ -83,7 +84,9 @@ impl<T: InstanceKey> Instances<T> {
     /// Returns [`InstancesError`] when the instance is a second default instance, repeats a dataset id, or would
     /// stand beside a deletion of the whole attribute.
     pub fn push(&mut self, instance: T) -> Result<(), InstancesError> {
-        if !self.0.is_empty() && (instance.excludes_other_instances() || self.0.iter().any(InstanceKey::excludes_other_instances)) {
+        if !self.0.is_empty()
+            && (instance.excludes_other_instances(Seal::new()) || self.0.iter().any(|existing| existing.excludes_other_instances(Seal::new())))
+        {
             return Err(InstancesError::BareDeletionAmongInstances);
         }
         if instance.is_default_instance() {

@@ -6,39 +6,42 @@
 //!
 //! Writing builds an owned JSON tree from borrowed data, so names and strings are copied into it.
 
-use crate::model::{
-    Attribute,
-    AttributeKind,
-    AttributeMeta,
-    Attributes,
-    Change,
-    Completeness,
-    Context,
-    Direction,
-    Entity,
-    EntityFragment,
-    EntityId,
-    EntityTypeName,
-    InstanceDeletion,
-    Instances,
-    Lossless,
-    OneOrMany,
-    Patch,
-    Property,
-    ScopeChange,
-    Value,
-    geometry::Geometry,
-    keyword::CONTEXT,
-    nesting::grow,
-    null::NGSI_LD_NULL,
-    representation::{
-        proof::write_proof,
-        shape::shapes_attribute,
-        write::{
-            deletion::{bare_deletion, write_instance_deletion},
-            direction::{WriteDirection, WriteEntityDirection, push_member},
+use crate::{
+    model::{
+        Attribute,
+        AttributeKind,
+        AttributeMeta,
+        Attributes,
+        Change,
+        Completeness,
+        Context,
+        Direction,
+        Entity,
+        EntityFragment,
+        EntityId,
+        EntityTypeName,
+        InstanceDeletion,
+        Instances,
+        Lossless,
+        OneOrMany,
+        Patch,
+        Property,
+        ScopeChange,
+        Value,
+        geometry::Geometry,
+        keyword::CONTEXT,
+        nesting::grow,
+        null::NGSI_LD_NULL,
+        representation::{
+            proof::write_proof,
+            shape::shapes_attribute,
+            write::{
+                deletion::{bare_deletion, write_instance_deletion},
+                direction::{WriteDirection, WriteEntityDirection, push_member},
+            },
         },
     },
+    seal::Seal,
 };
 use jstrict::{Object, Value as Json};
 
@@ -139,8 +142,8 @@ pub(crate) fn write_property_object<D: WriteDirection>(property: &Property<D>, f
 /// Whether the members besides the payload are all absent, the output-only members of the kind included.
 pub(crate) fn is_plain<D: Direction, K: PartialEq + Default>(meta: &AttributeMeta<D>, kind_output: &K) -> bool {
     meta.dataset_id.is_none()
-        && D::lacks(&meta.observed_at)
-        && D::lacks(&meta.expires_at)
+        && D::lacks(Seal::new(), &meta.observed_at)
+        && D::lacks(Seal::new(), &meta.expires_at)
         && meta.proof.is_none()
         && meta.attributes.is_empty()
         && meta.output == D::AttributeOutput::default()
@@ -151,15 +154,17 @@ pub(crate) fn is_plain<D: Direction, K: PartialEq + Default>(meta: &AttributeMet
 /// misread (clause 4.5.2.3), or a `GeoProperty` with nothing but its geometry (clause 4.7.3).
 fn bare_concise<D: Direction>(attribute: &Attribute<D>) -> Option<Json> {
     match attribute {
-        Attribute::Property(property) if is_plain(&property.meta, &property.output) && D::lacks(&property.unit_code) && D::lacks(&property.value_type) => {
+        Attribute::Property(property)
+            if is_plain(&property.meta, &property.output) && D::lacks(Seal::new(), &property.unit_code) && D::lacks(Seal::new(), &property.value_type) =>
+        {
             let value = property.value.to_json();
             is_unambiguous_bare_value(&value).then_some(value)
         }
         Attribute::GeoProperty(property)
             if property.value.is_geometry()
                 && is_plain(&property.meta, &property.output)
-                && D::lacks(&property.unit_code)
-                && D::lacks(&property.value_type) =>
+                && D::lacks(Seal::new(), &property.unit_code)
+                && D::lacks(Seal::new(), &property.value_type) =>
         {
             Some(property.value.to_json())
         }
@@ -319,10 +324,10 @@ pub(crate) fn write_entity<D: WriteEntityDirection, C: Completeness>(entity: &En
 /// Writes the identifying members of an entity, `id` then `type`, each one only if the entity holds it (a
 /// projection may have removed them, clause 4.21).
 pub(crate) fn write_identity<C: Completeness>(object: &mut Object, id: &C::Member<EntityId>, entity_type: &C::Member<OneOrMany<EntityTypeName>>) {
-    if let Some(id) = C::get(id) {
+    if let Some(id) = C::get(Seal::new(), id) {
         object.push("id".into(), Json::from(id.as_str()));
     }
-    if let Some(entity_type) = C::get(entity_type) {
+    if let Some(entity_type) = C::get(Seal::new(), entity_type) {
         object.push("type".into(), entity_type.to_json(|name| Json::from(name.to_string())));
     }
 }
@@ -338,7 +343,12 @@ pub(crate) fn write_context(object: &mut Object, context: Option<&Context>) {
 /// (clause 6.3.5).
 pub(crate) fn write_fragment<C: Completeness>(fragment: &EntityFragment<C>, form: Lossless) -> Object {
     let mut object = Object::new();
-    write_fragment_head(&mut object, C::get(&fragment.id), C::get(&fragment.entity_type), fragment.scope.as_ref());
+    write_fragment_head(
+        &mut object,
+        C::get(Seal::new(), &fragment.id),
+        C::get(Seal::new(), &fragment.entity_type),
+        fragment.scope.as_ref(),
+    );
     push_display(&mut object, "expiresAt", fragment.expires_at.as_ref());
     write_attributes(&mut object, &fragment.attributes, form);
     object

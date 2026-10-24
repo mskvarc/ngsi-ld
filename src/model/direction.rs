@@ -1,16 +1,19 @@
 //! Which way a document travels: a request a client builds, a fragment that changes an existing element, or a
 //! response a broker returns.
 
-use crate::model::{
-    Attribute,
-    AttributeKind,
-    AttributeSlot,
-    DatasetId,
-    DateTime,
-    InstanceId,
-    InstanceKey,
-    MemberChange,
-    attribute::instances::sealed::Sealed as InstanceSealed,
+use crate::{
+    model::{
+        Attribute,
+        AttributeKind,
+        AttributeSlot,
+        DatasetId,
+        DateTime,
+        InstanceId,
+        InstanceKey,
+        MemberChange,
+        attribute::instances::sealed::Sealed as InstanceSealed,
+    },
+    seal::Seal,
 };
 use std::fmt::Debug;
 
@@ -53,13 +56,16 @@ pub trait Direction: sealed::Sealed + Debug + Clone + Copy + PartialEq + Eq + De
     type Member<T: Debug + Clone + PartialEq + Eq>: Debug + Clone + PartialEq + Eq + Default;
 
     /// Places an attribute in a slot of this direction.
-    fn slot(attribute: Attribute<Self>) -> Self::Slot;
+    #[doc(hidden)]
+    fn slot(seal: Seal, attribute: Attribute<Self>) -> Self::Slot;
 
     /// The member that sets `value`, or that is absent.
-    fn set_member<T: Debug + Clone + PartialEq + Eq>(value: Option<T>) -> Self::Member<T>;
+    #[doc(hidden)]
+    fn set_member<T: Debug + Clone + PartialEq + Eq>(seal: Seal, value: Option<T>) -> Self::Member<T>;
 
     /// Whether the member is absent: neither set nor, in a fragment, deleted.
-    fn lacks<T: Debug + Clone + PartialEq + Eq>(member: &Self::Member<T>) -> bool;
+    #[doc(hidden)]
+    fn lacks<T: Debug + Clone + PartialEq + Eq>(seal: Seal, member: &Self::Member<T>) -> bool;
 }
 
 /// A direction whose attributes hold their optional members as they are, [`Input`] or [`Output`], unlike a
@@ -68,10 +74,12 @@ pub trait Direction: sealed::Sealed + Debug + Clone + Copy + PartialEq + Eq + De
 /// The trait is sealed, as [`Direction`] is.
 pub trait Plain: Direction {
     /// Returns the value of the member, if it is present.
-    fn member<T: Debug + Clone + PartialEq + Eq>(member: &Self::Member<T>) -> Option<&T>;
+    #[doc(hidden)]
+    fn member<T: Debug + Clone + PartialEq + Eq>(seal: Seal, member: &Self::Member<T>) -> Option<&T>;
 
     /// Takes the value of the member, if it is present.
-    fn into_member<T: Debug + Clone + PartialEq + Eq>(member: Self::Member<T>) -> Option<T>;
+    #[doc(hidden)]
+    fn into_member<T: Debug + Clone + PartialEq + Eq>(seal: Seal, member: Self::Member<T>) -> Option<T>;
 }
 
 /// A document a client sends to create or replace an element (Create Entity, Replace Entity, Replace
@@ -101,25 +109,25 @@ impl Direction for Input {
     type Member<T: Debug + Clone + PartialEq + Eq> = Option<T>;
     type Slot = Attribute<Self>;
 
-    fn slot(attribute: Attribute<Self>) -> Self::Slot {
+    fn slot(_: Seal, attribute: Attribute<Self>) -> Self::Slot {
         attribute
     }
 
-    fn set_member<T: Debug + Clone + PartialEq + Eq>(value: Option<T>) -> Option<T> {
+    fn set_member<T: Debug + Clone + PartialEq + Eq>(_: Seal, value: Option<T>) -> Option<T> {
         value
     }
 
-    fn lacks<T: Debug + Clone + PartialEq + Eq>(member: &Option<T>) -> bool {
+    fn lacks<T: Debug + Clone + PartialEq + Eq>(_: Seal, member: &Option<T>) -> bool {
         member.is_none()
     }
 }
 
 impl Plain for Input {
-    fn member<T: Debug + Clone + PartialEq + Eq>(member: &Option<T>) -> Option<&T> {
+    fn member<T: Debug + Clone + PartialEq + Eq>(_: Seal, member: &Option<T>) -> Option<&T> {
         member.as_ref()
     }
 
-    fn into_member<T: Debug + Clone + PartialEq + Eq>(member: Option<T>) -> Option<T> {
+    fn into_member<T: Debug + Clone + PartialEq + Eq>(_: Seal, member: Option<T>) -> Option<T> {
         member
     }
 }
@@ -131,15 +139,15 @@ impl Direction for Patch {
     type Member<T: Debug + Clone + PartialEq + Eq> = Option<MemberChange<T>>;
     type Slot = Change<Attribute<Self>>;
 
-    fn slot(attribute: Attribute<Self>) -> Self::Slot {
+    fn slot(_: Seal, attribute: Attribute<Self>) -> Self::Slot {
         Change::Set(attribute)
     }
 
-    fn set_member<T: Debug + Clone + PartialEq + Eq>(value: Option<T>) -> Option<MemberChange<T>> {
+    fn set_member<T: Debug + Clone + PartialEq + Eq>(_: Seal, value: Option<T>) -> Option<MemberChange<T>> {
         value.map(MemberChange::Set)
     }
 
-    fn lacks<T: Debug + Clone + PartialEq + Eq>(member: &Option<MemberChange<T>>) -> bool {
+    fn lacks<T: Debug + Clone + PartialEq + Eq>(_: Seal, member: &Option<MemberChange<T>>) -> bool {
         member.is_none()
     }
 }
@@ -151,25 +159,25 @@ impl Direction for Output {
     type Member<T: Debug + Clone + PartialEq + Eq> = Option<T>;
     type Slot = Attribute<Self>;
 
-    fn slot(attribute: Attribute<Self>) -> Self::Slot {
+    fn slot(_: Seal, attribute: Attribute<Self>) -> Self::Slot {
         attribute
     }
 
-    fn set_member<T: Debug + Clone + PartialEq + Eq>(value: Option<T>) -> Option<T> {
+    fn set_member<T: Debug + Clone + PartialEq + Eq>(_: Seal, value: Option<T>) -> Option<T> {
         value
     }
 
-    fn lacks<T: Debug + Clone + PartialEq + Eq>(member: &Option<T>) -> bool {
+    fn lacks<T: Debug + Clone + PartialEq + Eq>(_: Seal, member: &Option<T>) -> bool {
         member.is_none()
     }
 }
 
 impl Plain for Output {
-    fn member<T: Debug + Clone + PartialEq + Eq>(member: &Option<T>) -> Option<&T> {
+    fn member<T: Debug + Clone + PartialEq + Eq>(_: Seal, member: &Option<T>) -> Option<&T> {
         member.as_ref()
     }
 
-    fn into_member<T: Debug + Clone + PartialEq + Eq>(member: Option<T>) -> Option<T> {
+    fn into_member<T: Debug + Clone + PartialEq + Eq>(_: Seal, member: Option<T>) -> Option<T> {
         member
     }
 }
@@ -291,9 +299,9 @@ impl<T: InstanceKey> InstanceKey for Change<T> {
         }
     }
 
-    fn excludes_other_instances(&self) -> bool {
+    fn excludes_other_instances(&self, _: Seal) -> bool {
         match self {
-            Self::Set(attribute) => attribute.excludes_other_instances(),
+            Self::Set(attribute) => attribute.excludes_other_instances(Seal::new()),
             Self::Delete(Deletion::Member) => true,
             Self::Delete(Deletion::Instance(_)) => false,
         }
@@ -301,9 +309,9 @@ impl<T: InstanceKey> InstanceKey for Change<T> {
 }
 
 impl<T: AttributeSlot> AttributeSlot for Change<T> {
-    fn written_kind(&self) -> Option<AttributeKind> {
+    fn written_kind(&self, _: Seal) -> Option<AttributeKind> {
         match self {
-            Self::Set(attribute) => attribute.written_kind(),
+            Self::Set(attribute) => attribute.written_kind(Seal::new()),
             Self::Delete(Deletion::Member) => None,
             Self::Delete(Deletion::Instance(instance)) => Some(instance.kind),
         }

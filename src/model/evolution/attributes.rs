@@ -27,6 +27,7 @@ use crate::{
         evolution::write::temporal_attributes_object,
     },
     query::temporal_query::TemporalProperty,
+    seal::Seal,
 };
 use indexmap::{IndexMap, map::Iter};
 use jstrict::Value as Json;
@@ -59,7 +60,7 @@ impl<D: EntityDirection> Evolution<D> {
     /// deleted attribute reported as a bare NGSI-LD Null, which names no kind (clause 5.8.6).
     #[must_use]
     pub fn kind(&self) -> Option<AttributeKind> {
-        self.instances.iter().find_map(AttributeSlot::written_kind)
+        self.instances.iter().find_map(|instance| instance.written_kind(Seal::new()))
     }
 
     /// Iterates over the instances in order.
@@ -94,7 +95,7 @@ impl<D: EntityDirection> Evolution<D> {
     /// instance names: an `instanceId` identifies one instance (clauses 4.5.7 and 4.5.8). An instance that names
     /// none, and every instance of a response, whose identifier is `()`, is the default and never collides.
     fn push(&mut self, attribute: Attribute<D>, instance_id: D::TemporalInstanceId) -> Result<(), AttributesError> {
-        if let (Some(expected), Some(found)) = (self.kind(), attribute.written_kind())
+        if let (Some(expected), Some(found)) = (self.kind(), attribute.written_kind(Seal::new()))
             && expected != found
         {
             return Err(AttributesError::KindChange { expected, found });

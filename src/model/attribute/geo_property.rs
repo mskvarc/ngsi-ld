@@ -1,23 +1,26 @@
 //! Geospatial Properties (NGSI-LD clauses 4.7 and 5.2.7).
 
-use crate::model::{
-    AttributeDraft,
-    AttributeMeta,
-    AttributeNameDraft,
-    BuildError,
-    DatasetId,
-    DateTime,
-    Direction,
-    Input,
-    MemberChange,
-    Output,
-    Patch,
-    Plain,
-    Proof,
-    VocabTerm,
-    attribute::pending::PendingAttributes,
-    geometry::{Geometry, GeometryError, Shape},
-    null::NGSI_LD_NULL,
+use crate::{
+    model::{
+        AttributeDraft,
+        AttributeMeta,
+        AttributeNameDraft,
+        BuildError,
+        DatasetId,
+        DateTime,
+        Direction,
+        Input,
+        MemberChange,
+        Output,
+        Patch,
+        Plain,
+        Proof,
+        VocabTerm,
+        attribute::pending::PendingAttributes,
+        geometry::{Geometry, GeometryError, Shape},
+        null::NGSI_LD_NULL,
+    },
+    seal::Seal,
 };
 use bon::bon;
 use cefact_units::UnitCode;
@@ -169,13 +172,13 @@ impl<D: Plain> GeoProperty<D> {
     /// Returns the unit (`unitCode`).
     #[must_use]
     pub fn unit_code(&self) -> Option<&UnitCode> {
-        D::member(&self.unit_code)
+        D::member(Seal::new(), &self.unit_code)
     }
 
     /// Returns the datatype of the value (`valueType`).
     #[must_use]
     pub fn value_type(&self) -> Option<&VocabTerm> {
-        D::member(&self.value_type)
+        D::member(Seal::new(), &self.value_type)
     }
 
     /// Converts the attribute to another direction by converting its shared members and dropping the output-only
@@ -183,8 +186,8 @@ impl<D: Plain> GeoProperty<D> {
     pub(crate) fn map_meta<E: Direction>(self, map: impl FnOnce(AttributeMeta<D>) -> AttributeMeta<E>) -> GeoProperty<E> {
         GeoProperty {
             value: self.value,
-            unit_code: E::set_member(D::into_member(self.unit_code)),
-            value_type: E::set_member(D::into_member(self.value_type)),
+            unit_code: E::set_member(Seal::new(), D::into_member(Seal::new(), self.unit_code)),
+            value_type: E::set_member(Seal::new(), D::into_member(Seal::new(), self.value_type)),
             meta: map(self.meta),
             output: Default::default(),
         }

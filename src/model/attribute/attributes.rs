@@ -4,12 +4,15 @@
 //! tie a name to what it may hold are kept here: the dataset-id rules of clause 4.5.5 and the names clause 5.2.4
 //! reserves for a `GeoProperty`.
 
-use crate::model::{AttributeKind, AttributeName, AttributeSlot, BuildError, BuildProblem, Direction, Input, Instances, InstancesError, Output, nesting::grow};
 #[cfg(feature = "linked-data")]
 use crate::model::{
     DocumentError,
     direction::names::MapDirection,
     name::mapping::{MapNames, NameMapping, map_attribute_names},
+};
+use crate::{
+    model::{AttributeKind, AttributeName, AttributeSlot, BuildError, BuildProblem, Direction, Input, Instances, InstancesError, Output, nesting::grow},
+    seal::Seal,
 };
 use indexmap::{
     IndexMap,
@@ -147,7 +150,7 @@ pub(crate) fn holds_geometries(name: &AttributeName) -> bool {
 
 /// Checks clause 5.2.4: a slot under a name reserved for geometries writes a `GeoProperty`, or names no kind.
 pub(crate) fn check_kind<S: AttributeSlot>(name: &AttributeName, slot: &S) -> Result<(), AttributesError> {
-    if holds_geometries(name) && slot.written_kind().is_some_and(|kind| kind != AttributeKind::GeoProperty) {
+    if holds_geometries(name) && slot.written_kind(Seal::new()).is_some_and(|kind| kind != AttributeKind::GeoProperty) {
         Err(AttributesError::GeoPropertyRequired)
     } else {
         Ok(())

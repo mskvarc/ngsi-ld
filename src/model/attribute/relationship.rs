@@ -1,28 +1,31 @@
 //! Relationships (NGSI-LD clauses 4.5.3 and 5.2.6).
 
-use crate::model::{
-    AttributeDraft,
-    AttributeMeta,
-    AttributeNameDraft,
-    BuildError,
-    DatasetId,
-    DateTime,
-    Direction,
-    Entity,
-    EntityId,
-    EntityTypeName,
-    Input,
-    MemberChange,
-    OneOrMany,
-    OneOrManyDraft,
-    Output,
-    Patch,
-    Plain,
-    Projected,
-    Proof,
-    ReservedMember,
-    attribute::pending::PendingAttributes,
-    null,
+use crate::{
+    model::{
+        AttributeDraft,
+        AttributeMeta,
+        AttributeNameDraft,
+        BuildError,
+        DatasetId,
+        DateTime,
+        Direction,
+        Entity,
+        EntityId,
+        EntityTypeName,
+        Input,
+        MemberChange,
+        OneOrMany,
+        OneOrManyDraft,
+        Output,
+        Patch,
+        Plain,
+        Projected,
+        Proof,
+        ReservedMember,
+        attribute::pending::PendingAttributes,
+        null,
+    },
+    seal::Seal,
 };
 use bon::bon;
 use iri_rs::Iri;
@@ -119,7 +122,7 @@ impl<D: Plain> Relationship<D> {
     /// Returns the type or types of the targets (`objectType`).
     #[must_use]
     pub fn object_type(&self) -> Option<&OneOrMany<EntityTypeName>> {
-        D::member(&self.object_type)
+        D::member(Seal::new(), &self.object_type)
     }
 
     /// Converts the attribute to another direction by converting its shared members and dropping the output-only
@@ -127,7 +130,7 @@ impl<D: Plain> Relationship<D> {
     pub(crate) fn map_meta<E: Direction>(self, map: impl FnOnce(AttributeMeta<D>) -> AttributeMeta<E>) -> Relationship<E> {
         Relationship {
             object: self.object,
-            object_type: E::set_member(D::into_member(self.object_type)),
+            object_type: E::set_member(Seal::new(), D::into_member(Seal::new(), self.object_type)),
             meta: map(self.meta),
             output: Default::default(),
         }

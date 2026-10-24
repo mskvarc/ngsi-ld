@@ -7,6 +7,7 @@ use crate::model::{
     DocumentError,
     name::mapping::{MapNames, NameMapping, member},
 };
+use crate::seal::Seal;
 use std::fmt::Debug;
 
 /// The private supertrait that keeps `Completeness` implemented by this crate alone.
@@ -32,10 +33,12 @@ pub trait Completeness: sealed::Sealed + Debug + Clone + Copy + PartialEq + Eq +
     type Member<T: Debug + Clone + PartialEq + Eq + Send + Sync>: Debug + Clone + PartialEq + Eq + Send + Sync;
 
     /// The member, if the entity holds it.
-    fn get<T: Debug + Clone + PartialEq + Eq + Send + Sync>(member: &Self::Member<T>) -> Option<&T>;
+    #[doc(hidden)]
+    fn get<T: Debug + Clone + PartialEq + Eq + Send + Sync>(seal: Seal, member: &Self::Member<T>) -> Option<&T>;
 
     /// The member as read from a document: `None` when the document lacks a member this completeness requires.
-    fn from_read<T: Debug + Clone + PartialEq + Eq + Send + Sync>(member: Option<T>) -> Option<Self::Member<T>>;
+    #[doc(hidden)]
+    fn from_read<T: Debug + Clone + PartialEq + Eq + Send + Sync>(seal: Seal, member: Option<T>) -> Option<Self::Member<T>>;
 }
 
 /// A document that holds its `id` and its `type`: every entity unless a projection removed them, and every
@@ -55,11 +58,11 @@ impl sealed::Sealed for Projected {}
 impl Completeness for Complete {
     type Member<T: Debug + Clone + PartialEq + Eq + Send + Sync> = T;
 
-    fn get<T: Debug + Clone + PartialEq + Eq + Send + Sync>(member: &T) -> Option<&T> {
+    fn get<T: Debug + Clone + PartialEq + Eq + Send + Sync>(_: Seal, member: &T) -> Option<&T> {
         Some(member)
     }
 
-    fn from_read<T: Debug + Clone + PartialEq + Eq + Send + Sync>(member: Option<T>) -> Option<T> {
+    fn from_read<T: Debug + Clone + PartialEq + Eq + Send + Sync>(_: Seal, member: Option<T>) -> Option<T> {
         member
     }
 }
@@ -67,11 +70,11 @@ impl Completeness for Complete {
 impl Completeness for Projected {
     type Member<T: Debug + Clone + PartialEq + Eq + Send + Sync> = Option<T>;
 
-    fn get<T: Debug + Clone + PartialEq + Eq + Send + Sync>(member: &Option<T>) -> Option<&T> {
+    fn get<T: Debug + Clone + PartialEq + Eq + Send + Sync>(_: Seal, member: &Option<T>) -> Option<&T> {
         member.as_ref()
     }
 
-    fn from_read<T: Debug + Clone + PartialEq + Eq + Send + Sync>(member: Option<T>) -> Option<Option<T>> {
+    fn from_read<T: Debug + Clone + PartialEq + Eq + Send + Sync>(_: Seal, member: Option<T>) -> Option<Option<T>> {
         Some(member)
     }
 }

@@ -1,24 +1,27 @@
 //! Language Properties (NGSI-LD clauses 4.5.18 and 5.2.32).
 
-use crate::model::{
-    AttributeDraft,
-    AttributeMeta,
-    AttributeNameDraft,
-    BuildError,
-    DatasetId,
-    DateTime,
-    Direction,
-    Input,
-    LanguageMap,
-    LanguageText,
-    MemberChange,
-    Output,
-    Patch,
-    Plain,
-    Proof,
-    VocabTerm,
-    attribute::pending::PendingAttributes,
-    null,
+use crate::{
+    model::{
+        AttributeDraft,
+        AttributeMeta,
+        AttributeNameDraft,
+        BuildError,
+        DatasetId,
+        DateTime,
+        Direction,
+        Input,
+        LanguageMap,
+        LanguageText,
+        MemberChange,
+        Output,
+        Patch,
+        Plain,
+        Proof,
+        VocabTerm,
+        attribute::pending::PendingAttributes,
+        null,
+    },
+    seal::Seal,
 };
 use bon::bon;
 
@@ -102,7 +105,7 @@ impl<D: Plain> LanguageProperty<D> {
     /// Returns the datatype (`valueType`).
     #[must_use]
     pub fn value_type(&self) -> Option<&VocabTerm> {
-        D::member(&self.value_type)
+        D::member(Seal::new(), &self.value_type)
     }
 
     /// Converts the attribute to another direction by converting its shared members and dropping the output-only
@@ -110,7 +113,7 @@ impl<D: Plain> LanguageProperty<D> {
     pub(crate) fn map_meta<E: Direction>(self, map: impl FnOnce(AttributeMeta<D>) -> AttributeMeta<E>) -> LanguageProperty<E> {
         LanguageProperty {
             language_map: self.language_map,
-            value_type: E::set_member(D::into_member(self.value_type)),
+            value_type: E::set_member(Seal::new(), D::into_member(Seal::new(), self.value_type)),
             meta: map(self.meta),
             output: Default::default(),
         }

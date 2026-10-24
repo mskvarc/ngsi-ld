@@ -1,18 +1,21 @@
 //! Writing the NGSI-LD Null (clause 4.5.0): the deletions a fragment sends, and the bare Null a notification writes
 //! for a deleted attribute with nothing more to report (clause 5.8.6).
 
-use crate::model::{
-    Attribute,
-    AttributeKind,
-    Deletion,
-    Direction,
-    EntityId,
-    InstanceDeletion,
-    LanguageMap,
-    Lossless,
-    keyword::NONE,
-    null::{NGSI_LD_NULL, is_null_value},
-    representation::write::{is_plain, push_display},
+use crate::{
+    model::{
+        Attribute,
+        AttributeKind,
+        Deletion,
+        Direction,
+        EntityId,
+        InstanceDeletion,
+        LanguageMap,
+        Lossless,
+        keyword::NONE,
+        null::{NGSI_LD_NULL, is_null_value},
+        representation::write::{is_plain, push_display},
+    },
+    seal::Seal,
 };
 use jstrict::{Object, Value as Json};
 
@@ -70,31 +73,43 @@ fn is_null_id_alone(ids: &[EntityId]) -> bool {
 pub(crate) fn bare_deletion<D: Direction>(attribute: &Attribute<D>) -> Option<Json> {
     let deleted = match attribute {
         Attribute::Property(property) => {
-            is_null_value(&property.value) && D::lacks(&property.unit_code) && D::lacks(&property.value_type) && is_plain(&property.meta, &property.output)
+            is_null_value(&property.value)
+                && D::lacks(Seal::new(), &property.unit_code)
+                && D::lacks(Seal::new(), &property.value_type)
+                && is_plain(&property.meta, &property.output)
         }
         Attribute::GeoProperty(property) => {
-            property.value.is_null() && D::lacks(&property.unit_code) && D::lacks(&property.value_type) && is_plain(&property.meta, &property.output)
+            property.value.is_null()
+                && D::lacks(Seal::new(), &property.unit_code)
+                && D::lacks(Seal::new(), &property.value_type)
+                && is_plain(&property.meta, &property.output)
         }
         Attribute::LanguageProperty(property) => {
-            property.language_map == LanguageMap::ngsi_ld_null() && D::lacks(&property.value_type) && is_plain(&property.meta, &property.output)
+            property.language_map == LanguageMap::ngsi_ld_null() && D::lacks(Seal::new(), &property.value_type) && is_plain(&property.meta, &property.output)
         }
         Attribute::VocabProperty(property) => {
             matches!(property.vocab.as_slice(), [only] if only.as_ref() == NGSI_LD_NULL.as_str())
-                && D::lacks(&property.value_type)
+                && D::lacks(Seal::new(), &property.value_type)
                 && is_plain(&property.meta, &property.output)
         }
         Attribute::ListProperty(property) => {
             matches!(property.value_list.as_slice(), [only] if is_null_value(only))
-                && D::lacks(&property.unit_code)
-                && D::lacks(&property.value_type)
+                && D::lacks(Seal::new(), &property.unit_code)
+                && D::lacks(Seal::new(), &property.value_type)
                 && is_plain(&property.meta, &property.output)
         }
-        Attribute::JsonProperty(property) => property.json.is_ngsi_ld_null() && D::lacks(&property.value_type) && is_plain(&property.meta, &property.output),
+        Attribute::JsonProperty(property) => {
+            property.json.is_ngsi_ld_null() && D::lacks(Seal::new(), &property.value_type) && is_plain(&property.meta, &property.output)
+        }
         Attribute::Relationship(relationship) => {
-            is_null_id_alone(relationship.object.as_slice()) && D::lacks(&relationship.object_type) && is_plain(&relationship.meta, &relationship.output)
+            is_null_id_alone(relationship.object.as_slice())
+                && D::lacks(Seal::new(), &relationship.object_type)
+                && is_plain(&relationship.meta, &relationship.output)
         }
         Attribute::ListRelationship(relationship) => {
-            is_null_id_alone(&relationship.object_list) && D::lacks(&relationship.object_type) && is_plain(&relationship.meta, &relationship.output)
+            is_null_id_alone(&relationship.object_list)
+                && D::lacks(Seal::new(), &relationship.object_type)
+                && is_plain(&relationship.meta, &relationship.output)
         }
     };
     deleted.then(|| Json::from(NGSI_LD_NULL.as_str()))

@@ -1,24 +1,27 @@
 //! JSON Properties (NGSI-LD clauses 4.5.24 and 5.2.38).
 
-use crate::model::{
-    AttributeDraft,
-    AttributeMeta,
-    AttributeNameDraft,
-    BuildError,
-    BuildProblem,
-    DatasetId,
-    DateTime,
-    Direction,
-    Input,
-    MemberChange,
-    Output,
-    Patch,
-    Plain,
-    ProblemKind,
-    Proof,
-    RawJson,
-    VocabTerm,
-    attribute::pending::PendingAttributes,
+use crate::{
+    model::{
+        AttributeDraft,
+        AttributeMeta,
+        AttributeNameDraft,
+        BuildError,
+        BuildProblem,
+        DatasetId,
+        DateTime,
+        Direction,
+        Input,
+        MemberChange,
+        Output,
+        Patch,
+        Plain,
+        ProblemKind,
+        Proof,
+        RawJson,
+        VocabTerm,
+        attribute::pending::PendingAttributes,
+    },
+    seal::Seal,
 };
 use bon::bon;
 
@@ -107,7 +110,7 @@ impl<D: Plain> JsonProperty<D> {
     /// Returns the datatype (`valueType`).
     #[must_use]
     pub fn value_type(&self) -> Option<&VocabTerm> {
-        D::member(&self.value_type)
+        D::member(Seal::new(), &self.value_type)
     }
 
     /// Converts the attribute to another direction by converting its shared members and dropping the output-only
@@ -115,7 +118,7 @@ impl<D: Plain> JsonProperty<D> {
     pub(crate) fn map_meta<E: Direction>(self, map: impl FnOnce(AttributeMeta<D>) -> AttributeMeta<E>) -> JsonProperty<E> {
         JsonProperty {
             json: self.json,
-            value_type: E::set_member(D::into_member(self.value_type)),
+            value_type: E::set_member(Seal::new(), D::into_member(Seal::new(), self.value_type)),
             meta: map(self.meta),
             output: Default::default(),
         }

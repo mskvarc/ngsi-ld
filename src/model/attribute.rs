@@ -1,26 +1,29 @@
 //! Attributes: the eight kinds of Property and Relationship of NGSI-LD clause 5.2.4.
 
-use crate::model::{
-    AttributeMeta,
-    BuildError,
-    BuildProblem,
-    DatasetId,
-    Direction,
-    GeoProperty,
-    Input,
-    InstanceKey,
-    JsonProperty,
-    LanguageProperty,
-    ListProperty,
-    ListRelationship,
-    Output,
-    Patch,
-    Plain,
-    Property,
-    Relationship,
-    VocabProperty,
-    attribute::instances::sealed::Sealed,
-    null,
+use crate::{
+    model::{
+        AttributeMeta,
+        BuildError,
+        BuildProblem,
+        DatasetId,
+        Direction,
+        GeoProperty,
+        Input,
+        InstanceKey,
+        JsonProperty,
+        LanguageProperty,
+        ListProperty,
+        ListRelationship,
+        Output,
+        Patch,
+        Plain,
+        Property,
+        Relationship,
+        VocabProperty,
+        attribute::instances::sealed::Sealed,
+        null,
+    },
+    seal::Seal,
 };
 
 pub(super) mod attributes;
@@ -193,13 +196,14 @@ impl<D: Direction> InstanceKey for Attribute<D> {
 /// What occupies an attribute's place in its parent: an attribute, or, in a fragment, a change to one.
 pub trait AttributeSlot: InstanceKey {
     /// The kind the slot writes; `None` for a deletion that names no kind.
-    fn written_kind(&self) -> Option<AttributeKind>;
+    #[doc(hidden)]
+    fn written_kind(&self, seal: Seal) -> Option<AttributeKind>;
 }
 
 impl<D: Direction> AttributeSlot for Attribute<D> {
     /// A broker reports a deleted attribute of any kind as a Property holding the NGSI-LD Null (clause 5.8.6), so
     /// such a Property names no kind; a request never holds one (clause 5.5.4).
-    fn written_kind(&self) -> Option<AttributeKind> {
+    fn written_kind(&self, _: Seal) -> Option<AttributeKind> {
         match self {
             Self::Property(property) if null::is_null_value(property.value()) => None,
             Self::Property(_)

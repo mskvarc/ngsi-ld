@@ -1,30 +1,33 @@
 //! Entities (NGSI-LD clauses 4.5.1 and 5.2.4).
 
-use crate::model::{
-    Attribute,
-    AttributeName,
-    AttributeNameDraft,
-    Attributes,
-    BuildError,
-    Complete,
-    Completeness,
-    Context,
-    DateTime,
-    Direction,
-    EntityId,
-    EntityTypeName,
-    IdDraft,
-    Input,
-    InstanceId,
-    Instances,
-    OneOrMany,
-    Output,
-    Projected,
-    Scope,
-    ScopeDraft,
-    TypeDraft,
-    attribute::pending::PendingAttributes,
-    build_problem::Recorded,
+use crate::{
+    model::{
+        Attribute,
+        AttributeName,
+        AttributeNameDraft,
+        Attributes,
+        BuildError,
+        Complete,
+        Completeness,
+        Context,
+        DateTime,
+        Direction,
+        EntityId,
+        EntityTypeName,
+        IdDraft,
+        Input,
+        InstanceId,
+        Instances,
+        OneOrMany,
+        Output,
+        Projected,
+        Scope,
+        ScopeDraft,
+        TypeDraft,
+        attribute::pending::PendingAttributes,
+        build_problem::Recorded,
+    },
+    seal::Seal,
 };
 use bon::bon;
 use std::fmt::Debug;
@@ -166,7 +169,7 @@ pub(crate) struct EntityDrafts {
 /// and recorded its problem), held as completeness `C` holds it. A builder of a complete entity requires the member,
 /// so only a projected entity lacks one that is valid.
 fn identifying<C: Completeness, T: Debug + Clone + PartialEq + Eq + Send + Sync>(member: Result<Option<T>, Recorded>) -> Option<C::Member<T>> {
-    member.ok().and_then(C::from_read)
+    member.ok().and_then(|member| C::from_read(Seal::new(), member))
 }
 
 /// Resolves an optional draft with `resolve`, which records why the draft is invalid.

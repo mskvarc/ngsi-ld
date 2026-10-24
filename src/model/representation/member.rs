@@ -2,13 +2,16 @@
 //! and the identifying members a projection may leave out. The normalized and concise readers and the simplified reader
 //! all go through these, and through the readers of [`model::reader`](crate::model::reader).
 
-use crate::model::{
-    Completeness,
-    DocumentError,
-    EntityId,
-    GeoValue,
-    MemberError,
-    reader::{identifier, required},
+use crate::{
+    model::{
+        Completeness,
+        DocumentError,
+        EntityId,
+        GeoValue,
+        MemberError,
+        reader::{identifier, required},
+    },
+    seal::Seal,
 };
 use jstrict::Value as Json;
 use std::fmt::Debug;
@@ -29,5 +32,5 @@ pub(crate) fn identifying<C: Completeness, T: Debug + Clone + PartialEq + Eq + S
     slot: Option<T>,
     member: &'static str,
 ) -> Result<C::Member<T>, DocumentError> {
-    required(C::from_read(slot), member)
+    required(C::from_read(Seal::new(), slot), member)
 }

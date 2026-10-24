@@ -1,29 +1,32 @@
 //! List Relationships (NGSI-LD clauses 4.5.22 and 5.2.37).
 
-use crate::model::{
-    AttributeDraft,
-    AttributeMeta,
-    AttributeNameDraft,
-    BuildError,
-    DatasetId,
-    DateTime,
-    Direction,
-    Entity,
-    EntityId,
-    EntityTypeName,
-    Input,
-    MemberChange,
-    OneOrMany,
-    OneOrManyDraft,
-    Output,
-    Patch,
-    Plain,
-    Projected,
-    Proof,
-    ReservedMember,
-    attribute::pending::PendingAttributes,
-    build_problem::Recorded,
-    null,
+use crate::{
+    model::{
+        AttributeDraft,
+        AttributeMeta,
+        AttributeNameDraft,
+        BuildError,
+        DatasetId,
+        DateTime,
+        Direction,
+        Entity,
+        EntityId,
+        EntityTypeName,
+        Input,
+        MemberChange,
+        OneOrMany,
+        OneOrManyDraft,
+        Output,
+        Patch,
+        Plain,
+        Projected,
+        Proof,
+        ReservedMember,
+        attribute::pending::PendingAttributes,
+        build_problem::Recorded,
+        null,
+    },
+    seal::Seal,
 };
 use bon::bon;
 use iri_rs::Iri;
@@ -114,7 +117,7 @@ impl<D: Plain> ListRelationship<D> {
     /// Returns the type or types of the targets (`objectType`).
     #[must_use]
     pub fn object_type(&self) -> Option<&OneOrMany<EntityTypeName>> {
-        D::member(&self.object_type)
+        D::member(Seal::new(), &self.object_type)
     }
 
     /// Converts the attribute to another direction by converting its shared members and dropping the output-only
@@ -122,7 +125,7 @@ impl<D: Plain> ListRelationship<D> {
     pub(crate) fn map_meta<E: Direction>(self, map: impl FnOnce(AttributeMeta<D>) -> AttributeMeta<E>) -> ListRelationship<E> {
         ListRelationship {
             object_list: self.object_list,
-            object_type: E::set_member(D::into_member(self.object_type)),
+            object_type: E::set_member(Seal::new(), D::into_member(Seal::new(), self.object_type)),
             meta: map(self.meta),
             output: Default::default(),
         }

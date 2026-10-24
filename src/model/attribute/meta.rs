@@ -16,6 +16,7 @@ use crate::{
         attribute::pending::PendingAttributes,
     },
     query::temporal_query::TemporalProperty,
+    seal::Seal,
 };
 
 /// The members every attribute kind has: the dataset id that tells instances apart (clause 4.5.5), the
@@ -80,8 +81,8 @@ impl AttributeMeta<Input> {
     pub(crate) fn into_patch(self) -> AttributeMeta<Patch> {
         AttributeMeta {
             dataset_id: self.dataset_id,
-            observed_at: Patch::set_member(self.observed_at),
-            expires_at: Patch::set_member(self.expires_at),
+            observed_at: Patch::set_member(Seal::new(), self.observed_at),
+            expires_at: Patch::set_member(Seal::new(), self.expires_at),
             proof: self.proof.map(|proof| Box::new(proof.into_patch())),
             attributes: self.attributes.convert::<Patch>(|_, attribute| Change::Set(attribute.into_patch())),
             output: (),

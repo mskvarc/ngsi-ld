@@ -1,23 +1,26 @@
 //! List Properties (NGSI-LD clauses 4.5.21 and 5.2.36).
 
-use crate::model::{
-    AttributeDraft,
-    AttributeMeta,
-    AttributeNameDraft,
-    BuildError,
-    DatasetId,
-    DateTime,
-    Direction,
-    Input,
-    MemberChange,
-    Output,
-    Patch,
-    Plain,
-    Proof,
-    Value,
-    VocabTerm,
-    attribute::pending::PendingAttributes,
-    null,
+use crate::{
+    model::{
+        AttributeDraft,
+        AttributeMeta,
+        AttributeNameDraft,
+        BuildError,
+        DatasetId,
+        DateTime,
+        Direction,
+        Input,
+        MemberChange,
+        Output,
+        Patch,
+        Plain,
+        Proof,
+        Value,
+        VocabTerm,
+        attribute::pending::PendingAttributes,
+        null,
+    },
+    seal::Seal,
 };
 use bon::bon;
 use cefact_units::UnitCode;
@@ -105,13 +108,13 @@ impl<D: Plain> ListProperty<D> {
     /// Returns the unit (`unitCode`).
     #[must_use]
     pub fn unit_code(&self) -> Option<&UnitCode> {
-        D::member(&self.unit_code)
+        D::member(Seal::new(), &self.unit_code)
     }
 
     /// Returns the datatype of the values (`valueType`).
     #[must_use]
     pub fn value_type(&self) -> Option<&VocabTerm> {
-        D::member(&self.value_type)
+        D::member(Seal::new(), &self.value_type)
     }
 
     /// Converts the attribute to another direction by converting its shared members and dropping the output-only
@@ -119,8 +122,8 @@ impl<D: Plain> ListProperty<D> {
     pub(crate) fn map_meta<E: Direction>(self, map: impl FnOnce(AttributeMeta<D>) -> AttributeMeta<E>) -> ListProperty<E> {
         ListProperty {
             value_list: self.value_list,
-            unit_code: E::set_member(D::into_member(self.unit_code)),
-            value_type: E::set_member(D::into_member(self.value_type)),
+            unit_code: E::set_member(Seal::new(), D::into_member(Seal::new(), self.unit_code)),
+            value_type: E::set_member(Seal::new(), D::into_member(Seal::new(), self.value_type)),
             meta: map(self.meta),
             output: Default::default(),
         }
