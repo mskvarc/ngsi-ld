@@ -25,7 +25,9 @@ pub enum PathSegment {
     Index(usize),
 }
 
-/// The members and array elements leading from the top of a document to a problem, written `a.b.0`.
+/// The path from the top of a document to a problem, written `a.b.0`.
+///
+/// It lists the members and array elements leading to the problem.
 ///
 /// ```
 /// use ngsi_ld::{

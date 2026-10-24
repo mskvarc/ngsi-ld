@@ -141,8 +141,10 @@ pub(crate) mod sealed {
     }
 }
 
-/// A direction of a snapshot document: [`Input`] for what Create Snapshot sends (clause 5.16.1.3), [`Output`] for
-/// what Retrieve and Update Snapshot Status return (clauses 5.16.3.5 and 5.16.4.5).
+/// A direction of a snapshot document.
+///
+/// It is [`Input`] for what Create Snapshot sends (NGSI-LD clause 5.16.1.3), and [`Output`] for what Retrieve and
+/// Update Snapshot Status return (clauses 5.16.3.5 and 5.16.4.5).
 ///
 /// The trait is sealed by the same seal as the subscription directions; its associated types decide what a
 /// direction carries.
@@ -174,8 +176,10 @@ impl IdMember<SnapshotId> for SnapshotId {
     }
 }
 
-/// The members of a snapshot only a broker writes (Table 5.2.41-2): `snapshotStatus`, the details of each query's
-/// execution, `createdAt`, `modifiedAt`, `expiresAt` and `lastUsedAt`.
+/// The members of a snapshot only a broker writes.
+///
+/// They are `snapshotStatus`, the details of each query's execution, `createdAt`, `modifiedAt`, `expiresAt` and
+/// `lastUsedAt` (NGSI-LD Table 5.2.41-2).
 ///
 /// A request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq)]

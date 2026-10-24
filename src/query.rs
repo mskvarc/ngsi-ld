@@ -1,4 +1,7 @@
-//! The NGSI-LD query languages a client writes (NGSI-LD clauses 4.9, 4.10, 4.11, 4.15, 4.17, 4.19, 4.21 and 4.23).
+//! The query languages.
+//!
+//! They are the NGSI-LD query languages a client writes (NGSI-LD clauses 4.9, 4.10, 4.11, 4.15, 4.17, 4.19, 4.21 and
+//! 4.23).
 //!
 //! Each language is a typed syntax tree with a builder, a printer (`Display`) and a parser (`FromStr`):
 //!

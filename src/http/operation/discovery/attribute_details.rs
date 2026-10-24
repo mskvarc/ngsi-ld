@@ -22,8 +22,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `GET /attributes?details=true`: every attribute the broker holds instances of, with the entity types that have
-/// it (NGSI-LD clause 6.27.3.1), as a list of [`AttributeDetails`].
+/// Lists every attribute the broker holds, with the entity types that have it.
+///
+/// Its request is `GET /attributes?details=true` (NGSI-LD clause 6.27.3.1), answered with a list of
+/// [`AttributeDetails`], one for each attribute the broker holds instances of.
 ///
 /// ```
 /// use ngsi_ld::http::{

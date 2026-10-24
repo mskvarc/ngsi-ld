@@ -13,7 +13,9 @@ use crate::http::headers::{
 };
 use http::{HeaderName, HeaderValue, header::VIA};
 
-/// A `Via` header (RFC 9110 section 7.6.3): the hops a message passed through, in the order they were added.
+/// A `Via` header: the hops a message passed through, in the order they were added.
+///
+/// RFC 9110 section 7.6.3.
 ///
 /// NGSI-LD clause 6.3.18 makes a broker passing a distributed operation onward add a hop naming itself by its
 /// `contextSourceAlias`, and a broker receiving one treat the listed hops as context sources already encountered, so

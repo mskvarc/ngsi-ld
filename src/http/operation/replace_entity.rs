@@ -23,8 +23,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `PUT /entities/{entityId}`: replaces an entity with a complete new representation (NGSI-LD clause 6.5.3.3). The
-/// entity is addressed by the id of the new representation.
+/// Replaces an entity with a complete new representation.
+///
+/// Its request is `PUT /entities/{entityId}` (NGSI-LD clause 6.5.3.3). The entity is addressed by the id of the new
+/// representation.
 ///
 /// ```
 /// use iri_rs::iri;

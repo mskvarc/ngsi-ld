@@ -1,5 +1,6 @@
-//! The NGSI-LD Attribute Projection Language (NGSI-LD clause 4.21), written in the `pick` and `omit`
-//! parameters.
+//! The NGSI-LD Attribute Projection Language.
+//!
+//! It is written in the `pick` and `omit` parameters (NGSI-LD clause 4.21).
 //!
 //! A projection is a list of attribute names, each optionally followed by a projection of the entity its
 //! relationship targets (Linked Entity Retrieval, clause 4.5.23): `observation{temperature,humidity}`.
@@ -60,7 +61,9 @@ pub mod builders;
 mod parser;
 mod walk;
 
-/// A member of an entity that `pick` and `omit` can name besides its attributes (NGSI-LD clause 6.4.3.2).
+/// A member of an entity that `pick` and `omit` can name besides its attributes.
+///
+/// NGSI-LD clause 6.4.3.2.
 ///
 /// The enum is exhaustive: clause 6.4.3.2 closes the list.
 ///
@@ -81,7 +84,9 @@ pub enum EntityMember {
     Scope,
 }
 
-/// A name is an entity member, which a projection holds as an [`EntityMember`], not as an attribute.
+/// A name is an entity member, not an attribute.
+///
+/// A projection holds it as an [`EntityMember`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 #[error("`{member}` is an entity member, not an attribute")]
 pub struct EntityMemberError {
@@ -89,7 +94,9 @@ pub struct EntityMemberError {
     pub member: EntityMember,
 }
 
-/// An attribute in a projection, optionally with a projection of the entity its relationship targets.
+/// An attribute in a projection, with an optional projection of its target.
+///
+/// The optional projection is of the entity the attribute's relationship targets.
 ///
 /// ```
 /// use ngsi_ld::{
@@ -160,7 +167,9 @@ impl fmt::Display for AttributeProjection {
     }
 }
 
-/// One term of a projection (the `ProjectionTerm` production of NGSI-LD clause 4.21, without its list).
+/// One term of a projection.
+///
+/// It is the `ProjectionTerm` production of NGSI-LD clause 4.21, without its list.
 ///
 /// The enum is exhaustive: a projection names entity members or attributes.
 ///
@@ -197,7 +206,9 @@ impl From<Term> for ProjectionTerm {
     }
 }
 
-/// A projection (the `ProjectionTerm` production of NGSI-LD clause 4.21): a non-empty list of terms.
+/// A projection: a non-empty list of terms.
+///
+/// It is the `ProjectionTerm` production of NGSI-LD clause 4.21.
 ///
 /// Every level of linked projections passes through a projection, so its `Clone`, `PartialEq`, `Hash`, `Debug` and
 /// `Drop` are written to run each level on a stack that grows with the depth.
@@ -262,7 +273,9 @@ pub fn attributes(names: impl IntoIterator<Item = impl AsRef<str>>) -> Projectio
     ProjectionBuilder(names.into_iter().map(|name| parse_term(name.as_ref())).collect())
 }
 
-/// Starts a projection with the relationship `name` and the projection `linked` of the entity it targets.
+/// Starts a projection with the relationship `name` and a projection of its target.
+///
+/// `linked` is the projection of the entity the relationship targets.
 #[must_use]
 pub fn linked(name: impl AsRef<str>, linked: ProjectionBuilder) -> ProjectionBuilder {
     ProjectionBuilder(Deferred::valid(Vec::new())).linked(name, linked)

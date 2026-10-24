@@ -6,7 +6,7 @@ use crate::{
     subscription::{NotificationTriggersError, SubscriptionField, SubscriptionMember},
 };
 
-/// One rule a subscription document breaks, or one invalid input given to its builders.
+/// One rule a subscription document breaks, or one invalid input to its builders.
 ///
 /// The builders take names and URLs as typed values or as text validated when they finish, so the common case
 /// reads in one line; each problem is recorded and `build()` returns them all at once as a

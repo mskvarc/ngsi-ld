@@ -5,7 +5,9 @@ use iri_rs::Iri;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-/// The identifier of an entity: a URI (NGSI-LD clause 5.2.4).
+/// The identifier of an entity: a URI.
+///
+/// NGSI-LD clause 5.2.4.
 ///
 /// ```
 /// use iri_rs::iri;
@@ -73,7 +75,9 @@ impl TryFrom<String> for EntityId {
     }
 }
 
-/// The identifier of one instance of a multi-attribute (NGSI-LD clause 4.5.5).
+/// The identifier of one instance of a multi-attribute.
+///
+/// NGSI-LD clause 4.5.5.
 ///
 /// The default instance has no dataset id, or, written explicitly, the JSON-LD keyword `@none`. Both mean the
 /// same instance; the explicit spelling is kept as [`DatasetId::DefaultInstance`] so a document that used it is
@@ -143,7 +147,9 @@ impl From<DatasetId> for String {
     }
 }
 
-/// The identifier of one instance in a temporal evolution (NGSI-LD clause 4.5.7).
+/// The identifier of one instance in a temporal evolution.
+///
+/// NGSI-LD clause 4.5.7.
 ///
 /// A broker assigns it, and returns it in the temporal representation; Tables 5.2.5-2 and 5.2.6-2 do not make it
 /// system generated, so a client may also give it in the temporal representation it sends (clauses 5.6.11.3 and

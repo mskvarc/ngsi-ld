@@ -38,8 +38,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `GET /csourceRegistrations`: finds the registrations of the context sources that may provide the entities and
-/// attributes described, one page at a time (NGSI-LD clauses 5.10.2 and 6.8.3.2).
+/// Finds the context source registrations that may provide the entities described.
+///
+/// Its request is `GET /csourceRegistrations` (NGSI-LD clauses 5.10.2 and 6.8.3.2). It finds the registrations of the
+/// context sources that may provide the entities and attributes described, one page at a time.
 ///
 /// The parameters are those of Table 6.8.3.2-1, written by the same code as the entity selection of Query
 /// Entities, followed by the deprecated `attrs`, which names the attributes a registration is matched against

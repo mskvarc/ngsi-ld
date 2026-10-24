@@ -33,9 +33,11 @@ use indexmap::{IndexMap, map::Iter};
 use jstrict::Value as Json;
 use std::{cmp::Reverse, collections::HashSet, num::NonZeroU64, slice};
 
-/// The temporal evolution of one attribute (NGSI-LD clauses 4.5.7 and 4.5.8): its instances in document order,
-/// each recorded at a point in time. At least one; all of one kind, the instances of the same attribute; the same
-/// dataset id any number of times, unlike the instances of an entity's attribute (clause 4.5.5).
+/// The temporal evolution of one attribute.
+///
+/// It holds the instances in document order, each recorded at a point in time (NGSI-LD clauses 4.5.7 and 4.5.8). There
+/// is at least one; all are of one kind, the instances of the same attribute; the same dataset id may appear any number
+/// of times, unlike the instances of an entity's attribute (clause 4.5.5).
 ///
 /// In a request each instance may name its `instanceId` (see [`EntityDirection::TemporalInstanceId`]); in a response
 /// the instance holds it among its output-only members.
@@ -126,8 +128,9 @@ impl<'a, D: EntityDirection> IntoIterator for &'a Evolution<D> {
     }
 }
 
-/// The attributes of a temporal evolution of an entity (NGSI-LD clause 5.2.20), by name, in document order: each
-/// name holds the [`Evolution`] of its instances.
+/// The attributes of an entity's temporal evolution, by name, in document order.
+///
+/// Each name holds the [`Evolution`] of its instances (NGSI-LD clause 5.2.20).
 ///
 /// Every way of adding an instance goes through [`TemporalAttributes::insert`], which keeps the instances of one
 /// name of one kind and the names clause 5.2.4 reserves for geometries holding `GeoProperty` instances.

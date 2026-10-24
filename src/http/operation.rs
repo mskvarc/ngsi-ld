@@ -1,5 +1,6 @@
-//! The operations of the NGSI-LD API, one request type each, with the parameters of its clause 6 table as typed
-//! fields.
+//! The operations of the API, one request type each.
+//!
+//! Each type has the parameters of its NGSI-LD clause 6 table as typed fields.
 //!
 //! Every type implements [`Operation`]: it builds its HTTP request through the crate's one request pipeline and reads
 //! the response into the outcomes its table lists.

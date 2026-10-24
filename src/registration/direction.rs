@@ -20,9 +20,10 @@ use crate::{
 use jstrict::{Object, Value as Json};
 use std::{error::Error, fmt::Debug};
 
-/// A direction of a registration document: [`Input`] for what Register Context Source sends (clause 5.9.2.3),
-/// [`Output`] for what Retrieve and Query Context Source Registrations return (clauses 5.10.1 and 5.10.2) and a
-/// `CSourceNotification` carries.
+/// A direction of a registration document.
+///
+/// It is [`Input`] for what Register Context Source sends (NGSI-LD clause 5.9.2.3), and [`Output`] for what Retrieve
+/// and Query Context Source Registrations return (clauses 5.10.1 and 5.10.2) and a `CSourceNotification` carries.
 ///
 /// The trait is sealed by the same seal as the subscription directions; its associated types decide what a
 /// direction carries.
@@ -54,7 +55,9 @@ impl IdMember<RegistrationId> for RegistrationId {
     }
 }
 
-/// Whether the last distributed operation a registration triggered succeeded (the `status` of Table 5.2.9-2).
+/// Whether the last distributed operation a registration triggered succeeded.
+///
+/// It is the `status` of NGSI-LD Table 5.2.9-2.
 ///
 /// The enum is exhaustive: the table allows exactly these two values.
 ///
@@ -76,8 +79,10 @@ pub enum RegistrationStatus {
     Failed,
 }
 
-/// The members of a registration only a broker writes: `status`, `timesSent`, `timesFailed`, `lastSuccess` and
-/// `lastFailure` (Table 5.2.9-2), `createdAt` and `modifiedAt` (Table 5.2.2-1).
+/// The members of a registration only a broker writes.
+///
+/// They are `status`, `timesSent`, `timesFailed`, `lastSuccess` and `lastFailure` (NGSI-LD Table 5.2.9-2), `createdAt`
+/// and `modifiedAt` (Table 5.2.2-1).
 ///
 /// A request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

@@ -22,7 +22,9 @@ pub enum MediaRangeError {
     ParameterValue,
 }
 
-/// A media range (RFC 9110 section 12.5.1): `*/*`, `type/*` or a media type, with its parameters.
+/// A media range: `*/*`, `type/*` or a media type, with its parameters.
+///
+/// RFC 9110 section 12.5.1.
 ///
 /// Any media type can be asked for, not only the three of NGSI-LD clause 6.3.4, so a request a broker must refuse
 /// with 406 Not Acceptable, such as one for `application/xml`, can be written. Names are kept in lowercase, the

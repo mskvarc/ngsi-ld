@@ -22,9 +22,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `POST /entityOperations/delete`: deletes every entity the batch names (NGSI-LD clause 6.17.3.1). Of several
-/// occurrences of one id, the first deletes the entity and every later one is reported as not found (clause
-/// 5.5.11.4).
+/// Deletes every entity the batch names.
+///
+/// Its request is `POST /entityOperations/delete` (NGSI-LD clause 6.17.3.1). Of several occurrences of one id, the
+/// first deletes the entity and every later one is reported as not found (clause 5.5.11.4).
 ///
 /// The body is an array of ids, which has no object to hold an `@context`, so it is always sent as
 /// `application/json` with the `Link` header (clause 6.3.5).

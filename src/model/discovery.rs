@@ -1,5 +1,7 @@
-//! The documents of entity type and attribute discovery (NGSI-LD clauses 4.5.10 to 4.5.15 and 5.2.24 to 5.2.28):
-//! what a broker answers when asked which entity types and attributes it holds.
+//! What a broker answers when asked which entity types and attributes it holds.
+//!
+//! These are the documents of entity type and attribute discovery (NGSI-LD clauses 4.5.10 to 4.5.15 and 5.2.24 to
+//! 5.2.28).
 //!
 //! Each representation is its own type. Clause 5.2.25 calls the element of the detailed entity type list
 //! `EntityType`, and clause 5.2.28 calls three shapes with different members `Attribute`; the crate already names
@@ -36,7 +38,9 @@ mod members;
 #[cfg(feature = "linked-data")]
 mod names;
 
-/// The `type` of a discovery document (clauses 4.5.10 to 4.5.15), spelled as the specification writes it.
+/// The `type` of a discovery document, spelled as the specification writes it.
+///
+/// NGSI-LD clauses 4.5.10 to 4.5.15.
 ///
 /// The enum is exhaustive: clauses 4.5.10 to 4.5.15 define these five types only.
 ///

@@ -7,7 +7,9 @@ use std::{
     fmt::{self, Display},
 };
 
-/// The number of coordinates of a position (RFC 7946 section 3.1.1): two, or three with an altitude.
+/// The number of coordinates of a position: two, or three with an altitude.
+///
+/// RFC 7946 section 3.1.1.
 ///
 /// The enum is exhaustive: RFC 7946 refuses a position with more elements.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display)]
@@ -20,7 +22,9 @@ pub enum Dimension {
     Three,
 }
 
-/// A position: longitude, latitude and an optional altitude (RFC 7946 section 3.1.1).
+/// A position: longitude, latitude and an optional altitude.
+///
+/// RFC 7946 section 3.1.1.
 ///
 /// ```
 /// use ngsi_ld::model::geometry::Position;

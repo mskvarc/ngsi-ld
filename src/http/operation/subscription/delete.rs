@@ -22,10 +22,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `DELETE /subscriptions/{subscriptionId}` (NGSI-LD clause 6.11.3.3), or
-/// `DELETE /csourceSubscriptions/{subscriptionId}` (clause 6.13.3.3) for the kind
-/// [`RegistrationSubscription`](crate::subscription::RegistrationSubscription): deletes a subscription,
-/// which notifies no more.
+/// Deletes a subscription, which notifies no more.
+///
+/// Its request is `DELETE /subscriptions/{subscriptionId}` (NGSI-LD clause 6.11.3.3), or `DELETE
+/// /csourceSubscriptions/{subscriptionId}` (clause 6.13.3.3) for the kind
+/// [`RegistrationSubscription`](crate::subscription::RegistrationSubscription).
 ///
 /// ```
 /// use iri_rs::iri;

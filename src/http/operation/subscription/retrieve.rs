@@ -23,9 +23,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `GET /subscriptions/{subscriptionId}` (NGSI-LD clause 6.11.3.1), or
-/// `GET /csourceSubscriptions/{subscriptionId}` (clause 6.13.3.1) for the kind
-/// [`RegistrationSubscription`](crate::subscription::RegistrationSubscription): reads a subscription.
+/// Reads a subscription.
+///
+/// Its request is `GET /subscriptions/{subscriptionId}` (NGSI-LD clause 6.11.3.1), or `GET
+/// /csourceSubscriptions/{subscriptionId}` (clause 6.13.3.1) for the kind
+/// [`RegistrationSubscription`](crate::subscription::RegistrationSubscription).
 ///
 /// The subscription is read strictly: a member Table 5.2.12-1 does not define, or a member of the other kind,
 /// fails the response.

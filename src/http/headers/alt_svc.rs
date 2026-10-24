@@ -23,8 +23,10 @@ enum AltSvcValue {
     Alternatives(FieldList<Alternative>),
 }
 
-/// An `Alt-Svc` header (RFC 7838 section 3): the alternative services an origin is also reached at, in order of
-/// preference, or `clear` to withdraw every alternative advertised before.
+/// An `Alt-Svc` header: the alternative services an origin is also reached at.
+///
+/// RFC 7838 section 3 defines the header. The alternatives are listed in order of preference, or the header is `clear`
+/// to withdraw every alternative advertised before.
 ///
 /// Decoding reads `clear` alone or any valid list of alternatives, across all its lines, in order. The field value
 /// is rendered on construction, so encoding cannot fail.

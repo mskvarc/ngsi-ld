@@ -20,8 +20,9 @@ use crate::model::{
 };
 use jstrict::{Object, Value as Json, object::Entry};
 
-/// The attributes a broker holds instances of (NGSI-LD clauses 4.5.13 and 5.2.27), the answer of Retrieve
-/// Available Attributes.
+/// The attributes a broker holds instances of.
+///
+/// It is the answer of Retrieve Available Attributes (NGSI-LD clauses 4.5.13 and 5.2.27).
 ///
 /// ```
 /// use ngsi_ld::model::discovery::AttributeList;
@@ -101,9 +102,11 @@ impl AttributeList {
     }
 }
 
-/// One attribute of an entity type, with the kinds its instances have: an element of the `attributeDetails` of
-/// [`EntityTypeInfo`](crate::model::discovery::EntityTypeInfo), the `Attribute` data type of clause
-/// 5.2.28 restricted by Table 5.2.26-1 to `id`, `type`, `attributeName` and `attributeTypes`.
+/// One attribute of an entity type, with the kinds its instances have.
+///
+/// It is an element of the `attributeDetails` of [`EntityTypeInfo`](crate::model::discovery::EntityTypeInfo): the
+/// `Attribute` data type of NGSI-LD clause 5.2.28 restricted by Table 5.2.26-1 to `id`, `type`, `attributeName` and
+/// `attributeTypes`.
 ///
 /// ```
 /// use iri_rs::iri;
@@ -153,9 +156,10 @@ impl EntityTypeAttribute {
     }
 }
 
-/// One attribute with the entity types whose instances have it (NGSI-LD clause 4.5.14): an element of the answer
-/// of Retrieve Details of Available Attributes, the `Attribute` data type of clause 5.2.28 restricted by clause
-/// 5.7.9.4 to `id`, `type`, `attributeName` and `typeNames`.
+/// One attribute with the entity types whose instances have it.
+///
+/// It is an element of the answer of Retrieve Details of Available Attributes (NGSI-LD clause 4.5.14): the `Attribute`
+/// data type of clause 5.2.28 restricted by clause 5.7.9.4 to `id`, `type`, `attributeName` and `typeNames`.
 ///
 /// ```
 /// use ngsi_ld::model::discovery::AttributeDetails;
@@ -228,8 +232,9 @@ impl AttributeDetails {
     }
 }
 
-/// What a broker holds of one attribute (NGSI-LD clauses 4.5.15 and 5.2.28): the answer of Retrieve Available
-/// Attribute Information.
+/// What a broker holds of one attribute.
+///
+/// It is the answer of Retrieve Available Attribute Information (NGSI-LD clauses 4.5.15 and 5.2.28).
 ///
 /// ```
 /// use ngsi_ld::model::{AttributeKind, discovery::AttributeInfo};

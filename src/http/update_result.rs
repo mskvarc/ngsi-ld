@@ -4,8 +4,9 @@ use crate::model::{AttributeName, RawJson, Uri};
 use jstrict::{Object, Value as Json};
 use serde::{Deserialize, Serialize};
 
-/// Which attributes an append or update changed and which it did not (NGSI-LD clause 5.2.18), the body of a
-/// 207 response to an attribute operation.
+/// Which attributes an append or update changed and which it did not.
+///
+/// It is the body of a 207 response to an attribute operation (NGSI-LD clause 5.2.18).
 ///
 /// Error and partial-success bodies carry no `@context` (clause 6.3.6), so the names are usually fully
 /// qualified IRIs.
@@ -36,7 +37,9 @@ pub struct UpdateResult {
     pub not_updated: Vec<NotUpdatedDetails>,
 }
 
-/// Why one attribute was not changed (NGSI-LD clause 5.2.19).
+/// Why one attribute was not changed.
+///
+/// NGSI-LD clause 5.2.19.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NotUpdatedDetails {

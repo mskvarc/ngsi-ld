@@ -21,7 +21,9 @@ use crate::{
 use bon::bon;
 use jstrict::{Object, Value as Json};
 
-/// Why a context source notification was sent (NGSI-LD clause 5.3.3).
+/// Why a context source notification was sent.
+///
+/// NGSI-LD clause 5.3.3.
 ///
 /// The enum is exhaustive: clause 5.3.3 enumerates exactly these three reasons.
 ///
@@ -51,8 +53,9 @@ pub enum TriggerReason {
     NoLongerMatching,
 }
 
-/// A context source notification (NGSI-LD clause 5.3.2): the registrations a Context Source Registration
-/// Subscription reports, and why.
+/// A context source notification: the registrations a subscription reports and why.
+///
+/// NGSI-LD clause 5.3.2 defines it. The subscription is a Context Source Registration Subscription.
 ///
 /// The registrations are read as [`CSourceRegistration<Output>`], since a broker writes them; it may filter each to
 /// the `information` elements relevant to the subscription (clause 5.11.7).

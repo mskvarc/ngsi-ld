@@ -7,7 +7,9 @@ use std::{fmt, iter, str::FromStr};
 /// The highest quality value, in thousandths.
 const MAXIMUM_QUALITY: u16 = 1000;
 
-/// Why a string or a number is not a quality value (IETF RFC 9110 section 12.4.2).
+/// Why a string or a number is not a quality value.
+///
+/// IETF RFC 9110 section 12.4.2 defines quality values.
 ///
 /// The enum is exhaustive: the grammar of a quality value has no other rule.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
@@ -23,8 +25,9 @@ pub enum QualityError {
     AboveOne,
 }
 
-/// A quality value (the `qvalue` of IETF RFC 9110 section 12.4.2): a number from 0 to 1 with at most three
-/// decimals, kept in thousandths.
+/// A quality value: a number from 0 to 1 with at most three decimals.
+///
+/// It is the `qvalue` of IETF RFC 9110 section 12.4.2, kept in thousandths.
 ///
 /// The parser accepts exactly the grammar `( "0" [ "." 0*3DIGIT ] ) / ( "1" [ "." 0*3("0") ] )`, so `00.5`, `.5`,
 /// `1.5` and `0.1234` are refused. The printer writes the shortest decimal form: `1`, `0`, `0.9`, `0.85`.
@@ -106,8 +109,9 @@ impl fmt::Display for Quality {
     }
 }
 
-/// An element of a preference list with an optional weight (IETF RFC 9110 section 12.4.2): `value`, or
-/// `value;q=<quality>`.
+/// An element of a preference list with an optional weight.
+///
+/// It is written `value`, or `value;q=<quality>` (IETF RFC 9110 section 12.4.2).
 ///
 /// The Language Filter (NGSI-LD clause 4.15) weighs its language ranges this way, and so do the content negotiation
 /// headers of the HTTP binding. An element written without a weight has none here, so a list reads back exactly as

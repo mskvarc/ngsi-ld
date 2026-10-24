@@ -26,8 +26,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `POST /temporal/entities`: creates the temporal evolution of an entity, or adds the instances sent to the one
-/// that exists (NGSI-LD clause 6.18.3.1).
+/// Creates the temporal evolution of an entity, or adds instances to it.
+///
+/// Its request is `POST /temporal/entities` (NGSI-LD clause 6.18.3.1). When the evolution exists, the instances sent
+/// are added to it.
 ///
 /// ```
 /// use iri_rs::iri;
@@ -89,10 +91,12 @@ impl BuildsRequest for CreateOrUpdateTemporalEvolution<'_> {
     }
 }
 
-/// `POST /temporal/entities` with the temporal evolution in simplified temporal representation (NGSI-LD clauses
-/// 5.2.20 and 6.18.3.1): the same operation as [`CreateOrUpdateTemporalEvolution`], whose body clause 5.2.20 allows in
-/// either representation. Table 6.18.3.1-1 has no parameter naming the representation; each attribute's member
-/// (`values`, `languageMaps`, ..., clause 4.5.9) tells it.
+/// Creates or updates a temporal evolution in simplified temporal representation.
+///
+/// Its request is `POST /temporal/entities` with the temporal evolution in simplified temporal representation (NGSI-LD
+/// clauses 5.2.20 and 6.18.3.1): the same operation as [`CreateOrUpdateTemporalEvolution`], whose body clause 5.2.20
+/// allows in either representation. Table 6.18.3.1-1 has no parameter naming the representation; each attribute's
+/// member (`values`, `languageMaps`, ..., clause 4.5.9) tells it.
 ///
 /// ```
 /// use iri_rs::iri;

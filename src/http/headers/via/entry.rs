@@ -27,7 +27,9 @@ pub enum ViaEntryError {
     Comment(#[from] ViaCommentError),
 }
 
-/// One hop of a `Via` header (RFC 9110 section 7.6.3): `received-protocol RWS received-by [ RWS comment ]`.
+/// One hop of a `Via` header: `received-protocol RWS received-by [ RWS comment ]`.
+///
+/// RFC 9110 section 7.6.3.
 ///
 /// A context broker forwarding a distributed operation adds one with its `contextSourceAlias` as the pseudonym
 /// (NGSI-LD clause 6.3.18).

@@ -11,8 +11,10 @@ static PREFER: HeaderName = HeaderName::from_static("prefer");
 /// The name of the preference for where the `@context` of a `GeoJSON` body goes (clause 6.3.6).
 const BODY_PREFERENCE: &str = "body";
 
-/// Where a response in the `GeoJSON` representation carries its `@context` (NGSI-LD clause 6.3.6): `body=json` asks
-/// for it in a `Link` header and a body without one, `body=ld+json`, the default, for it in the body.
+/// Where a response in the `GeoJSON` representation carries its `@context`.
+///
+/// `body=json` asks for it in a `Link` header and a body without one, `body=ld+json`, the default, for it in the body
+/// (NGSI-LD clause 6.3.6).
 ///
 /// ```
 /// use ngsi_ld::http::headers::GeoJsonBody;
@@ -42,9 +44,11 @@ pub enum PreferError {
     FieldValue(#[from] InvalidFieldValue),
 }
 
-/// The `Prefer` header as NGSI-LD uses it (clause 6.3.6): the version of the specification a client wants the
-/// payloads in (`ngsi-ld=<version>`, clause 4.3.6.8), which a broker confirms with `Preference-Applied`, and where
-/// a `GeoJSON` response carries its `@context` (`body=json` or `body=ld+json`).
+/// The `Prefer` header as NGSI-LD uses it.
+///
+/// As NGSI-LD clause 6.3.6 uses it, the header states the version of the specification a client wants the payloads in
+/// (`ngsi-ld=<version>`, clause 4.3.6.8), which a broker confirms with `Preference-Applied`, and where a `GeoJSON`
+/// response carries its `@context` (`body=json` or `body=ld+json`).
 ///
 /// Decoding reads the first `ngsi-ld` and the first `body` preference of the field and ignores every other one; a
 /// field with neither, or with a value this crate cannot read, does not decode. The field value is rendered on

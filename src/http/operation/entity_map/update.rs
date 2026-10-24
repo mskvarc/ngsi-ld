@@ -21,7 +21,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `PATCH /entityMaps/{entityMapId}`: moves the expiry of an entity map (NGSI-LD clause 6.32.3.2).
+/// Moves the expiry of an entity map.
+///
+/// Its request is `PATCH /entityMaps/{entityMapId}` (NGSI-LD clause 6.32.3.2).
 ///
 /// Clause 5.14.2.3 sends "a JSON-LD document representing an `EntityMap`", and a broker ignores the output-only
 /// members a client could add (clause 5.14.2.4), so the expiry is the one member a client can change. The body is

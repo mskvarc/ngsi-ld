@@ -18,9 +18,11 @@ pub enum ValueChange {
     Delete,
 }
 
-/// A merge patch of an object value (clause 5.5.12, RFC 7396): the members it sets, the objects it merges into at
-/// any depth, and the members it removes, in the order given. Members the patch does not name are kept. Member names
-/// are free-form user data, as in [`Value::Object`].
+/// A merge patch of an object value.
+///
+/// It holds the members it sets, the objects it merges into at any depth, and the members it removes, in the order
+/// given (NGSI-LD clause 5.5.12, RFC 7396). Members the patch does not name are kept. Member names are free-form user
+/// data, as in [`Value::Object`].
 ///
 /// The patch is the `value` of a Property fragment built with
 /// [`Property::merge_builder`](crate::model::Property::merge_builder), which clause 5.5.12

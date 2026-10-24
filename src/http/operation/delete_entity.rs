@@ -23,7 +23,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `DELETE /entities/{entityId}`: deletes an entity (NGSI-LD clause 6.5.3.2).
+/// Deletes an entity.
+///
+/// Its request is `DELETE /entities/{entityId}` (NGSI-LD clause 6.5.3.2).
 ///
 /// ```
 /// use iri_rs::iri;

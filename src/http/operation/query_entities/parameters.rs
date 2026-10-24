@@ -39,11 +39,14 @@ const SHARED: [QueryParameter; 7] = [
     QueryParameter::Local,
 ];
 
-/// The query string of a Query Entities request (`GET /entities`, Table 6.4.3.2-1), read in typed form: what a
-/// context source receives when a broker forwards a query to it (clause 5.7.2.4). A POST query carries the same
-/// selection in its `Query` body instead, which
-/// [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse) reads, and the rest in a query
-/// string that [`QueryEntitiesPostParameters`] reads.
+/// The query string of a Query Entities request, read in typed form.
+///
+/// The request is `GET /entities` (NGSI-LD Table 6.4.3.2-1). A context source receives this query string when a broker
+/// forwards a query to it (clause 5.7.2.4).
+///
+/// A POST query carries the same selection in its `Query` body instead, which
+/// [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse) reads, and the rest in a query string that
+/// [`QueryEntitiesPostParameters`] reads.
 ///
 /// Each parameter is read with the grammar of its query language. Rules that tie parameters together, such as a
 /// type, `attrs`, `q` or geoquery being required unless the query is local, are the broker's to enforce and are
@@ -140,11 +143,14 @@ impl QueryEntitiesParameters {
     }
 }
 
-/// The query string of a Query Entities request through `POST /entityOperations/query` (clause 6.23.3.1), read in
-/// typed form: what a context source receives when a broker forwards a query to it as a batch query (the
-/// `queryBatch` operation of clause 4.20). The selection travels in the `Query` body, which
-/// [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse) reads; the query string holds
-/// only what the body cannot, so a selection parameter such as `type` or `q` is reported as undefined here.
+/// The query string of a `POST` Query Entities request, read in typed form.
+///
+/// The request is `POST /entityOperations/query` (NGSI-LD clause 6.23.3.1). A context source receives this query string
+/// when a broker forwards a query to it as a batch query (the `queryBatch` operation of clause 4.20).
+///
+/// The selection travels in the `Query` body, which [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse)
+/// reads; the query string holds only what the body cannot, so a selection parameter such as `type` or `q` is reported
+/// as undefined here.
 ///
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///

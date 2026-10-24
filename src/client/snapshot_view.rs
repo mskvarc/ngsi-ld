@@ -6,10 +6,11 @@ use crate::{
     subscription::EntitySubscription,
 };
 
-/// The handles of a [`Client`] whose every call is aimed at one snapshot: the operations of
-/// the Core API (entities, entity types and attributes, subscriptions) and of the Temporal API, which are the ones
-/// a snapshot supports (clause 5.5.15, Table 4.3.5-1). The view has no handle of the other APIs, so no call it
-/// sends is outside them.
+/// The handles of a [`Client`] whose every call is aimed at one snapshot.
+///
+/// They are the operations of the Core API (entities, entity types and attributes, subscriptions) and of the Temporal
+/// API, which are the ones a snapshot supports (NGSI-LD clause 5.5.15, Table 4.3.5-1). The view has no handle of the
+/// other APIs, so no call it sends is outside them.
 ///
 /// Each handle is the client's own, sending its requests with the `NGSILD-Snapshot` header (clause 6.3.22). The
 /// tenant is chosen as for every call; a query's pages remember the snapshot, so `client.pages(first)` stays on it.

@@ -4,7 +4,9 @@ use crate::http::{Endpoint, RequestError, ResponseContext, ResponseError, operat
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// An NGSI-LD operation bound to HTTP: how its request is built and how its response is read.
+/// An NGSI-LD operation bound to HTTP.
+///
+/// It says how its request is built and how its response is read.
 ///
 /// The trait is sealed: the set of operations is the specification's.
 pub trait Operation: sealed::Sealed + sealed::BuildsRequest {

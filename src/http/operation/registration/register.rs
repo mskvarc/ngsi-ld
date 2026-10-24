@@ -22,9 +22,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `POST /csourceRegistrations`: registers a context source (NGSI-LD clause 6.8.3.1). A registration sent without
-/// an `id` is given one by the broker (clause 5.9.2.4), which [`ResourceCreated::id`] reads from the `Location` of
-/// the answer.
+/// Registers a context source.
+///
+/// Its request is `POST /csourceRegistrations` (NGSI-LD clause 6.8.3.1). A registration sent without an `id` is given
+/// one by the broker (clause 5.9.2.4), which [`ResourceCreated::id`] reads from the `Location` of the answer.
 ///
 /// ```
 /// use ngsi_ld::{

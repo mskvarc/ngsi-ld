@@ -6,8 +6,9 @@ use crate::model::{
 };
 use jstrict::Value as Json;
 
-/// A bounding box (RFC 7946 section 5): its south-western and north-eastern corners, both of one dimension, the
-/// southern edge not north of the northern one.
+/// A bounding box: its south-western and north-eastern corners.
+///
+/// RFC 7946 section 5 defines it. Both corners are of one dimension, the southern edge not north of the northern one.
 ///
 /// The western edge may lie east of the eastern one: such a box crosses the antimeridian (RFC 7946 section 5.2).
 /// Altitudes are kept as given.

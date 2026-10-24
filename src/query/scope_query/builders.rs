@@ -1,4 +1,4 @@
-//! The builder of scope queries (NGSI-LD clause 4.19), started by [`scope`](crate::query::scope_query::scope),
+//! The builder of scope queries, started by [`scope`](crate::query::scope_query::scope),
 //! [`subtree`](crate::query::scope_query::subtree) or [`all_of`](crate::query::scope_query::all_of).
 //!
 //! [`ScopeQueryBuilder`].

@@ -44,12 +44,14 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// An operation that clause 6.3.18 extends the `local` parameter to although its own table does not list it: every
+/// An operation that NGSI-LD extends the `local` parameter to.
+///
+/// NGSI-LD clause 6.3.18 extends the parameter to these operations although their own tables do not list it: every
 /// operation on `/entities`, `/entityOperations`, `/temporal/entities` and `/temporal/entityOperations` other than the
-/// queries and Purge Entities, which carry their own `locality` because their refusal of an unbounded selection
-/// depends on it (Tables 6.4.3.2-1, 6.4.3.3-1 and 6.18.3.2-1). The discovery operations of `/types` and
-/// `/attributes` carry their own too. The subscription, registry, snapshot, `@context` and entity map operations are
-/// outside the clause and do not implement it.
+/// queries and Purge Entities, which carry their own `locality` because their refusal of an unbounded selection depends
+/// on it (Tables 6.4.3.2-1, 6.4.3.3-1 and 6.18.3.2-1). The discovery operations of `/types` and `/attributes` carry
+/// their own too. The subscription, registry, snapshot, `@context` and entity map operations are outside the clause and
+/// do not implement it.
 ///
 /// Like [`Operation`], the trait is implemented by the operations of this crate only.
 pub trait LocalScopeOperation: Operation {}
@@ -79,9 +81,11 @@ impl LocalScopeOperation for DeleteAttributeInstance<'_> {}
 impl LocalScopeOperation for DeleteTemporalEvolution<'_> {}
 impl<F, C> LocalScopeOperation for RetrieveTemporalEvolution<'_, F, C> where Self: Operation {}
 
-/// An operation with the `local` parameter of clause 6.3.18: its request is the operation's own, with `local=true`
-/// for [`Locality::Local`], `local=false` for [`Locality::Distributed`], and nothing for [`Locality::Unspecified`];
-/// its outcome is the operation's.
+/// An operation with the `local` parameter.
+///
+/// Its request is the operation's own, with `local=true` for [`Locality::Local`], `local=false` for
+/// [`Locality::Distributed`], and nothing for [`Locality::Unspecified`] (NGSI-LD clause 6.3.18); its outcome is the
+/// operation's.
 ///
 /// ```
 /// use iri_rs::iri;

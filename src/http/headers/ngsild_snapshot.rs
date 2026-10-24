@@ -9,8 +9,10 @@ use http::{HeaderName, HeaderValue};
 /// The name of the header.
 static NGSILD_SNAPSHOT: HeaderName = HeaderName::from_static("ngsild-snapshot");
 
-/// The snapshot an operation of the Core or Temporal API is aimed at (NGSI-LD clauses 5.5.15 and 6.3.22): its
-/// value is the snapshot's identifier, and the broker repeats it in the response.
+/// The snapshot an operation of the Core or Temporal API is aimed at.
+///
+/// Its value is the snapshot's identifier, and the broker repeats it in the response (NGSI-LD clauses 5.5.15 and
+/// 6.3.22).
 ///
 /// A snapshot id is a URI, which a header carries as written; an IRI with characters outside ASCII cannot be
 /// carried, so [`NgsiLdSnapshot::try_new`] refuses it.

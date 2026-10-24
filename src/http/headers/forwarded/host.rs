@@ -19,7 +19,9 @@ pub enum ForwardedHostError {
     Port,
 }
 
-/// The `Host` a client sent to a proxy, which the proxy passes on (RFC 7239 section 5.3): `uri-host [ ":" port ]`.
+/// The `Host` a client sent to a proxy, which the proxy passes on.
+///
+/// RFC 7239 section 5.3 writes it `uri-host [ ":" port ]`.
 ///
 /// The host is held as a URL holds it, so it always renders as a header can carry it and reads back the same.
 ///

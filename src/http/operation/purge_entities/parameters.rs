@@ -31,7 +31,9 @@ const ACCEPTED: [QueryParameter; 14] = [
     QueryParameter::Local,
 ];
 
-/// The query string of a Purge Entities request (`DELETE /entities`, Table 6.4.3.3-1), read in typed form.
+/// The query string of a Purge Entities request, read in typed form.
+///
+/// The request is `DELETE /entities` (NGSI-LD Table 6.4.3.3-1).
 ///
 /// Each parameter is read with its grammar; of the rules that tie parameters together, only those without which the
 /// typed value cannot be built are checked, as for a received query: `georel`, `geometry` and `coordinates` make one

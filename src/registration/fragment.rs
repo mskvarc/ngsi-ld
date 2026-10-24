@@ -42,7 +42,9 @@ use indexmap::IndexMap;
 use jstrict::{Object, Value as Json};
 use url::Url;
 
-/// The changes Update Context Source Registration applies to a registration (NGSI-LD clauses 5.4 and 5.9.3).
+/// The changes Update Context Source Registration applies to a registration.
+///
+/// NGSI-LD clauses 5.4 and 5.9.3.
 ///
 /// Each member a fragment gives replaces the registration's member, and a member whose value is the NGSI-LD Null
 /// removes it (clause 5.4). A fragment names only the optional members it deletes, through [`RegistrationMember`],

@@ -19,8 +19,9 @@ use http::{HeaderName, HeaderValue, header::ACCEPT};
 use mediatype::{MediaType, ReadParams, WriteParams, names};
 use std::iter;
 
-/// An `Accept` header (RFC 9110 section 12.5.1): the media ranges a client takes a response in, in order, each
-/// with an optional weight.
+/// An `Accept` header: the media ranges a client takes a response in.
+///
+/// RFC 9110 section 12.5.1 defines the header. The ranges are listed in order, each with an optional weight.
 ///
 /// A client asks for one NGSI-LD representation with [`Accept::new`], the form the request pipeline sends (NGSI-LD
 /// clause 6.3.4); a weighted list, a wildcard range or a media type outside NGSI-LD, which a broker must refuse

@@ -36,7 +36,9 @@ use std::num::NonZeroU32;
 
 pub(super) mod parameters;
 
-/// `GET /entities/{entityId}`: reads one entity (NGSI-LD clause 6.5.3.1).
+/// Reads one entity.
+///
+/// Its request is `GET /entities/{entityId}` (NGSI-LD clause 6.5.3.1).
 ///
 /// `F` is the representation asked for: a [`Lossless`] one answers with an [`Entity`], [`Simplified`] with a
 /// [`SimplifiedEntity`], [`GeoJson`] with a [`Feature`] (clause 6.3.15). `J` is the join: an optional

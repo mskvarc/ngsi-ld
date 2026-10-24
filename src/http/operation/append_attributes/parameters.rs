@@ -16,8 +16,10 @@ use crate::{
 /// The parameters Append Attributes accepts: Table 6.6.3.1-1, with `local` (clause 6.3.18).
 const ACCEPTED: [QueryParameter; 3] = [QueryParameter::Options, QueryParameter::Type, QueryParameter::Local];
 
-/// The query string of an Append Attributes request (`POST /entities/{entityId}/attrs`, Table 6.6.3.1-1), read in
-/// typed form: what a context source receives when a broker forwards an append to it (clause 5.6.3.4).
+/// The query string of an Append Attributes request, read in typed form.
+///
+/// The request is `POST /entities/{entityId}/attrs` (NGSI-LD Table 6.6.3.1-1). A context source receives this query
+/// string when a broker forwards an append to it (clause 5.6.3.4).
 ///
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///

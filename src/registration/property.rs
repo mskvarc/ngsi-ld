@@ -30,9 +30,10 @@ fn is_registration_member(name: &str) -> bool {
     name.parse::<RegistrationMandatoryMember>().is_ok() || name.parse::<RegistrationMember>().is_ok() || name.parse::<RegistrationOutputMember>().is_ok()
 }
 
-/// The name of a Context Source Property (NGSI-LD clause 4.9): a member of a context source registration that
-/// describes the context source, "defined when Context Sources are registered", and the target of a context source
-/// filter (`csf`).
+/// The name of a Context Source Property, which describes a context source.
+///
+/// A Context Source Property (NGSI-LD clause 4.9) is a member of a context source registration that describes the
+/// context source, "defined when Context Sources are registered", and the target of a context source filter (`csf`).
 ///
 /// Clause 5.2.9 names no such member, so a registration may carry any number of them beside the members of Tables
 /// 5.2.9-1 and 5.2.9-2. The name is an attribute name (clause 4.6.2, the `AttrName` a `csf` query targets), so the
@@ -98,8 +99,10 @@ impl FromStr for ContextSourcePropertyName {
 }
 
 draft!(
-    /// A Context Source Property name given to a builder: a [`ContextSourcePropertyName`], or text validated when
-    /// the builder finishes, so every invalid name is reported together.
+    /// A Context Source Property name given to a builder.
+    ///
+    /// It is a [`ContextSourcePropertyName`], or text validated when the builder finishes, so every invalid name is
+    /// reported together.
     ///
     /// ```
     /// use ngsi_ld::registration::ContextSourcePropertyNameDraft;

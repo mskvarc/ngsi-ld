@@ -8,8 +8,9 @@ use crate::model::{
 use crate::model::{MemberProblem, null::NGSI_LD_NULL};
 use jstrict::Value as Json;
 
-/// What a fragment does to one member of the document it changes: replaces the member's value, or deletes the member
-/// with the NGSI-LD Null (NGSI-LD clause 5.4).
+/// What a fragment does to one member of the document it changes.
+///
+/// It replaces the member's value, or deletes the member with the NGSI-LD Null (NGSI-LD clause 5.4).
 ///
 /// Clause 5.4 knows no third change, so the enum is exhaustive.
 ///

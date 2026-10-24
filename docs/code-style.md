@@ -105,6 +105,7 @@ Design reasoning that spans modules, decisions about how to read the specificati
 
 - Every public item has `///` documentation (`missing_docs` is denied), and so does a private item whose purpose is not obvious. Language, tone and detail are consistent across the crate.
 - A public type cites the NGSI-LD clause it models, as in "NGSI-LD clause 5.2.5".
+- The first paragraph of a public item's documentation is its summary: one short sentence of about 80 characters at most, without citations. A type reads as a noun phrase and a function starts with a verb. The clause follows in the next paragraph.
 - A public function that returns `Result` documents `# Errors`. One that can panic documents `# Panics`, and it should not be able to.
 - Every public type a caller builds has a compiling example that shows the ergonomic path.
 - Documentation describes current behaviour. A doc that only restates an item's name is improved with real information (what `None` means, units, invariants, error conditions), not deleted.

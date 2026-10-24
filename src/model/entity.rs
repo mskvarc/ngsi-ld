@@ -45,9 +45,10 @@ mod sealed {
     pub trait Sealed {}
 }
 
-/// The directions a whole entity travels in: a request ([`Input`]) or a response ([`Output`]). A fragment that
-/// changes an entity is an [`EntityFragment`](crate::model::EntityFragment) instead, whose `id` and
-/// `type` are optional (clause 5.4).
+/// The directions a whole entity travels in: a request or a response.
+///
+/// They are [`Input`] for a request and [`Output`] for a response. A fragment that changes an entity is an
+/// [`EntityFragment`](crate::model::EntityFragment) instead, whose `id` and `type` are optional (NGSI-LD clause 5.4).
 pub trait EntityDirection: Direction<Slot = Attribute<Self>> + sealed::Sealed {
     /// The `instanceId` an instance of a temporal evolution carries besides its attribute (clauses 4.5.7 and 4.5.8):
     /// `Option<InstanceId>` in a request, `()` in a response, whose attributes hold it among their output-only
@@ -72,8 +73,10 @@ impl EntityDirection for Output {
     type TemporalInstanceId = ();
 }
 
-/// An entity (NGSI-LD clause 5.2.4): an identifier, one or more types, optional scopes and expiry, its attributes
-/// in document order, and the `@context` the document carried, if any (clause 4.5.1).
+/// An entity and its attributes.
+///
+/// NGSI-LD clause 5.2.4 defines it. It holds an identifier, one or more types, optional scopes and expiry, its
+/// attributes in document order, and the `@context` the document carried, if any (clause 4.5.1).
 ///
 /// `C` says whether the entity holds its `id` and `type`: every entity does ([`Complete`], the default), except
 /// one in the answer to a projection that removed them ([`Projected`], clause 4.21), which a client reads and a mock

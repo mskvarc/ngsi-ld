@@ -62,9 +62,11 @@ use bytes::Bytes;
 use http::{Method, Request, Response};
 use jstrict::Object;
 
-/// Queries the temporal evolution of entities (NGSI-LD clause 5.7.4), through `GET /temporal/entities` (clause
-/// 6.18.3.2) or `POST /temporal/entityOperations/query` (clause 6.24.3.1); both bindings are built from these same
-/// fields, as for Query Entities.
+/// Queries the temporal evolution of entities.
+///
+/// NGSI-LD clause 5.7.4 defines the operation. Its request is `GET /temporal/entities` (clause 6.18.3.2) or `POST
+/// /temporal/entityOperations/query` (clause 6.24.3.1); both bindings are built from these same fields, as for Query
+/// Entities.
 ///
 /// `F` is the representation asked for: a [`Lossless`] one answers with pages of [`TemporalEntity`] values,
 /// [`SimplifiedTemporal`] with pages of [`SimplifiedTemporalEntity`] values and [`Aggregated`] with pages of

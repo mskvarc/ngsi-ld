@@ -7,8 +7,9 @@ use crate::{
 use url::Url;
 
 draft!(
-    /// A URL given to a builder: a [`Url`], or text validated when the builder finishes, so every invalid input is
-    /// reported together.
+    /// A URL given to a builder.
+    ///
+    /// It is a [`Url`], or text validated when the builder finishes, so every invalid input is reported together.
     ///
     /// ```
     /// use ngsi_ld::model::UrlDraft;

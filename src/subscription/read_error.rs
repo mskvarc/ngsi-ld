@@ -14,8 +14,9 @@ use crate::{
 };
 use std::error::Error;
 
-/// What is wrong with a document of the subscription family: a subscription, a context source registration, a
-/// snapshot or a notification.
+/// What is wrong with a document of the subscription family.
+///
+/// The document is a subscription, a context source registration, a snapshot or a notification.
 ///
 /// These documents share the vocabulary of subscriptions (entity selectors, query languages, notification
 /// parameters and the rules of their data types), so they share this kind; a reader of one reports a

@@ -8,8 +8,9 @@ use crate::{
 };
 use bon::bon;
 
-/// How a broker should send distributed operations to a registered context source (NGSI-LD clause 5.2.34); a
-/// broker may override it.
+/// How a broker should send distributed operations to a registered context source.
+///
+/// It is defined in NGSI-LD clause 5.2.34; a broker may override it.
 ///
 /// ```
 /// use ngsi_ld::{model::Duration, query::Locality, registration::RegistrationManagementInfo};

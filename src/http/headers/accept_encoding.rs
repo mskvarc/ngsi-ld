@@ -11,8 +11,9 @@ use crate::{
 };
 use http::{HeaderName, HeaderValue, header::ACCEPT_ENCODING};
 
-/// An `Accept-Encoding` header (RFC 9110 section 12.5.3): the content codings a client takes a response in, in
-/// order, each with an optional weight.
+/// An `Accept-Encoding` header: the content codings a client takes a response in.
+///
+/// RFC 9110 section 12.5.3 defines the header. The codings are listed in order, each with an optional weight.
 ///
 /// The list may be empty: RFC 9110 section 12.5.3 gives an empty field the meaning that no coding is wanted. Decoding
 /// reads any valid list, across all its lines, keeping its order and weights. The field value is rendered on

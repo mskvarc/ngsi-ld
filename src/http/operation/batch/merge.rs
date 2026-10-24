@@ -22,9 +22,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `POST /entityOperations/merge`: merges every fragment of the batch into the entity it names (NGSI-LD clause
-/// 6.31.3.1), as Merge Entity would for each (clause 5.6.20.4). Later fragments of one entity are merged after
-/// earlier ones (clause 5.5.11.5).
+/// Merges every fragment of the batch into the entity it names.
+///
+/// Its request is `POST /entityOperations/merge` (NGSI-LD clause 6.31.3.1). Each fragment is merged as Merge Entity
+/// would merge it (clause 5.6.20.4), and later fragments of one entity are merged after earlier ones (clause 5.5.11.5).
 ///
 /// ```
 /// use iri_rs::iri;

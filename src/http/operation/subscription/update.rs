@@ -23,10 +23,11 @@ use bytes::Bytes;
 use http::{Method, Request, Response};
 use jstrict::{Object, Value as Json};
 
-/// `PATCH /subscriptions/{subscriptionId}` (NGSI-LD clause 6.11.3.2), or
-/// `PATCH /csourceSubscriptions/{subscriptionId}` (clause 6.13.3.2) for a fragment of kind
-/// [`RegistrationSubscription`](crate::subscription::RegistrationSubscription): applies a fragment to a
-/// subscription.
+/// Applies a fragment to a subscription.
+///
+/// Its request is `PATCH /subscriptions/{subscriptionId}` (NGSI-LD clause 6.11.3.2), or `PATCH
+/// /csourceSubscriptions/{subscriptionId}` (clause 6.13.3.2) for a fragment of kind
+/// [`RegistrationSubscription`](crate::subscription::RegistrationSubscription).
 ///
 /// The body is the fragment preceded by the subscription's `id`: Tables 6.11.3.2-1 and 6.13.3.2-1 describe it as a
 /// fragment "including id, type and any other subscription field to be changed". The id is the one the path names,

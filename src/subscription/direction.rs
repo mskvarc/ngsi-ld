@@ -133,8 +133,10 @@ pub(crate) mod sealed {
     }
 }
 
-/// A direction of a subscription document: [`Input`] for what Create Subscription sends (clause 5.8.1.3),
-/// [`Output`] for what Retrieve and Query Subscriptions return (clauses 5.8.3 and 5.8.4).
+/// A direction of a subscription document.
+///
+/// It is [`Input`] for what Create Subscription sends (NGSI-LD clause 5.8.1.3), and [`Output`] for what Retrieve and
+/// Query Subscriptions return (clauses 5.8.3 and 5.8.4).
 ///
 /// The trait is sealed; its associated types decide what a direction carries.
 pub trait SubscriptionDirection: sealed::Sealed + Debug + Clone + PartialEq + Eq {
@@ -159,8 +161,9 @@ impl SubscriptionDirection for Output {
     type SubscriptionOutput = SubscriptionOutputMembers;
 }
 
-/// The members of a subscription only a broker writes: `status` (Table 5.2.12-2), `createdAt` and `modifiedAt`
-/// (Table 5.2.2-1).
+/// The members of a subscription only a broker writes.
+///
+/// They are `status` (NGSI-LD Table 5.2.12-2), `createdAt` and `modifiedAt` (Table 5.2.2-1).
 ///
 /// A request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -174,7 +177,9 @@ pub struct SubscriptionOutputMembers {
     pub modified_at: Option<DateTime>,
 }
 
-/// The members of the notification parameters only a broker writes (Table 5.2.14.2-1).
+/// The members of the notification parameters only a broker writes.
+///
+/// NGSI-LD Table 5.2.14.2-1.
 ///
 /// A request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

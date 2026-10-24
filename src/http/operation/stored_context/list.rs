@@ -24,10 +24,11 @@ use http::{Request, Response};
 use jstrict::Value as Json;
 use url::Url;
 
-/// The kind of stored contexts a List @contexts request asks for (the `kind` parameter of Table 6.29.3.2-1, which
-/// "can be either `Cached`, `Hosted`, or `ImplicitlyCreated`"). A context a broker reports may be of another kind
-/// ([`StoredContextKind`](crate::model::StoredContextKind) reads it), but a request filters on these
-/// three only.
+/// The kind of stored contexts a List @contexts request asks for.
+///
+/// It is the `kind` parameter of NGSI-LD Table 6.29.3.2-1, which "can be either `Cached`, `Hosted`, or
+/// `ImplicitlyCreated`". A context a broker reports may be of another kind
+/// ([`StoredContextKind`](crate::model::StoredContextKind) reads it), but a request filters on these three only.
 ///
 /// The enum is exhaustive: Table 6.29.3.2-1 closes the set.
 ///
@@ -54,8 +55,10 @@ pub enum ContextKindFilter {
     ImplicitlyCreated,
 }
 
-/// `GET /jsonldContexts`: the URLs of the contexts the broker stores (NGSI-LD clause 6.29.3.2); each downloads the
-/// context, and for a `Cached` one it is the URL the broker downloaded it from (clause 5.13.3.1).
+/// Lists the URLs of the contexts the broker stores.
+///
+/// Its request is `GET /jsonldContexts` (NGSI-LD clause 6.29.3.2). Each URL downloads the context, and for a `Cached`
+/// one it is the URL the broker downloaded it from (clause 5.13.3.1).
 ///
 /// ```
 /// use ngsi_ld::http::{
@@ -86,8 +89,9 @@ pub struct ListContexts {
     pub details: SummaryDetails,
 }
 
-/// `GET /jsonldContexts?details=true`: the metadata of the contexts the broker stores (NGSI-LD clauses 5.13.3.5
-/// and 6.29.3.2).
+/// Lists the metadata of the contexts the broker stores.
+///
+/// Its request is `GET /jsonldContexts?details=true` (NGSI-LD clauses 5.13.3.5 and 6.29.3.2).
 ///
 /// ```
 /// use ngsi_ld::http::{

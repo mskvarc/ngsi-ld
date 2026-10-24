@@ -3,8 +3,9 @@
 use headers::Header;
 use http::{HeaderMap, HeaderValue};
 
-/// What a successful response carries in a header it may omit and does not depend on, such as the `Location` of a
-/// created entity (NGSI-LD clause 6.4.3.1).
+/// What a successful response carries in a header it may omit.
+///
+/// The outcome does not depend on such a header, like the `Location` of a created entity (NGSI-LD clause 6.4.3.1).
 ///
 /// The operation succeeded whichever variant this is: a Create Entity answered 201 created the entity even when its
 /// `Location` cannot be read, and failing the call would make a retry hit `AlreadyExists`. A malformed field keeps

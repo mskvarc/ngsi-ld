@@ -19,8 +19,10 @@ use crate::{
 };
 use bon::bon;
 
-/// Entities a context source can provide (NGSI-LD clause 5.2.8): of one or more entity types and, optionally, of
-/// one identifier or of the identifiers a pattern matches; `id` takes precedence over `idPattern`.
+/// Entities a context source can provide.
+///
+/// They are of one or more entity types and, optionally, of one identifier or of the identifiers a pattern matches;
+/// `id` takes precedence over `idPattern` (NGSI-LD clause 5.2.8).
 ///
 /// Unlike the `EntitySelector` of a query (clause 5.2.33), `type` is a list of entity type names, not a type
 /// selection, and `id` is one identifier.
@@ -96,9 +98,11 @@ impl EntityInfo {
 }
 
 draft!(
-    /// The entities given to a registration's builder: an [`EntityInfo`], or text naming one entity type, validated
-    /// when the builder finishes, so every invalid name is reported together. A list may mix both, each converted
-    /// with `.into()`; entities by identifier, by pattern or of several types are an [`EntityInfo`].
+    /// The entities given to a registration's builder.
+    ///
+    /// They are an [`EntityInfo`], or text naming one entity type, validated when the builder finishes, so every
+    /// invalid name is reported together. A list may mix both, each converted with `.into()`; entities by identifier,
+    /// by pattern or of several types are an [`EntityInfo`].
     ///
     /// ```
     /// use iri_rs::iri;
@@ -117,9 +121,10 @@ draft!(
     parse = |text: &str| text.parse::<EntityTypeName>().map(EntityInfo::new)
 );
 
-/// One element of a registration's `information` (NGSI-LD clause 5.2.10): the entities, Properties and
-/// Relationships a context source may provide information about. At least one of the three is present, and none is
-/// an empty list.
+/// One element of a registration's `information`.
+///
+/// It holds the entities, Properties and Relationships a context source may provide information about (NGSI-LD clause
+/// 5.2.10). At least one of the three is present, and none is an empty list.
 ///
 /// ```
 /// use ngsi_ld::registration::RegistrationInfo;

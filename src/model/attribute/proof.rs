@@ -20,9 +20,11 @@ use crate::model::{
 };
 use bon::bon;
 
-/// The `ngsildproof` of an attribute: a Property whose value is a W3C Data Integrity `proof` object, with the
-/// non-reified members `entityIdSealed` and `entityTypeSealed` naming the entity the signature is sealed to
-/// (NGSI-LD clauses 4.5.2.2 and 4.5.3.2, and the example of Annex C.11).
+/// The `ngsildproof` of an attribute: a W3C Data Integrity proof.
+///
+/// It is a Property whose value is a W3C Data Integrity `proof` object, with the non-reified members `entityIdSealed`
+/// and `entityTypeSealed` naming the entity the signature is sealed to (NGSI-LD clauses 4.5.2.2 and 4.5.3.2, and the
+/// example of Annex C.11).
 ///
 /// Every attribute kind may carry one, in a request as in a response: a Context Producer signs what it sends.
 /// The proof is carried as given; the crate neither creates nor verifies signatures.

@@ -25,9 +25,10 @@ use bytes::Bytes;
 use http::{Method, Request, Response};
 use langtag::LangTagBuf;
 
-/// `PATCH /entities/{entityId}`: merges a fragment into an entity (NGSI-LD clause 6.5.3.4). Attributes the
-/// fragment sets are merged, attributes it deletes are removed (clause 5.6.17). The fragment may name its entity
-/// or not ([`Completeness`]).
+/// Merges a fragment into an entity.
+///
+/// Its request is `PATCH /entities/{entityId}` (NGSI-LD clause 6.5.3.4). Attributes the fragment sets are merged,
+/// attributes it deletes are removed (clause 5.6.17). The fragment may name its entity or not ([`Completeness`]).
 ///
 /// ```
 /// use iri_rs::iri;
@@ -91,9 +92,10 @@ impl<C: Completeness> BuildsRequest for MergeEntity<'_, C> {
     }
 }
 
-/// `PATCH /entities/{entityId}?format=simplified`: merges a fragment in simplified representation into an entity
-/// (NGSI-LD clause 6.5.3.4). Each attribute the fragment names is merged into the attribute the entity holds, whose
-/// kind is kept (clause 5.6.17.4).
+/// Merges a fragment in simplified representation into an entity.
+///
+/// Its request is `PATCH /entities/{entityId}?format=simplified` (NGSI-LD clause 6.5.3.4). Each attribute the fragment
+/// names is merged into the attribute the entity holds, whose kind is kept (clause 5.6.17.4).
 ///
 /// ```
 /// use iri_rs::iri;

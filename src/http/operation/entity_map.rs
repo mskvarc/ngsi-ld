@@ -33,8 +33,10 @@ pub enum EntityMapLifetimeError {
     NotPositive,
 }
 
-/// How long an entity map is asked to exist (the `entityMapLifetime` parameter): a positive ISO 8601 duration such as
-/// `PT1H` or `P1D`. The broker sets the actual expiry, possibly overriding it (Table 6.4.3.2-1).
+/// How long an entity map is asked to exist.
+///
+/// It is the `entityMapLifetime` parameter: a positive ISO 8601 duration such as `PT1H` or `P1D`. The broker sets the
+/// actual expiry, possibly overriding it (NGSI-LD Table 6.4.3.2-1).
 ///
 /// The duration keeps its units as written, so `PT90M` is printed back as `PT90M`, not `PT1H30M`.
 ///
@@ -93,9 +95,11 @@ impl FromStr for EntityMapLifetime {
     }
 }
 
-/// How a request uses an entity map (NGSI-LD clauses 4.5.25, 5.7.1.3, 5.7.2.3, 5.7.3.3 and 5.7.4.3): whether the
-/// location of the map used is returned (`entityMap`), the suggested lifetime of a map the broker creates
-/// (`entityMapLifetime`), and an existing map to use (the `NGSILD-EntityMap` header).
+/// How a request uses an entity map.
+///
+/// It says whether the location of the map used is returned (`entityMap`), the suggested lifetime of a map the broker
+/// creates (`entityMapLifetime`), and an existing map to use (the `NGSILD-EntityMap` header), as NGSI-LD clauses
+/// 4.5.25, 5.7.1.3, 5.7.2.3, 5.7.3.3 and 5.7.4.3 describe.
 ///
 /// The clauses list the three as independent inputs, so a request may name a map to use and still ask for the
 /// location of the map used, which differs when the named map has expired. `entityMap` is the same three-way

@@ -21,7 +21,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// Retrieves a snapshot and its status (NGSI-LD clause 5.16.3): `GET /snapshots/{snapshotId}` (clause 6.37.3.1),
+/// Retrieves a snapshot and its status.
+///
+/// NGSI-LD clause 5.16.3 defines the operation. Its request is `GET /snapshots/{snapshotId}` (clause 6.37.3.1),
 /// answered 200 with the snapshot.
 ///
 /// ```

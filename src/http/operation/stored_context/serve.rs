@@ -22,8 +22,10 @@ use bytes::Bytes;
 use http::{Request, Response};
 use jstrict::Value as Json;
 
-/// `GET /jsonldContexts/{contextId}`: a stored context, as the `@context` member of the local context document the
-/// broker serves (NGSI-LD clause 6.30.3.1). A context of kind `Cached` is never served: the broker answers 422
+/// Reads a stored context.
+///
+/// Its request is `GET /jsonldContexts/{contextId}` (NGSI-LD clause 6.30.3.1), answered with the `@context` member of
+/// the local context document the broker serves. A context of kind `Cached` is never served: the broker answers 422
 /// `OperationNotSupported` (clause 5.13.4.4).
 ///
 /// The outcome is the `@context` member alone: a stored context is that subtree, the broker having discarded every
@@ -64,8 +66,9 @@ pub struct ServeContext<'a> {
     pub details: SummaryDetails,
 }
 
-/// `GET /jsonldContexts/{contextId}?details=true`: the metadata of a stored context, of any kind (NGSI-LD clauses
-/// 5.13.4.4 and 6.30.3.1).
+/// Reads the metadata of a stored context, of any kind.
+///
+/// Its request is `GET /jsonldContexts/{contextId}?details=true` (NGSI-LD clauses 5.13.4.4 and 6.30.3.1).
 ///
 /// ```
 /// use iri_rs::iri;

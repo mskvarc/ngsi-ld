@@ -22,7 +22,9 @@ use crate::{
 };
 use bon::bon;
 
-/// The context source registration operations of a [`Client`], from [`Client::registrations`].
+/// The context source registration operations of a [`Client`].
+///
+/// [`Client::registrations`] returns them.
 ///
 /// Each operation is a builder that finishes with `send()`.
 ///

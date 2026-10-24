@@ -94,7 +94,9 @@ pub trait QueryKind: sealed::Sealed + Debug + Clone + Copy + PartialEq + Eq + Ha
     type AttrsDraft: Draft<Value = Self::AttrsName, Error = NameError> + Debug;
 }
 
-/// A query of entities (clause 5.7.2), the kind a snapshot holds in `snapshotQueries`: it has no `temporalQ`.
+/// A query of entities, the kind a snapshot holds in `snapshotQueries`.
+///
+/// It has no `temporalQ` (NGSI-LD clause 5.7.2).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct EntityQuery;
 
@@ -104,8 +106,10 @@ impl QueryKind for EntityQuery {
     type Members = ();
 }
 
-/// A query of the temporal evolution of entities (clause 5.7.4), the kind a snapshot holds in
-/// `snapshotTemporalQueries`: its `temporalQ` is mandatory, and it may carry `aggrParams`.
+/// A query of the temporal evolution of entities.
+///
+/// It is the kind a snapshot holds in `snapshotTemporalQueries` (NGSI-LD clause 5.7.4): its `temporalQ` is mandatory,
+/// and it may carry `aggrParams`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct TemporalEvolutionQuery;
 
@@ -135,8 +139,10 @@ impl sealed::KindMembers for () {
     }
 }
 
-/// The aggregation of a temporal query (the `AggregationParams` of clause 5.2.44): the methods applied, and the
-/// duration of each period they are applied over.
+/// The aggregation of a temporal query: its methods and the duration of a period.
+///
+/// It holds the methods applied, and the duration of each period they are applied over (the `AggregationParams` of
+/// NGSI-LD clause 5.2.44).
 ///
 /// ```
 /// use ngsi_ld::{model::evolution::AggregationMethod, snapshot::AggregationParams};
@@ -220,8 +226,9 @@ impl AggregationParams {
     }
 }
 
-/// The members of a query of the temporal evolution of entities: its `temporalQ` (clause 5.2.21) and its
-/// `aggrParams` (clause 5.2.44).
+/// The members of a query of the temporal evolution of entities.
+///
+/// They are its `temporalQ` (NGSI-LD clause 5.2.21) and its `aggrParams` (clause 5.2.44).
 ///
 /// The type exists only on [`TemporalEvolutionQuery`] documents.
 #[derive(Debug, Clone, PartialEq, Eq)]

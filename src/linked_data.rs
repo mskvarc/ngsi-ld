@@ -1,4 +1,6 @@
-//! Linked data: the `@context` of NGSI-LD documents applied as JSON-LD, behind the `linked-data` feature.
+//! JSON-LD processing of `@context`.
+//!
+//! The `@context` of NGSI-LD documents is applied as JSON-LD. The module is behind the `linked-data` feature.
 //!
 //! NGSI-LD is linked data (clause 4.4). A name in a document is a term that the document's `@context` expands
 //! to a Fully Qualified Name, so two documents written under different contexts can mean the same thing with

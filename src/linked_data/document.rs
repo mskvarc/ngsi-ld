@@ -34,8 +34,10 @@ mod snapshot;
 mod source;
 mod subscription;
 
-/// A document in expanded JSON-LD form (JSON-LD 1.1 API section 4.1): every term replaced by its Fully Qualified
-/// Name, every value an array of value or node objects.
+/// A document in expanded JSON-LD form.
+///
+/// Every term is replaced by its Fully Qualified Name, and every value is an array of value or node objects (JSON-LD
+/// 1.1 API section 4.1).
 ///
 /// It is made by [`ActiveContext::expand_document`] and compacted back by [`ActiveContext::compact_document`],
 /// under the same active context or another. Two expansions are equal when they hold the same JSON-LD, whatever
@@ -89,7 +91,9 @@ pub enum DocumentExpansionError {
     Expansion(#[source] JsonLdError),
 }
 
-/// Why an expanded document could not be compacted into a document of type `D`; `E` is the error of `D`'s reader.
+/// Why an expanded document could not be compacted into a document of type `D`.
+///
+/// `E` is the error of `D`'s reader.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum DocumentCompactionError<E> {
@@ -130,10 +134,12 @@ mod sealed {
     }
 }
 
-/// A document that [`ActiveContext::expand_document`] expands and [`ActiveContext::compact_document`] compacts:
-/// every document of the crate that is read and written in one canonical form, which is every document but the
-/// fragments (written, never read), an MQTT notification (a transport envelope around one) and a local `@context`
-/// (a context, not linked data).
+/// A document an [`ActiveContext`] expands and compacts.
+///
+/// [`ActiveContext::expand_document`] expands it and [`ActiveContext::compact_document`] compacts it. It is every
+/// document of the crate that is read and written in one canonical form, which is every document but the fragments
+/// (written, never read), an MQTT notification (a transport envelope around one) and a local `@context` (a context, not
+/// linked data).
 ///
 /// A compaction that yields an invalid document reports the error of the document's reader: a [`DocumentError`]
 /// for the documents of the data model, a [`DocumentError`] of

@@ -1,8 +1,9 @@
 //! The optional members of a context source registration (NGSI-LD Table 5.2.9-1), named once: a fragment sets or
 //! deletes them, and the readers and writers of registrations spell them through [`RegistrationMember`].
 
-/// An optional member of a registration (Table 5.2.9-1), which a fragment may set or delete; they are ordered as
-/// the canonical form writes them.
+/// An optional member of a registration, which a fragment may set or delete.
+///
+/// NGSI-LD Table 5.2.9-1 defines the members; they are ordered as the canonical form writes them.
 ///
 /// `id` and `type` cannot be changed, and `information` and `endpoint` can be replaced but not removed, so none of
 /// them is a variant.
@@ -55,8 +56,10 @@ pub enum RegistrationMember {
     RefreshRate,
 }
 
-/// A member of a registration only a broker writes (Table 5.2.9-2, and `createdAt` and `modifiedAt` of Table
-/// 5.2.2-1), as the readers and writers spell it; they are ordered as the canonical form writes them.
+/// A member of a registration only a broker writes.
+///
+/// It is spelled as the readers and writers spell it. The members are those of NGSI-LD Table 5.2.9-2, and `createdAt`
+/// and `modifiedAt` of Table 5.2.2-1; they are ordered as the canonical form writes them.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members to the table.
 ///
@@ -100,8 +103,9 @@ pub(crate) enum RegistrationMandatoryMember {
     Endpoint,
 }
 
-/// A member of a registration information element (Table 5.2.10-1), as the readers and writers spell it and as a
-/// problem names it.
+/// A member of a registration information element.
+///
+/// It is spelled as the readers and writers spell it and as a problem names it (NGSI-LD Table 5.2.10-1).
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members to the table.
 ///
@@ -125,7 +129,9 @@ pub enum RegistrationInfoMember {
     RelationshipNames,
 }
 
-/// A member of an entity information (Table 5.2.8-1), as the readers and writers spell it.
+/// A member of an entity information, as the readers and writers spell it.
+///
+/// NGSI-LD Table 5.2.8-1.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members to the table.
 ///
@@ -146,8 +152,9 @@ pub enum EntityInfoMember {
     Type,
 }
 
-/// A member of the management information of a registration (Table 5.2.34-1), as the readers and writers spell it
-/// and as a problem names it.
+/// A member of the management information of a registration.
+///
+/// It is spelled as the readers and writers spell it and as a problem names it (NGSI-LD Table 5.2.34-1).
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members to the table.
 ///
@@ -170,9 +177,10 @@ pub enum ManagementMember {
     Cooldown,
 }
 
-/// A member a registration problem names: `information`, `endpoint`, an optional member of the registration, a
-/// member of an `information` element, or a member of the management information. It displays as the member's own
-/// name.
+/// A member a registration problem names, displayed as the member's own name.
+///
+/// It is `information`, `endpoint`, an optional member of the registration, a member of an `information` element, or a
+/// member of the management information.
 ///
 /// The enum is exhaustive: a registration has no other part.
 ///

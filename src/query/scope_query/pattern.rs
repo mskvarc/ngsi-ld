@@ -4,7 +4,9 @@
 use crate::model::{ScopeError, ScopeLevel};
 use std::{fmt, str::FromStr};
 
-/// One level of a [`ScopePattern`] (the `ScopeQLevel` production of NGSI-LD clause 4.19).
+/// One level of a [`ScopePattern`].
+///
+/// It is the `ScopeQLevel` production of NGSI-LD clause 4.19.
 ///
 /// The enum is exhaustive: clause 4.19 defines a level as a name or `+`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display)]
@@ -17,8 +19,9 @@ pub enum LevelPattern {
     AnyLevel,
 }
 
-/// A scope whose levels may be the wildcard `+` (the `ScopeQ` production of NGSI-LD clause 4.19):
-/// `/Madrid/+/ParqueNorte`.
+/// A scope whose levels may be the wildcard `+`, such as `/Madrid/+/ParqueNorte`.
+///
+/// It is the `ScopeQ` production of NGSI-LD clause 4.19.
 ///
 /// The production starts with `/`, but clause 4.19 example 5 writes the scope `/CompanyB` as `CompanyB`; a pattern
 /// is read with or without its leading `/`, and always printed with it.

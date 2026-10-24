@@ -66,7 +66,9 @@ pub(crate) mod sealed {
     }
 }
 
-/// A kind of subscription: [`EntitySubscription`] or [`RegistrationSubscription`] (NGSI-LD Table 5.2.12-1).
+/// A kind of subscription: [`EntitySubscription`] or [`RegistrationSubscription`].
+///
+/// NGSI-LD Table 5.2.12-1.
 ///
 /// A context information subscription ([`EntitySubscription`], clause 5.8) notifies about entities; a Context
 /// Source Registration Subscription ([`RegistrationSubscription`], clause 5.11) notifies about the registrations
@@ -84,7 +86,9 @@ pub trait SubscriptionKind: sealed::Sealed + Debug + Clone + Copy + PartialEq + 
     type Members: sealed::KindMembers;
 }
 
-/// A context information subscription (NGSI-LD clause 5.8): its notifications carry entities. It alone has `csf`.
+/// A context information subscription: its notifications carry entities.
+///
+/// NGSI-LD clause 5.8 defines it. It alone has `csf`.
 ///
 /// ```
 /// use ngsi_ld::{
@@ -103,8 +107,9 @@ impl SubscriptionKind for EntitySubscription {
     type Members = EntitySubscriptionMembers;
 }
 
-/// A Context Source Registration Subscription (NGSI-LD clause 5.11): its notifications carry context source
-/// registrations. It alone has `temporalQ`.
+/// A Context Source Registration Subscription.
+///
+/// NGSI-LD clause 5.11 defines it. Its notifications carry context source registrations. It alone has `temporalQ`.
 ///
 /// ```
 /// use ngsi_ld::{
@@ -124,8 +129,10 @@ impl SubscriptionKind for RegistrationSubscription {
     type Members = RegistrationSubscriptionMembers;
 }
 
-/// The member only an entity subscription has: `csf`, the context source filter the registrations used for it must
-/// meet (Table 5.2.12-1). Read it through [`Subscription::csf`](crate::subscription::Subscription::csf).
+/// The member only an entity subscription has: `csf`.
+///
+/// `csf` is the context source filter the registrations used for it must meet (NGSI-LD Table 5.2.12-1). Read it through
+/// [`Subscription::csf`](crate::subscription::Subscription::csf).
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct EntitySubscriptionMembers {
     /// `csf`.
@@ -149,7 +156,9 @@ impl sealed::KindMembers for EntitySubscriptionMembers {
     }
 }
 
-/// The change a fragment of an entity subscription makes to `csf` (Table 5.2.12-1). Read it through
+/// The change a fragment of an entity subscription makes to `csf`.
+///
+/// NGSI-LD Table 5.2.12-1 defines `csf`. Read the change through
 /// [`SubscriptionFragment::csf`](crate::subscription::SubscriptionFragment::csf).
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct EntitySubscriptionChanges {
@@ -175,9 +184,10 @@ impl sealed::KindChanges for EntitySubscriptionChanges {
     }
 }
 
-/// The member only a Context Source Registration Subscription has: `temporalQ`, which selects the registrations
-/// of context sources providing temporal information (Table 5.2.12-1, clause 5.11.2.4). Read it through
-/// [`Subscription::temporal_q`](crate::subscription::Subscription::temporal_q).
+/// The member only a Context Source Registration Subscription has: `temporalQ`.
+///
+/// `temporalQ` selects the registrations of context sources providing temporal information (NGSI-LD Table 5.2.12-1,
+/// clause 5.11.2.4). Read it through [`Subscription::temporal_q`](crate::subscription::Subscription::temporal_q).
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct RegistrationSubscriptionMembers {
     /// `temporalQ`.
@@ -205,9 +215,10 @@ impl sealed::KindMembers for RegistrationSubscriptionMembers {
     }
 }
 
-/// The change a fragment of a Context Source Registration Subscription makes to `temporalQ` (Table 5.2.12-1).
-/// Read it through
-/// [`SubscriptionFragment::temporal_q`](crate::subscription::SubscriptionFragment::temporal_q).
+/// The change a fragment of a registration subscription makes to `temporalQ`.
+///
+/// The subscription is a Context Source Registration Subscription, and NGSI-LD Table 5.2.12-1 defines `temporalQ`. Read
+/// the change through [`SubscriptionFragment::temporal_q`](crate::subscription::SubscriptionFragment::temporal_q).
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct RegistrationSubscriptionChanges {
     /// `temporalQ`.

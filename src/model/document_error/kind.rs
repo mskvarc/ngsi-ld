@@ -3,7 +3,9 @@
 use crate::model::{AttributeKind, AttributesError, GeoJsonType, InstancesError, LanguageMapError, MemberError, NullMember, discovery::DiscoveryType};
 use cefact_units::UnknownCode;
 
-/// What is wrong with an entity, an attribute or another document of the data model (clauses 4.5 to 4.8 and 5.2).
+/// What is wrong with a document of the data model.
+///
+/// The document is an entity, an attribute or another document of the data model (NGSI-LD clauses 4.5 to 4.8 and 5.2).
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum DocumentErrorKind {

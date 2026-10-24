@@ -8,7 +8,9 @@ use crate::model::{
 use crate::query::q::{AttributePath, ComparableValue, EqualityValue, Pattern};
 use std::fmt;
 
-/// A comparison operator of NGSI-LD clause 4.9.
+/// A comparison operator of the query language.
+///
+/// NGSI-LD clause 4.9 defines the operators.
 ///
 /// The enum is exhaustive: clause 4.9 closes the set of operators.
 ///
@@ -46,7 +48,9 @@ pub enum Operator {
     NotMatches,
 }
 
-/// An operator with its value: what a query term compares the target value with (NGSI-LD clause 4.9).
+/// An operator with its value: what a query term compares the target value with.
+///
+/// NGSI-LD clause 4.9.
 ///
 /// Each operator carries the kind of value clause 4.9 allows for it: `==` and `!=` take any value, a value
 /// list, a range or a URI; the ordering operators take a comparable value; the pattern operators take a
@@ -109,8 +113,9 @@ impl fmt::Display for Comparison {
     }
 }
 
-/// A query term (the `QueryTerm` production of NGSI-LD clause 4.9): an attribute path, alone to test that
-/// the target element exists, or followed by a comparison.
+/// A query term: an attribute path, alone or followed by a comparison.
+///
+/// An attribute path alone tests that the target element exists (the `QueryTerm` production of NGSI-LD clause 4.9).
 ///
 /// ```
 /// use ngsi_ld::query::q::{AttributePath, Comparison, EqualityValue, QueryTerm, ValuePath};

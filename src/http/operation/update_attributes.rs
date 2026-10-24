@@ -23,9 +23,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `PATCH /entities/{entityId}/attrs`: updates attributes that exist (NGSI-LD clause 6.6.3.2); attributes the
-/// entity does not have are reported in the [`UpdateResult`](crate::http::UpdateResult). The
-/// fragment may name its entity or not ([`Completeness`]).
+/// Updates the attributes an entity already has.
+///
+/// Its request is `PATCH /entities/{entityId}/attrs` (NGSI-LD clause 6.6.3.2). Attributes the entity does not have are
+/// reported in the [`UpdateResult`](crate::http::UpdateResult). The fragment may name its entity or not
+/// ([`Completeness`]).
 ///
 /// ```
 /// use iri_rs::iri;

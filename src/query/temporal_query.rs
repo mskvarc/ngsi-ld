@@ -1,6 +1,8 @@
-//! The NGSI-LD Temporal Query Language (NGSI-LD clause 4.11), written in the `timerel`, `timeAt`, `endTimeAt` and
-//! `timeproperty` parameters, and the `TemporalQuery` object that carries them in a body with `lastN`,
-//! `aggrMethods` and `aggrPeriodDuration` (clause 5.2.21).
+//! The NGSI-LD Temporal Query Language.
+//!
+//! It is written in the `timerel`, `timeAt`, `endTimeAt` and `timeproperty` parameters (NGSI-LD clause 4.11). The
+//! module also holds the `TemporalQuery` object that carries them in a body with `lastN`, `aggrMethods` and
+//! `aggrPeriodDuration` (clause 5.2.21).
 //!
 //! A temporal query tests a Temporal Property of each instance (`observedAt` unless another is named) against one
 //! point in time, or a range for `between`. Only the relation has a grammar; the times are `DateTime`s
@@ -52,7 +54,9 @@ use std::{fmt, num::NonZeroU64, str::FromStr};
 pub mod builders;
 pub(crate) mod json;
 
-/// The temporal relationship a temporal query tests (the `timerel` production of NGSI-LD clause 4.11).
+/// The temporal relationship a temporal query tests.
+///
+/// It is the `timerel` production of NGSI-LD clause 4.11.
 ///
 /// The enum is exhaustive: clause 4.11 closes the set.
 ///
@@ -74,8 +78,9 @@ pub enum TimeRelation {
     Between,
 }
 
-/// The Temporal Property a temporal query is applied to (the `timeproperty` of NGSI-LD Table 5.2.21-1); `observedAt`
-/// when none is named.
+/// The Temporal Property a temporal query is applied to, `observedAt` by default.
+///
+/// It is the `timeproperty` of NGSI-LD Table 5.2.21-1; `observedAt` applies when none is named.
 ///
 /// The enum is exhaustive: Table 5.2.21-1 closes the set.
 ///
@@ -116,8 +121,9 @@ pub enum AggregationMethodsError {
     },
 }
 
-/// The aggregation methods a temporal query asks for (the `aggrMethods` of NGSI-LD Table 5.2.21-1): at least one,
-/// in the order given, printed comma-separated.
+/// The aggregation methods a temporal query asks for.
+///
+/// It is the `aggrMethods` of NGSI-LD Table 5.2.21-1: at least one, in the order given, printed comma-separated.
 ///
 /// ```
 /// use ngsi_ld::query::temporal_query::AggregationMethods;
@@ -176,8 +182,10 @@ impl fmt::Display for AggregationMethods {
     }
 }
 
-/// A temporal query (NGSI-LD clauses 4.11 and 5.2.21): a relation with its times, the Temporal Property it is
-/// applied to, and the optional `lastN`, `aggrMethods` and `aggrPeriodDuration`.
+/// A temporal query: a relation with its times and the Temporal Property tested.
+///
+/// It holds the relation with its times, the Temporal Property it is applied to, and the optional `lastN`,
+/// `aggrMethods` and `aggrPeriodDuration` (NGSI-LD clauses 4.11 and 5.2.21).
 ///
 /// `endTimeAt` is present exactly when the relation is `between`, which Table 5.2.21-1 requires and the
 /// constructors guarantee. Built by [`before`], [`after`] and [`between`], or from validated parts with
@@ -323,13 +331,17 @@ pub const fn before(time: DateTime) -> TemporalQueryBuilder {
     TemporalQueryBuilder::new(TemporalQuery::before(time))
 }
 
-/// Starts a temporal query for the instances recorded at or after `time` (`timerel=after`).
+/// Starts a temporal query for the instances recorded at or after `time`.
+///
+/// It writes `timerel=after`.
 #[must_use]
 pub const fn after(time: DateTime) -> TemporalQueryBuilder {
     TemporalQueryBuilder::new(TemporalQuery::after(time))
 }
 
-/// Starts a temporal query for the instances recorded at or after `start` and before `end` (`timerel=between`).
+/// Starts a temporal query for the instances recorded from `start` until `end`.
+///
+/// The instances are recorded at or after `start` and before `end` (`timerel=between`).
 #[must_use]
 pub const fn between(start: DateTime, end: DateTime) -> TemporalQueryBuilder {
     TemporalQueryBuilder::new(TemporalQuery::between(start, end))

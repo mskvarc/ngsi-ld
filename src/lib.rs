@@ -1,9 +1,11 @@
 //! Typed, ergonomic NGSI-LD for Rust.
 //!
-//! The crate models the NGSI-LD API defined by ETSI GS CIM 009 v1.9.1: the documents a client sends and receives
-//! ([`model`], the subscriptions and notifications of [`subscription`], the context source registrations of
-//! [`registration`], and the snapshots of [`snapshot`]), the query languages it writes ([`query`]), and the operations
-//! it calls on a context broker.
+//! The crate covers the NGSI-LD API defined by ETSI GS CIM 009 v1.9.1: the documents a client exchanges with a context
+//! broker, the query languages it writes, and the operations it calls.
+//!
+//! Entities and the rest of the data model live in [`model`], and the query languages in [`query`]. Subscriptions,
+//! context source registrations and snapshots have their own modules: [`subscription`], [`registration`] and
+//! [`snapshot`].
 //!
 //! # Quick start
 //!

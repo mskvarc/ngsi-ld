@@ -22,7 +22,9 @@ use http::{Method, Request};
 use std::marker::PhantomData;
 use url::Url;
 
-/// `GET` of a page link a broker returned (clause 6.3.10), read as items of type `T`.
+/// Requests a page link a broker returned, read as items of type `T`.
+///
+/// Its request is a `GET` of the link (NGSI-LD clause 6.3.10).
 ///
 /// The link already carries every parameter of the original query, including its `format` and `geometryProperty`.
 /// A page of [`Entity`] values is read with the concise reader, which also reads normalized attributes (clause

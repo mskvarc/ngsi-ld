@@ -26,8 +26,10 @@ use bon::bon;
 use cefact_units::UnitCode;
 use jstrict::Value as Json;
 
-/// The value of a `GeoProperty`: a geometry (NGSI-LD clause 4.7.1) or, in a notification reporting a deleted
-/// `GeoProperty`, the NGSI-LD Null (clauses 4.5.0 and 5.8.6).
+/// The value of a `GeoProperty`.
+///
+/// It is a geometry (NGSI-LD clause 4.7.1) or, in a notification reporting a deleted `GeoProperty`, the NGSI-LD Null
+/// (clauses 4.5.0 and 5.8.6).
 ///
 /// A builder takes a [`Geometry`], so a client never builds the Null; a request document holding it is refused
 /// (clause 5.5.4).
@@ -85,7 +87,9 @@ impl GeoValue {
     }
 }
 
-/// A `GeoProperty`: a Property whose value is a geometry (NGSI-LD clauses 4.7 and 5.2.7).
+/// A `GeoProperty`: a Property whose value is a geometry.
+///
+/// NGSI-LD clauses 4.7 and 5.2.7.
 ///
 /// Build one with [`GeoProperty::builder`]; read one from a document through the representation parsers.
 ///
@@ -217,7 +221,9 @@ impl GeoProperty<Output> {
     }
 }
 
-/// The members a `GeoProperty` has only in a response (NGSI-LD clauses 4.5.2.2 and Table 5.2.7-2).
+/// The members a `GeoProperty` has only in a response.
+///
+/// NGSI-LD clauses 4.5.2.2 and Table 5.2.7-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

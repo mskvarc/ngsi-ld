@@ -1,5 +1,7 @@
-//! The NGSI-LD Query Language (NGSI-LD clause 4.9), written in the `q` parameter and, for context source
-//! registrations, in the `csf` parameter.
+//! The NGSI-LD Query Language.
+//!
+//! It is written in the `q` parameter and, for context source registrations, in the `csf` parameter (NGSI-LD clause
+//! 4.9).
 //!
 //! A [`Query`] is a tree of [`QueryTerm`]s combined with AND (`;`) and OR (`|`). AND binds tighter than OR
 //! (clause 4.9), so the printer writes parentheses only around an OR that is an operand of an AND.
@@ -101,7 +103,9 @@ mod term;
 mod value;
 mod walk;
 
-/// Starts a query on the attribute `name` (the first `AttrName` of an attribute path, clause 4.9).
+/// Starts a query on the attribute `name`.
+///
+/// The name is the first `AttrName` of an attribute path (NGSI-LD clause 4.9).
 ///
 /// An invalid name does not panic: it is reported by
 /// [`QueryBuilder::build`](crate::query::q::builders::QueryBuilder::build).
@@ -118,7 +122,9 @@ pub fn attr(name: impl AsRef<str>) -> PathBuilder {
     PathBuilder::new(name.as_ref())
 }
 
-/// A query of the NGSI-LD Query Language (the `Query` production of clause 4.9).
+/// A query of the NGSI-LD Query Language.
+///
+/// It is the `Query` production of NGSI-LD clause 4.9.
 ///
 /// AND and OR are n-ary: an AND never holds another AND as a direct operand, nor an OR another OR, so a query
 /// has exactly one tree and the printed form is unambiguous. [`Query::and`] and [`Query::or`] keep the tree in

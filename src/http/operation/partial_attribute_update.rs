@@ -23,8 +23,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `PATCH /entities/{entityId}/attrs/{attrId}`: changes some members of one attribute (NGSI-LD clause 6.7.3.1).
-/// The instance is the one the fragment's `datasetId` names, or the default instance.
+/// Changes some members of one attribute.
+///
+/// Its request is `PATCH /entities/{entityId}/attrs/{attrId}` (NGSI-LD clause 6.7.3.1). The instance is the one the
+/// fragment's `datasetId` names, or the default instance.
 ///
 /// The body may also be an [`InstanceDeletion`]: clauses 4.5.2.2 and 4.5.3.2 let the NGSI-LD Null stand as the payload
 /// of a partial update patch to delete the attribute, although clause 5.6.4.1 says a partial update does not delete

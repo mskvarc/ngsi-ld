@@ -13,7 +13,9 @@ use iri_rs::IriRefBuf;
 /// The header name.
 static NGSILD_ENTITY_MAP: HeaderName = HeaderName::from_static("ngsild-entitymap");
 
-/// The `NGSILD-EntityMap` header: the resource URI of an entity map (NGSI-LD clauses 4.5.25 and 5.2.39).
+/// The `NGSILD-EntityMap` header: the resource URI of an entity map.
+///
+/// NGSI-LD clauses 4.5.25 and 5.2.39.
 ///
 /// In a Retrieve Entity or Query Entities request it names an existing map for the broker to use; in the response
 /// it names the map the broker used, once the request asked for one (Tables 6.4.3.2-2, 6.4.3.2-3, 6.5.3.1-2 and

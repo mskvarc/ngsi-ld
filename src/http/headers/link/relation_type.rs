@@ -12,7 +12,9 @@ use std::str::FromStr;
 /// The JSON-LD context relation (JSON-LD 1.1 section 6.1).
 const JSON_LD_CONTEXT: Iri<&'static str> = iri!("http://www.w3.org/ns/json-ld#context");
 
-/// A link relation type (RFC 8288 section 2.1).
+/// A link relation type.
+///
+/// RFC 8288 section 2.1.
 ///
 /// The relation types NGSI-LD reads have named variants; every other registered name or extension IRI is carried
 /// verbatim in [`RelationType::ExtRelType`]. Registered names and the JSON-LD context relation are recognised

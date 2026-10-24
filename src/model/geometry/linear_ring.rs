@@ -2,7 +2,9 @@
 
 use crate::model::geometry::{GeometryError, Position, position::at_least};
 
-/// A closed linear ring: four or more positions, the last equal to the first (RFC 7946 section 3.1.6).
+/// A closed linear ring: four or more positions, the last equal to the first.
+///
+/// RFC 7946 section 3.1.6.
 ///
 /// ```
 /// use ngsi_ld::model::geometry::{GeometryError, LinearRing, Position};

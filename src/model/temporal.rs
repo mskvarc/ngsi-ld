@@ -13,7 +13,9 @@ use std::{fmt, str::FromStr};
 mod chrono;
 mod lexical;
 
-/// The part of a lexical form of clause 4.6.3 that a temporal parser expected where it found something else.
+/// What a temporal parser expected where it found something else.
+///
+/// It is a part of a lexical form of NGSI-LD clause 4.6.3.
 ///
 /// The enum is exhaustive: the lexical forms of clause 4.6.3 close the set of things a temporal parser expects.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, derive_more::Display)]
@@ -96,7 +98,9 @@ fn write_date(f: &mut fmt::Formatter<'_>, date: civil::Date) -> fmt::Result {
     write!(f, "{:04}-{:02}-{:02}", date.year(), date.month(), date.day())
 }
 
-/// A timestamp in UTC (NGSI-LD clause 4.6.3): `YYYY-MM-DDThh:mm:ss[.s{1,6}]Z`.
+/// A timestamp in UTC: `YYYY-MM-DDThh:mm:ss[.s{1,6}]Z`.
+///
+/// NGSI-LD clause 4.6.3.
 ///
 /// The number of fraction digits is part of the value, so equal instants written with a different number of
 /// digits compare unequal: the type represents a lexical value, and a document read and written back keeps its
@@ -184,7 +188,9 @@ impl From<DateTime> for Timestamp {
     }
 }
 
-/// A calendar date (NGSI-LD clause 4.6.3): `YYYY-MM-DD`.
+/// A calendar date: `YYYY-MM-DD`.
+///
+/// NGSI-LD clause 4.6.3.
 ///
 /// ```
 /// use ngsi_ld::model::Date;
@@ -217,7 +223,9 @@ impl fmt::Display for Date {
     }
 }
 
-/// A time of day in UTC (NGSI-LD clause 4.6.3): `hh:mm:ss[.s{1,6}]Z`.
+/// A time of day in UTC: `hh:mm:ss[.s{1,6}]Z`.
+///
+/// NGSI-LD clause 4.6.3.
 ///
 /// Like [`DateTime`], the number of fraction digits written is part of the value.
 ///

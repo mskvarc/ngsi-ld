@@ -24,10 +24,12 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `POST /subscriptions` (NGSI-LD clause 6.10.3.1), or `POST /csourceSubscriptions` (clause 6.12.3.1) for a
-/// subscription of kind [`RegistrationSubscription`](crate::subscription::RegistrationSubscription): creates
-/// a subscription. A subscription sent without an `id` is given one by the broker (clauses 5.8.1.4 and 5.11.2.4),
-/// which [`ResourceCreated::id`] reads from the `Location` of the answer.
+/// Creates a subscription.
+///
+/// Its request is `POST /subscriptions` (NGSI-LD clause 6.10.3.1), or `POST /csourceSubscriptions` (clause 6.12.3.1)
+/// for a subscription of kind [`RegistrationSubscription`](crate::subscription::RegistrationSubscription). A
+/// subscription sent without an `id` is given one by the broker (clauses 5.8.1.4 and 5.11.2.4), which
+/// [`ResourceCreated::id`] reads from the `Location` of the answer.
 ///
 /// ```
 /// use ngsi_ld::{

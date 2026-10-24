@@ -8,8 +8,10 @@ use crate::model::{
 };
 
 draft!(
-    /// An attribute name given to a builder: an [`AttributeName`], or text validated when the builder finishes, so
-    /// every invalid name is reported together. A list may mix both, each converted with `.into()`.
+    /// An attribute name given to a builder.
+    ///
+    /// It is an [`AttributeName`], or text validated when the builder finishes, so every invalid name is reported
+    /// together. A list may mix both, each converted with `.into()`.
     ///
     /// ```
     /// use ngsi_ld::model::{AttributeName, AttributeNameDraft};

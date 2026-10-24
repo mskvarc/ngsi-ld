@@ -1,7 +1,9 @@
 //! Whether a subscription operates: the `isActive` a subscriber sets and the `status` a broker reports (NGSI-LD
 //! clauses 5.2.12 and 5.8.1.4).
 
-/// Whether a subscriber runs or pauses a subscription (the `isActive` member of Table 5.2.12-1).
+/// Whether a subscriber runs or pauses a subscription.
+///
+/// It is the `isActive` member of NGSI-LD Table 5.2.12-1.
 ///
 /// ```
 /// use ngsi_ld::subscription::Activation;
@@ -21,7 +23,9 @@ pub enum Activation {
 
 flag_choice!(Activation, Active, Paused);
 
-/// The state a broker reports for a subscription (the `status` member of Table 5.2.12-2).
+/// The state a broker reports for a subscription.
+///
+/// It is the `status` member of NGSI-LD Table 5.2.12-2.
 ///
 /// The enum is exhaustive: the table allows exactly these three values.
 ///

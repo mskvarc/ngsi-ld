@@ -9,7 +9,9 @@ use std::{
     str::FromStr,
 };
 
-/// The text is not valid JSON (IETF RFC 8259).
+/// The text is not valid JSON.
+///
+/// IETF RFC 8259 defines valid JSON.
 ///
 /// ```
 /// use ngsi_ld::model::RawJson;
@@ -37,9 +39,10 @@ impl InvalidJson {
     }
 }
 
-/// A JSON value the crate carries verbatim, with its member order and number spelling: the `json` of a
-/// `JsonProperty` (NGSI-LD clause 4.5.24), which is never expanded, the values of the foreign members of a geometry
-/// (IETF RFC 7946 section 6.1), and inline `@context` objects.
+/// A JSON value kept verbatim, with its member order and number spelling.
+///
+/// The crate keeps this way the `json` of a `JsonProperty` (NGSI-LD clause 4.5.24), which is never expanded, the values
+/// of the foreign members of a geometry (IETF RFC 7946 section 6.1), and inline `@context` objects.
 ///
 /// ```
 /// use ngsi_ld::model::RawJson;

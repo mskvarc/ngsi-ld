@@ -21,11 +21,14 @@ use url::Url;
 
 pub(super) mod error;
 
-/// The API root of a broker (the URL that the resource paths of clause 6.2 are relative to, such as
-/// `http://localhost:9090/ngsi-ld/v1/`), the `@context` the client's documents use, where requests carry that
-/// context (clause 6.3.5), the tenant every request addresses (`NGSILD-Tenant`, clause 6.3.14), and what every
-/// request states besides: the preferences (`Prefer`, clause 6.3.6), the representations accepted (`Accept`, clause
-/// 6.3.4) and any further header, such as `Via` (clause 6.3.18).
+/// Where and how a client reaches a broker.
+///
+/// It holds the API root of a broker (the URL that the resource paths of NGSI-LD clause 6.2 are relative to, such as
+/// `http://localhost:9090/ngsi-ld/v1/`), the `@context` the client's documents use, where requests carry that context
+/// (clause 6.3.5), and the tenant every request addresses (`NGSILD-Tenant`, clause 6.3.14).
+///
+/// It also holds what every request states besides: the preferences (`Prefer`, clause 6.3.6), the representations
+/// accepted (`Accept`, clause 6.3.4) and any further header, such as `Via` (clause 6.3.18).
 ///
 /// Without a context, requests use the default context: GET and DELETE send no `Link` header, and a request whose
 /// body carries its context (see [`ContextDelivery::LdJsonBody`]) names the NGSI-LD core context, since clause

@@ -6,9 +6,10 @@ use bytes::Bytes;
 use headers::Header;
 use http::{Extensions, HeaderMap, Response, Version, response::Parts};
 
-/// The head of a broker's response, without its status, which the outcome or the error states on its own: the HTTP
-/// version, every header field as received, and the extensions the transport attached (for instance the TLS
-/// details its HTTP library reports).
+/// The head of a broker's response, without its status.
+///
+/// The outcome or the error states the status on its own. The head holds the HTTP version, every header field as
+/// received, and the extensions the transport attached (for instance the TLS details its HTTP library reports).
 ///
 /// Every header is readable in typed form with [`typed`](Self::typed): the NGSI-LD headers of
 /// [`headers`](crate::http::headers) and every header of the `headers` crate (`ETag`, `Vary`, `CacheControl`,

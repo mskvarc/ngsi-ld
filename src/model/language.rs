@@ -10,7 +10,9 @@ use std::{
     str::FromStr,
 };
 
-/// Why text is not a BCP 47 language tag (IETF RFC 5646).
+/// Why text is not a BCP 47 language tag.
+///
+/// IETF RFC 5646 defines the tags.
 ///
 /// The tag parser reports only that a tag is refused, so the reason is classified from the text: no text at all, a
 /// character no tag holds, or subtags in an order or of a length the grammar refuses.
@@ -69,9 +71,11 @@ pub(crate) fn parse_language_tag(text: &str) -> Result<LangTagBuf, LanguageTagEr
     text.parse::<LangTagBuf>().map_err(|_| LanguageTagError::classify(text))
 }
 
-/// A language tag as a caller gives it: either already a [`LangTagBuf`], or text the call parses as a BCP 47 tag
-/// (IETF RFC 5646) and refuses with [`LanguageTagError`] when it is not one. Both convert with `From`, so a setter
-/// taking `impl Into<LanguageTagInput>` accepts `&LangTagBuf` and `&str` alike.
+/// A language tag as a caller gives it: parsed, or as text.
+///
+/// It is either already a [`LangTagBuf`], or text the call parses as a BCP 47 tag (IETF RFC 5646) and refuses with
+/// [`LanguageTagError`] when it is not one. Both convert with `From`, so a setter taking `impl Into<LanguageTagInput>`
+/// accepts `&LangTagBuf` and `&str` alike.
 ///
 /// The enum is exhaustive: a tag is given parsed or as text.
 ///
@@ -138,8 +142,10 @@ pub enum LanguageMapError {
     NotAnObject,
 }
 
-/// The key of a language map entry: a BCP 47 language tag, or `@none` for the text used when no more specific
-/// language matches (NGSI-LD clause 4.6.5).
+/// The key of a language map entry.
+///
+/// It is a BCP 47 language tag, or `@none` for the text used when no more specific language matches (NGSI-LD clause
+/// 4.6.5).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display, derive_more::From)]
 pub enum LanguageKey {
     /// `@none`: the default text.
@@ -165,7 +171,9 @@ impl FromStr for LanguageKey {
     }
 }
 
-/// The text of one language: a string or an array of strings (NGSI-LD clause 4.6.5).
+/// The text of one language: a string or an array of strings.
+///
+/// NGSI-LD clause 4.6.5.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::From)]
 pub enum LanguageText {
     /// One string.
@@ -175,8 +183,9 @@ pub enum LanguageText {
     Multiple(Vec<String>),
 }
 
-/// A language map: a non-empty, ordered set of texts keyed by language (NGSI-LD clause 4.6.5), the payload of a
-/// `LanguageProperty` (clause 4.5.18).
+/// A language map: a non-empty, ordered set of texts keyed by language.
+///
+/// NGSI-LD clause 4.6.5 defines it. It is the payload of a `LanguageProperty` (clause 4.5.18).
 ///
 /// ```
 /// use ngsi_ld::model::LanguageMap;

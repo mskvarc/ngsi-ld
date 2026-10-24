@@ -10,8 +10,9 @@ use std::mem;
 #[error("the HTTP exchange failed")]
 pub struct ReqwestError(#[from] reqwest::Error);
 
-/// Why [`ReqwestTransport::try_default`] could not build its `reqwest::Client`: no TLS backend could be
-/// initialized, or the system's resolver configuration could not be read.
+/// Why [`ReqwestTransport::try_default`] could not build its `reqwest::Client`.
+///
+/// No TLS backend could be initialized, or the system's resolver configuration could not be read.
 #[derive(Debug, thiserror::Error)]
 #[error("the reqwest client could not be built")]
 pub struct ReqwestBuildError(#[source] reqwest::Error);

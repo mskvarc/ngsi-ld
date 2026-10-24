@@ -25,7 +25,9 @@ use crate::{
 };
 use bon::bon;
 
-/// A `JsonProperty`: raw JSON that is never expanded as JSON-LD (NGSI-LD clauses 4.5.24 and 5.2.38).
+/// A `JsonProperty`: raw JSON that is never expanded as JSON-LD.
+///
+/// NGSI-LD clauses 4.5.24 and 5.2.38.
 ///
 /// Build one with [`JsonProperty::builder`]; read one from a document through the representation parsers. Its
 /// `json` is always an object or an array of objects.
@@ -142,7 +144,9 @@ impl JsonProperty<Output> {
     }
 }
 
-/// The members a `JsonProperty` has only in a response (NGSI-LD clauses 4.5.24.2 and Table 5.2.38-2).
+/// The members a `JsonProperty` has only in a response.
+///
+/// NGSI-LD clauses 4.5.24.2 and Table 5.2.38-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

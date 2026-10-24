@@ -6,8 +6,10 @@ use crate::{
 };
 use http::Method;
 
-/// Whether the answer includes the system attributes `createdAt`, `modifiedAt` and `expiresAt` (NGSI-LD clause
-/// 6.3.11, `options=sysAttrs`).
+/// Whether the answer includes the system attributes.
+///
+/// The system attributes are `createdAt`, `modifiedAt` and `expiresAt`, asked for with `options=sysAttrs` (NGSI-LD
+/// clause 6.3.11).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum SystemAttributes {
     /// The broker's default: no system attributes.
@@ -17,8 +19,10 @@ pub enum SystemAttributes {
     Include,
 }
 
-/// Whether a query asks for the total number of matches (NGSI-LD clause 6.3.13, `count`), with an explicit
-/// `count=false` kept apart from an absent parameter so that a request read back states what it was sent.
+/// Whether a query asks for the total number of matches.
+///
+/// It is the `count` parameter (NGSI-LD clause 6.3.13). An explicit `count=false` is kept apart from an absent
+/// parameter so that a request read back states what it was sent.
 ///
 /// The enum is exhaustive: the parameter is absent, `true` or `false`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -47,9 +51,11 @@ impl SystemAttributes {
     }
 }
 
-/// How a request for the summary representation of a discovery or stored-context resource writes the `details`
-/// parameter (NGSI-LD Tables 6.25.3.1-1, 6.27.3.1-1, 6.29.3.2-1 and 6.30.3.1-1): left out, or stated as
-/// `details=false`, which every table allows and which clause 5.13.4.4 answers as an absent parameter.
+/// How a request for a summary representation writes the `details` parameter.
+///
+/// The request is for the summary representation of a discovery or stored-context resource (NGSI-LD Tables 6.25.3.1-1,
+/// 6.27.3.1-1, 6.29.3.2-1 and 6.30.3.1-1). The parameter is left out, or stated as `details=false`, which every table
+/// allows and which clause 5.13.4.4 answers as an absent parameter.
 ///
 /// `details=true` asks for the detailed representation, whose answer has another shape, so it is a request type of
 /// its own rather than a third variant. The enum is exhaustive: a boolean parameter is absent, `false` or `true`.
@@ -119,8 +125,10 @@ pub(crate) fn push_paging(query: &mut QueryString, limit: Option<u32>, offset: O
     }
 }
 
-/// Which HTTP binding of Query Entities is used: `GET /entities` (NGSI-LD clause 6.4.3.2) or
-/// `POST /entityOperations/query` (clause 6.23.3.1). Both are built from the same parameters.
+/// Which HTTP binding of Query Entities is used.
+///
+/// It is `GET /entities` (NGSI-LD clause 6.4.3.2) or `POST /entityOperations/query` (clause 6.23.3.1). Both are built
+/// from the same parameters.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum QueryMethod {
     /// `GET /entities` with the parameters in the query string.
@@ -130,8 +138,9 @@ pub enum QueryMethod {
     Post,
 }
 
-/// Whether Append Attributes and Batch Entity Update overwrite attributes that already exist (NGSI-LD clauses
-/// 6.6.3.1 and 6.16.3.1).
+/// Whether Append Attributes and Batch Entity Update overwrite existing attributes.
+///
+/// NGSI-LD clauses 6.6.3.1 and 6.16.3.1.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Overwrite {
     /// Existing attributes are replaced.
@@ -156,8 +165,9 @@ impl Overwrite {
     }
 }
 
-/// What Batch Entity Upsert does with an entity that already exists (NGSI-LD clauses 5.6.8.3 and 6.15.3.1); an
-/// entity that does not exist is created in either mode.
+/// What Batch Entity Upsert does with an entity that already exists.
+///
+/// An entity that does not exist is created in either mode (NGSI-LD clauses 5.6.8.3 and 6.15.3.1).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum UpsertMode {
     /// The existing entity is replaced by the one sent: the default mode, sent as no parameter.

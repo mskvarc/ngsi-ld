@@ -29,8 +29,10 @@ use jstrict::{Object, Value as Json, object::Entry};
 
 pub(super) mod output;
 
-/// An aggregation method (NGSI-LD clause 4.5.19.1), the key of a member of an aggregated temporal attribute and
-/// an item of the `aggrMethods` parameter.
+/// An aggregation method.
+///
+/// It is the key of a member of an aggregated temporal attribute and an item of the `aggrMethods` parameter (NGSI-LD
+/// clause 4.5.19.1).
 ///
 /// The enum is exhaustive: clause 4.5.19.1 closes the set.
 ///
@@ -65,7 +67,9 @@ pub enum AggregationMethod {
     TotalCount,
 }
 
-/// The kind of an aggregated temporal attribute: clause 4.5.19 aggregates Properties and Relationships only.
+/// The kind of an aggregated temporal attribute.
+///
+/// NGSI-LD clause 4.5.19 aggregates Properties and Relationships only.
 ///
 /// The enum is exhaustive: the specification closes the set.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -87,7 +91,9 @@ impl AggregatedKind {
     }
 }
 
-/// An attribute kind clause 4.5.19 does not aggregate: it aggregates Properties and Relationships only.
+/// An attribute kind the aggregated temporal representation does not aggregate.
+///
+/// NGSI-LD clause 4.5.19 aggregates Properties and Relationships only.
 ///
 /// The struct is `#[non_exhaustive]`: its field is readable, and only the crate builds it.
 ///
@@ -132,8 +138,9 @@ impl TryFrom<AttributeKind> for AggregatedKind {
     }
 }
 
-/// The value an aggregation method gives over one period (clause 4.5.19): the value, then the start and the end of
-/// the period.
+/// The value an aggregation method gives over one period.
+///
+/// It holds the value, then the start and the end of the period (NGSI-LD clause 4.5.19).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AggregatedValue {
     /// The value the method gives over the period.
@@ -144,8 +151,10 @@ pub struct AggregatedValue {
     pub end: DateTime,
 }
 
-/// One attribute in aggregated temporal representation (clause 4.5.19): its kind and, per aggregation method, one
-/// value per period, the methods in document order.
+/// One attribute in aggregated temporal representation.
+///
+/// It holds its kind and, per aggregation method, one value per period, the methods in document order (NGSI-LD clause
+/// 4.5.19).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AggregatedAttribute {
     /// `type`.
@@ -216,8 +225,9 @@ fn aggregated_value(json: Json) -> Result<AggregatedValue, DocumentError> {
     })
 }
 
-/// The temporal evolution of an entity in aggregated temporal representation (NGSI-LD clause 4.5.19): `id`,
-/// `type`, each attribute's [`AggregatedAttribute`], and the `@context`.
+/// The temporal evolution of an entity in aggregated temporal representation.
+///
+/// It holds `id`, `type`, each attribute's [`AggregatedAttribute`], and the `@context` (NGSI-LD clause 4.5.19).
 ///
 /// Only a broker writes it, as the answer to `format=aggregatedValues` (clause 6.3.12). `C` says whether the entity
 /// holds its `id` and `type`, which a projection may remove (clause 4.21).

@@ -25,9 +25,11 @@ const CONTENT_TYPE: &str = "Content-Type";
 /// The metadata key holding the `Link` to the `@context` of an `application/json` body (Table 7.2-2).
 const LINK: &str = "Link";
 
-/// An MQTT notification message (NGSI-LD clause 7.2): a JSON object whose `body` is the notification of clause 5.3.1
-/// and whose `metadata` holds, as key-value pairs, what the HTTP binding sends as headers: `Content-Type`, the `Link`
-/// to the `@context` of an `application/json` body, and one entry per `receiverInfo` pair of the subscription.
+/// An MQTT notification message.
+///
+/// NGSI-LD clause 7.2 defines it as a JSON object whose `body` is the notification of clause 5.3.1 and whose `metadata`
+/// holds, as key-value pairs, what the HTTP binding sends as headers: `Content-Type`, the `Link` to the `@context` of
+/// an `application/json` body, and one entry per `receiverInfo` pair of the subscription.
 ///
 /// The crate has no MQTT client; a receiver hands the payload of the message it received to
 /// [`MqttNotification::parse`], then the body to the parse method of the notification it subscribed to.

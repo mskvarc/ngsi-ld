@@ -1,5 +1,7 @@
-//! Subscriptions and notifications (NGSI-LD clauses 5.2.12 to 5.2.15, 5.2.22, 5.3.1 and 5.8): the documents a
-//! subscriber sends and receives, independent of any transport.
+//! Subscriptions and notifications.
+//!
+//! They are the documents a subscriber sends and receives, independent of any transport (NGSI-LD clauses 5.2.12 to
+//! 5.2.15, 5.2.22, 5.3.1 and 5.8).
 //!
 //! A [`Subscription`] holds query languages ([`q`](crate::query::q), [`geoquery`](crate::query::geoquery),
 //! [`scope_query`](crate::query::scope_query), [`temporal_query`](crate::query::temporal_query)), so this module
@@ -118,8 +120,9 @@ mod status;
 mod trigger;
 pub(crate) mod writer;
 
-/// A context subscription (NGSI-LD clause 5.2.12): which entities and changes a subscriber is notified about, and
-/// how.
+/// A subscription to changes of entities.
+///
+/// NGSI-LD clause 5.2.12 defines it: which entities and changes a subscriber is notified about, and how.
 ///
 /// `D` is the direction: [`Input`] for what Create Subscription sends, with an optional `id`; [`Output`] for what
 /// Retrieve and Query Subscriptions return, with an `id` and the members only a broker writes. `K` is the kind:

@@ -30,7 +30,9 @@ use iri_rs::{Iri, iri};
 /// The NGSI-LD Null of clause 4.5.0.
 pub(crate) const NGSI_LD_NULL: Iri<&str> = iri!("urn:ngsi-ld:null");
 
-/// Where a request attribute holds the NGSI-LD Null, which clause 5.5.4 refuses outside fragments.
+/// Where a request attribute holds the NGSI-LD Null.
+///
+/// NGSI-LD clause 5.5.4 refuses the Null outside fragments.
 ///
 /// A request attribute (and every sub-attribute, which has the same representation) holds the NGSI-LD Null in none
 /// of these places:

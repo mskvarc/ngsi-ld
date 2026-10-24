@@ -40,7 +40,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `GET /temporal/entities/{entityId}`: reads the temporal evolution of one entity (NGSI-LD clause 6.19.3.1).
+/// Reads the temporal evolution of one entity.
+///
+/// Its request is `GET /temporal/entities/{entityId}` (NGSI-LD clause 6.19.3.1).
 ///
 /// `F` is the representation asked for: a [`Lossless`] one answers with a [`TemporalEntity`], [`SimplifiedTemporal`]
 /// with a [`SimplifiedTemporalEntity`] and [`Aggregated`] with an [`AggregatedTemporalEntity`] (clause 6.3.12). `C`

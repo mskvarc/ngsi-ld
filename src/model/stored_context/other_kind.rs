@@ -1,8 +1,9 @@
 //! A kind of stored `@context` clause 5.13.1 does not define, kept as the broker wrote it.
 
-/// The token of a kind of stored `@context` that clause 5.13.1 does not define (NGSI-LD clause 5.13.3.3 lists the
-/// kinds "currently" possible, so a broker of a later version may report another), held by
-/// [`StoredContextKind::Other`](crate::model::StoredContextKind::Other).
+/// The token of a kind of stored `@context` the specification does not define.
+///
+/// NGSI-LD clause 5.13.1 defines the kinds, and clause 5.13.3.3 lists the kinds "currently" possible, so a broker of a
+/// later version may report another. [`StoredContextKind::Other`](crate::model::StoredContextKind::Other) holds it.
 ///
 /// It is only made by reading a kind, which gives it text that is not empty and names no kind of clause 5.13.1, so
 /// a defined kind is never held here.

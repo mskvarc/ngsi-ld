@@ -21,7 +21,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `GET /entityMaps/{entityMapId}`: an entity map the broker stores (NGSI-LD clause 6.32.3.1).
+/// Reads an entity map the broker stores.
+///
+/// Its request is `GET /entityMaps/{entityMapId}` (NGSI-LD clause 6.32.3.1).
 ///
 /// ```
 /// use iri_rs::iri;

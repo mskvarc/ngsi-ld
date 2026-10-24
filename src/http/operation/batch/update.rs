@@ -23,9 +23,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `POST /entityOperations/update`: updates the attributes of every entity of the batch (NGSI-LD clause
-/// 6.16.3.1), as Update Attributes, or Append Attributes without overwriting, would for each (clause 5.6.9.4).
-/// Each fragment names its entity (clause 5.6.9.3).
+/// Updates the attributes of every entity of the batch.
+///
+/// Its request is `POST /entityOperations/update` (NGSI-LD clause 6.16.3.1). Each entity is updated as Update
+/// Attributes, or Append Attributes without overwriting, would update it (clause 5.6.9.4). Each fragment names its
+/// entity (clause 5.6.9.3).
 ///
 /// ```
 /// use iri_rs::iri;

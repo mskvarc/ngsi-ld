@@ -85,9 +85,10 @@ const QUERY: [QueryParameter; 6] = [
     QueryParameter::Local,
 ];
 
-/// The instances a received temporal request asks for (clause 4.11): a temporal query, or, for Retrieve Temporal
-/// Evolution, none (Table 6.19.3.1-1 makes `timerel` optional), with `timeproperty`, `lastN` and the aggregation
-/// standing alone.
+/// The instances a received temporal request asks for.
+///
+/// The request has a temporal query (NGSI-LD clause 4.11), or, for Retrieve Temporal Evolution, none (Table 6.19.3.1-1
+/// makes `timerel` optional), with `timeproperty`, `lastN` and the aggregation standing alone.
 ///
 /// The enum is exhaustive: a request has a temporal query or does not.
 ///
@@ -156,8 +157,10 @@ impl TemporalSelectionParameters {
     }
 }
 
-/// The query string of a Retrieve Temporal Evolution request (`GET /temporal/entities/{entityId}`, Table
-/// 6.19.3.1-1), read in typed form: what a context source receives when a broker forwards it (clause 5.7.3.4).
+/// The query string of a Retrieve Temporal Evolution request, read in typed form.
+///
+/// The request is `GET /temporal/entities/{entityId}` (NGSI-LD Table 6.19.3.1-1). A context source receives this query
+/// string when a broker forwards the request to it (clause 5.7.3.4).
 ///
 /// Each parameter is read with its grammar; rules that tie parameters together are the broker's to enforce and are
 /// not checked, and a parameter the table does not define is reported.
@@ -231,11 +234,14 @@ impl RetrieveTemporalEvolutionParameters {
     }
 }
 
-/// The query string of a Query Temporal Evolution request (`GET /temporal/entities`, Table 6.18.3.2-1), read in
-/// typed form: what a context source receives when a broker forwards it (clause 5.7.4.4). A POST query carries its
-/// selection in a `Query` body instead, which
-/// [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse) reads, and the rest in a query
-/// string that [`QueryTemporalEvolutionPostParameters`] reads.
+/// The query string of a Query Temporal Evolution request, read in typed form.
+///
+/// The request is `GET /temporal/entities` (NGSI-LD Table 6.18.3.2-1). A context source receives this query string when
+/// a broker forwards the request to it (clause 5.7.4.4).
+///
+/// A POST query carries its selection in a `Query` body instead, which
+/// [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse) reads, and the rest in a query string that
+/// [`QueryTemporalEvolutionPostParameters`] reads.
 ///
 /// The temporal query is mandatory (Table 6.18.3.2-1 gives `timerel` and `timeAt` a cardinality of 1); other rules
 /// that tie parameters together are the broker's to enforce, and a parameter the table does not define is reported.
@@ -324,12 +330,14 @@ impl QueryTemporalEvolutionParameters {
     }
 }
 
-/// The query string of a Query Temporal Evolution request through `POST /temporal/entityOperations/query` (clause
-/// 6.24.3.1), read in typed form: what a context source receives when a broker forwards a temporal query to it
-/// through the POST binding (clause 5.7.4.4). The selection and the temporal query travel in the `Query` body, which
-/// [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse) reads; the query string holds
-/// only what the body cannot, so a selection or temporal parameter such as `type` or `timerel` is reported as
-/// undefined here.
+/// The query string of a `POST` Query Temporal Evolution request, read in typed form.
+///
+/// The request is `POST /temporal/entityOperations/query` (NGSI-LD clause 6.24.3.1). A context source receives this
+/// query string when a broker forwards a temporal query to it through the POST binding (clause 5.7.4.4).
+///
+/// The selection and the temporal query travel in the `Query` body, which
+/// [`QueryDocument::parse`](crate::snapshot::QueryDocument::parse) reads; the query string holds only what the body
+/// cannot, so a selection or temporal parameter such as `type` or `timerel` is reported as undefined here.
 ///
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///

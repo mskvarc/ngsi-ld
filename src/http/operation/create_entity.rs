@@ -21,7 +21,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response, StatusCode};
 
-/// `POST /entities`: creates an entity (NGSI-LD clause 6.4.3.1).
+/// Creates an entity.
+///
+/// Its request is `POST /entities` (NGSI-LD clause 6.4.3.1).
 ///
 /// ```
 /// use iri_rs::iri;

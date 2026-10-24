@@ -5,8 +5,10 @@ use crate::model::RawJson;
 use iri_rs::Iri;
 use std::error::Error;
 
-/// Loads the document behind the URL of a remote context, for [`ContextProcessor::process`]. The core context and
-/// the contexts it imports are bundled and never reach a loader.
+/// Loads the document behind the URL of a remote context.
+///
+/// [`ContextProcessor::process`] uses it. The core context and the contexts it imports are bundled and never reach a
+/// loader.
 ///
 /// The document is the JSON the URL serves: an object whose `@context` member is the context. A relative reference
 /// inside it resolves against `url`.

@@ -38,8 +38,10 @@ const ACCEPTED: [QueryParameter; 15] = [
     QueryParameter::Local,
 ];
 
-/// The query string of a Retrieve Entity request (`GET /entities/{entityId}`, Table 6.5.3.1-1), read in typed form:
-/// what a context source receives when a broker forwards a retrieval to it (clause 5.7.1.4).
+/// The query string of a Retrieve Entity request, read in typed form.
+///
+/// The request is `GET /entities/{entityId}` (NGSI-LD Table 6.5.3.1-1). A context source receives this query string
+/// when a broker forwards a retrieval to it (clause 5.7.1.4).
 ///
 /// Each parameter is read with the grammar of its query language; rules that tie parameters together are the
 /// broker's to enforce and are not checked, and a parameter the table does not define is reported. Unlike Query

@@ -43,9 +43,10 @@ use http::{Method, Request, Response, StatusCode};
 use jstrict::Object;
 use std::num::NonZeroU32;
 
-/// Creates an entity map of the entities a query matches (NGSI-LD clause 5.14.4), through `GET /entityMaps` (clause
-/// 6.34.3.1) or `POST /entityMaps` (clause 6.34.3.2); both bindings are built from these same fields, as for Query
-/// Entities.
+/// Creates an entity map of the entities a query matches.
+///
+/// NGSI-LD clause 5.14.4 defines the operation. Its request is `GET /entityMaps` (clause 6.34.3.1) or `POST
+/// /entityMaps` (clause 6.34.3.2); both bindings are built from these same fields, as for Query Entities.
 ///
 /// Clause 5.14.4.3 allows the parameters of Query Entities and marks some ignored; these fields are the ones that
 /// count. `geometryProperty`, `limit`, the `entityMap` flag ("`EntityMap` is always returned") and the

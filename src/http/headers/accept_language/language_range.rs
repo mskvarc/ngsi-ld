@@ -9,7 +9,9 @@ const ANY: &str = "*";
 /// The most characters a subtag of a basic language range holds (RFC 4647 section 2.1).
 const MAXIMUM_SUBTAG_LENGTH: usize = 8;
 
-/// Why a string is not a basic language range (RFC 4647 section 2.1).
+/// Why a string is not a basic language range.
+///
+/// RFC 4647 section 2.1.
 ///
 /// The enum is exhaustive: the grammar of a basic language range has no other rule.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
@@ -25,9 +27,11 @@ pub enum BasicLanguageRangeError {
     Subtag,
 }
 
-/// A basic language range (RFC 4647 section 2.1), the element RFC 9110 section 12.5.4 gives `Accept-Language`:
-/// `*`, or one to eight letters followed by `-`-separated subtags of one to eight letters or digits. It is kept as
-/// written; RFC 4647 compares ranges without regard to case.
+/// A basic language range, the element of an `Accept-Language` header.
+///
+/// RFC 4647 section 2.1 defines it, and RFC 9110 section 12.5.4 gives it to `Accept-Language`. It is `*`, or one to
+/// eight letters followed by `-`-separated subtags of one to eight letters or digits. It is kept as written; RFC 4647
+/// compares ranges without regard to case.
 ///
 /// A basic range need not be a language tag: `en-a-b` is a range, but no BCP 47 tag, since an extension subtag has at
 /// least two characters. Every language tag is a range, so every [`LanguageRange`] of a Language Filter (NGSI-LD

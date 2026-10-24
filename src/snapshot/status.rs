@@ -3,8 +3,10 @@
 use crate::model::Number;
 use std::str::FromStr;
 
-/// The status a snapshot settles in once its queries have run (the `snapshotStatus` of clause 5.16.1.4), the status
-/// a snapshot notification reports (Table 5.3.4-1).
+/// The status a snapshot settles in once its queries have run.
+///
+/// It is the `snapshotStatus` of NGSI-LD clause 5.16.1.4, and the status a snapshot notification reports (Table
+/// 5.3.4-1).
 ///
 /// The enum is exhaustive: Tables 5.2.41-2 and 5.3.4-1 close the set.
 ///
@@ -28,8 +30,10 @@ pub enum SettledStatus {
     Empty,
 }
 
-/// The status of a snapshot (the `snapshotStatus` of Table 5.2.41-2): `preparing` while its queries run (clauses
-/// 5.16.1.4 and 5.16.2.4), then the status it settles in.
+/// The status of a snapshot.
+///
+/// It is the `snapshotStatus` of NGSI-LD Table 5.2.41-2: `preparing` while its queries run (clauses 5.16.1.4 and
+/// 5.16.2.4), then the status it settles in.
 ///
 /// The enum is exhaustive: Table 5.2.41-2 closes the set.
 ///

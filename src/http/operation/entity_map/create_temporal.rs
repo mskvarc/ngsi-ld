@@ -40,9 +40,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response, StatusCode};
 
-/// Creates an entity map of the entities whose temporal evolution a temporal query matches (NGSI-LD clause
-/// 5.14.5), through `GET /temporal/entityMaps` (clause 6.35.3.1) or `POST /temporal/entityMaps` (clause 6.35.3.2);
-/// both bindings are built from these same fields, as for Query Temporal Evolution.
+/// Creates an entity map of the entities whose temporal evolution a query matches.
+///
+/// NGSI-LD clause 5.14.5 defines the operation, whose query is a temporal query. Its request is `GET
+/// /temporal/entityMaps` (clause 6.35.3.1) or `POST /temporal/entityMaps` (clause 6.35.3.2); both bindings are built
+/// from these same fields, as for Query Temporal Evolution.
 ///
 /// The temporal query is mandatory (clause 5.14.5.4), and carries `lastN` with it. Clause 5.14.5.3 allows the
 /// parameters of Query Temporal Evolution and marks some ignored; these fields are the ones that count, and the ignored

@@ -1,5 +1,7 @@
-//! The HTTP binding of the NGSI-LD API (NGSI-LD clause 6): typed headers, the operation requests, the one request
-//! pipeline that turns them into HTTP requests, and the decoding of HTTP responses into typed outcomes.
+//! The HTTP binding of the API.
+//!
+//! It holds typed headers, the operation requests, the one request pipeline that turns them into HTTP requests, and the
+//! decoding of HTTP responses into typed outcomes (NGSI-LD clause 6).
 //!
 //! Everything here is pure and synchronous; sending a request is the job of the `client` module.
 //!

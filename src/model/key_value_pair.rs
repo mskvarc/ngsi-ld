@@ -5,7 +5,9 @@
 
 use jstrict::{Object, Value as Json};
 
-/// A key and a value an endpoint conveys (NGSI-LD clause 5.2.22), such as an HTTP header for the receiver.
+/// A key and a value an endpoint conveys, such as an HTTP header for the receiver.
+///
+/// NGSI-LD clause 5.2.22.
 ///
 /// Both are text whose syntax the binding decides (Table 5.2.22-1): an HTTP header name and value for the HTTP
 /// binding (clause 6.3.8), an MQTT setting for the MQTT one (clause 7.2), so the model keeps them as given.

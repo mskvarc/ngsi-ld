@@ -31,8 +31,10 @@ pub enum DurationError {
     WeeksCombined,
 }
 
-/// A duration (NGSI-LD clause 4.5.19.1): `P[n]Y[n]M[n]DT[n]H[n]M[n]S` or `P[n]W`, never negative. Zero is a
-/// duration (`PT0S`, `P0D`), which an aggregation reads as the whole time range of its temporal query.
+/// A duration, never negative.
+///
+/// It is written `P[n]Y[n]M[n]DT[n]H[n]M[n]S` or `P[n]W` (NGSI-LD clause 4.5.19.1). Zero is a duration (`PT0S`, `P0D`),
+/// which an aggregation reads as the whole time range of its temporal query.
 ///
 /// The duration keeps its units as written, so `PT90M` is printed back as `PT90M`, not `PT1H30M`; zero, which has no
 /// unit left, is printed `PT0S`.

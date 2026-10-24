@@ -1,7 +1,8 @@
 //! The `type` member of the documents of the subscription family.
 
-/// The `type` of a document of the subscription family, spelled as the specification writes it. A reader refuses a
-/// document whose `type` is another one
+/// The `type` of a document of the subscription family.
+///
+/// It is spelled as the specification writes it. A reader refuses a document whose `type` is another one
 /// ([`ReadErrorKind::WrongType`](crate::subscription::ReadErrorKind::WrongType)).
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification add documents.

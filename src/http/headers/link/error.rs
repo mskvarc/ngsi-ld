@@ -10,7 +10,9 @@ use crate::http::headers::InvalidFieldValue;
 use iri_rs::InvalidIri;
 use mediatype::MediaTypeError;
 
-/// A link parameter this crate reads (RFC 8288 section 3.4).
+/// A link parameter this crate reads.
+///
+/// RFC 8288 section 3.4.
 ///
 /// Non-exhaustive: further parameters may be read in later versions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString)]

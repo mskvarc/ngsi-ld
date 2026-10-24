@@ -1,4 +1,6 @@
-//! `GeoJSON` geometries, the values of a `GeoProperty` (NGSI-LD clause 4.7.1, IETF RFC 7946).
+//! `GeoJSON` geometries, the values of a `GeoProperty`.
+//!
+//! NGSI-LD clause 4.7.1, IETF RFC 7946.
 //!
 //! Clause 4.7.1 admits every RFC 7946 geometry except `GeometryCollection`. The geometry types here enforce the
 //! structural rules of RFC 7946 section 3.1 on construction: a position has two or three numbers, a line string
@@ -54,9 +56,10 @@ mod linear_ring;
 mod polygon;
 mod position;
 
-/// The shape of a `GeoJSON` geometry NGSI-LD accepts (NGSI-LD clause 4.7.1): every RFC 7946 geometry except
-/// `GeometryCollection`. The set is closed by the clause, so the enum is exhaustive. Its JSON form is read and
-/// written by the `json` submodule.
+/// The shape of a `GeoJSON` geometry NGSI-LD accepts.
+///
+/// It is every RFC 7946 geometry except `GeometryCollection` (NGSI-LD clause 4.7.1). The set is closed by the clause,
+/// so the enum is exhaustive. Its JSON form is read and written by the `json` submodule.
 ///
 /// A shape stands alone where a bounding box cannot be written: the reference geometry of a geoquery (clause
 /// 5.2.13) and the origin of an ordering (clause 4.23.3). Everywhere else a [`Geometry`] holds it.
@@ -87,10 +90,14 @@ pub enum Shape {
     MultiPolygon(Vec<Polygon>),
 }
 
-/// A `GeoJSON` geometry object (RFC 7946 section 3.1): a [`Shape`], an optional bounding box (RFC 7946 section 5)
-/// of the shape's dimension, and the foreign members the object carries (RFC 7946 section 6.1), which are written
-/// back as they were read. It is the value of a `GeoProperty`, the `location`, `observationSpace` and
-/// `operationSpace` of a registration, and the `geometry` of a `Feature`.
+/// A `GeoJSON` geometry object.
+///
+/// RFC 7946 section 3.1 defines it. It holds a [`Shape`], an optional bounding box (RFC 7946 section 5) of the shape's
+/// dimension, and the foreign members the object carries (RFC 7946 section 6.1), which are written back as they were
+/// read.
+///
+/// It is the value of a `GeoProperty`, the `location`, `observationSpace` and `operationSpace` of a registration, and
+/// the `geometry` of a `Feature`.
 ///
 /// ```
 /// use ngsi_ld::model::geometry::{BoundingBox, Geometry, Position, Shape};

@@ -34,8 +34,10 @@ use bon::bon;
 use jstrict::Value as Json;
 use std::num::NonZeroU64;
 
-/// The temporal evolution of an entity in normalized or concise representation (NGSI-LD clauses 4.5.6 and
-/// 5.2.20): the entity's members, with every attribute replaced by the sequence of its instances over time.
+/// The temporal evolution of an entity in normalized or concise representation.
+///
+/// It holds the entity's members, with every attribute replaced by the sequence of its instances over time (NGSI-LD
+/// clauses 4.5.6 and 5.2.20).
 ///
 /// `D` is the direction: [`Input`] for what Create or Update Temporal Evolution sends (clause 5.6.11.3), where an
 /// instance may name its `instanceId` (see [`EntityDirection::TemporalInstanceId`]) but holds no system member and no
@@ -260,10 +262,9 @@ impl<C: Completeness> TemporalEntity<Output, C> {
 impl<C: Completeness> TemporalEntity<Output, C> {
     /// Adds the instances of `later`, the answer to the request for the rest of the time range a 206 Partial Content
     /// answer did not cover (clause 6.3.10), dropping each instance this entity already holds: the instances recorded
-    /// at the boundary of two ranges come back in both answers (see
-    /// [`Coverage::following_query`](crate::http::Coverage::following_query)). Two instances are the same
-    /// when they carry the same `instanceId` (clause 4.5.7), or, when one carries none, when they are equal. The
-    /// scope's instances are joined the same way; the other members are this entity's.
+    /// at the boundary of two ranges come back in both answers (see `http::Coverage::following_query`, with the `http`
+    /// feature). Two instances are the same when they carry the same `instanceId` (clause 4.5.7), or, when one carries
+    /// none, when they are equal. The scope's instances are joined the same way; the other members are this entity's.
     pub fn absorb(&mut self, later: TemporalEntity<Output, C>) {
         self.attributes.absorb(later.attributes);
         for instance in later.scope {

@@ -9,12 +9,14 @@ use headers::HeaderMapExt;
 use http::Request;
 use url::Url;
 
-/// The request a response answers, as far as decoding the response depends on it: the request URL, against which a
-/// relative `Link` target is resolved (RFC 8288 section 3.2 makes the request URI the default context of a link),
-/// the tenant the request addressed, which the following pages of a query must address too (NGSI-LD clauses
-/// 6.3.10 and 6.3.14), the snapshot it was aimed at, which they must be aimed at too (clause 6.3.22), and the entity
-/// map the request asked the broker to use, which keeps the following pages
-/// consistent (clause 4.3.6.7).
+/// The request a response answers, as far as decoding the response depends on it.
+///
+/// It holds the request URL, against which a relative `Link` target is resolved (RFC 8288 section 3.2 makes the request
+/// URI the default context of a link), and the tenant the request addressed, which the following pages of a query must
+/// address too (NGSI-LD clauses 6.3.10 and 6.3.14).
+///
+/// It also holds the snapshot the request was aimed at, which the following pages must be aimed at too (clause 6.3.22),
+/// and the entity map the request asked the broker to use, which keeps the following pages consistent (clause 4.3.6.7).
 ///
 /// It is read from the request that was sent, so it states what reached the broker rather than what the caller
 /// meant to send.

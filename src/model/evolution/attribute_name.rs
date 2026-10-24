@@ -4,11 +4,13 @@
 use crate::model::{AttributeName, NameError, ReservedMember};
 use std::str::FromStr;
 
-/// A name the `attrs` of Retrieve or Query Temporal Evolution takes (Tables 6.18.3.2-1 and 6.19.3.1-1): an
-/// attribute, or `scope`. Clause 4.18 represents the scope of an entity as a Property that is non-reified in the
-/// normalized representation and reified in the temporal one, so a temporal request asks for its evolution like an
-/// attribute's: clause C.5.16.2 sends `attrs=speed,scope`. Outside the temporal API `scope` is never an attribute
-/// name, so [`AttributeName`] refuses it.
+/// A name the `attrs` of Retrieve or Query Temporal Evolution takes.
+///
+/// It is an attribute, or `scope` (NGSI-LD Tables 6.18.3.2-1 and 6.19.3.1-1).
+///
+/// Clause 4.18 represents the scope of an entity as a Property that is non-reified in the normalized representation and
+/// reified in the temporal one, so a temporal request asks for its evolution like an attribute's: clause C.5.16.2 sends
+/// `attrs=speed,scope`. Outside the temporal API `scope` is never an attribute name, so [`AttributeName`] refuses it.
 ///
 /// The enum is exhaustive: clause 4.18 makes the scope the only non-reified member the temporal representation
 /// reifies.
@@ -50,8 +52,10 @@ impl FromStr for TemporalAttributeName {
 }
 
 draft!(
-    /// A name of the `attrs` of a temporal request given to a builder: a [`TemporalAttributeName`], or text validated
-    /// when the builder finishes, so every invalid name is reported together.
+    /// A name of the `attrs` of a temporal request given to a builder.
+    ///
+    /// It is a [`TemporalAttributeName`], or text validated when the builder finishes, so every invalid name is
+    /// reported together.
     ///
     /// ```
     /// use ngsi_ld::model::evolution::{TemporalAttributeName, TemporalAttributeNameDraft};

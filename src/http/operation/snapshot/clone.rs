@@ -21,8 +21,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// Clones a snapshot (NGSI-LD clause 5.16.2): `POST /snapshots/{snapshotId}/clone` with the [`SnapshotClone`] as the
-/// body (clause 6.38.3.1).
+/// Clones a snapshot.
+///
+/// NGSI-LD clause 5.16.2 defines the operation. Its request is `POST /snapshots/{snapshotId}/clone` with the
+/// [`SnapshotClone`] as the body (clause 6.38.3.1).
 ///
 /// The broker answers 201 with the location of the clone, whose last path segment is the clone's id.
 ///

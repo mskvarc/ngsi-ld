@@ -12,8 +12,9 @@ use crate::http::headers::{
 };
 use http::{HeaderName, HeaderValue, header::FORWARDED};
 
-/// A `Forwarded` header (RFC 7239): what each proxy on the way learnt of a request, one element per proxy, from the
-/// client outwards.
+/// A `Forwarded` header: what each proxy on the way learnt of a request.
+///
+/// RFC 7239 defines the header. It holds one element per proxy, from the client outwards.
 ///
 /// Decoding reads any valid list, across all its lines, in order. It refuses a repeated parameter (RFC 7239 section
 /// 4) and an element with no parameter, and it refuses an extension parameter (section 5.5) too: this crate has no

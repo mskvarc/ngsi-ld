@@ -22,7 +22,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// Creates a snapshot (NGSI-LD clause 5.16.1): `POST /snapshots` with the snapshot as the body (clause 6.36.3.1).
+/// Creates a snapshot.
+///
+/// NGSI-LD clause 5.16.1 defines the operation. Its request is `POST /snapshots` with the snapshot as the body (clause
+/// 6.36.3.1).
 ///
 /// The broker answers 201 with the location of the snapshot, whose last path segment is its id, generated when the
 /// snapshot names none (clause 5.16.1.4); the snapshot is `preparing` until its queries have run.

@@ -33,8 +33,9 @@ pub(crate) mod read;
 pub(crate) mod shape;
 pub(crate) mod write;
 
-/// The representation of entities a request asks for, or a document is written in (NGSI-LD clause 6.3.7, the
-/// `format` parameter). The specification closes the set, so the enum is exhaustive.
+/// The representation of entities a request asks for, or a document is written in.
+///
+/// It is the `format` parameter of NGSI-LD clause 6.3.7. The specification closes the set, so the enum is exhaustive.
 ///
 /// Normalized and concise are two lossless spellings of the same information; any [`Entity`] is written in
 /// either and read from either. Simplified (clause 4.5.4) is lossy and has its own model,
@@ -52,8 +53,9 @@ pub enum Representation {
     Simplified,
 }
 
-/// The two lossless representations, normalized and concise, which an [`Entity`] can be read from and written
-/// in.
+/// The two lossless representations, normalized and concise.
+///
+/// An [`Entity`] can be read from and written in either.
 ///
 /// Reading: in normalized form the `type` member decides an attribute's kind. In concise form the kind is inferred
 /// by the rules of clauses 4.5.2.3, 4.5.3.3, 4.5.18.3, 4.5.20.3, 4.5.21.3, 4.5.22.3, 4.5.24.3 and 4.7.3, applied in

@@ -15,7 +15,9 @@ use crate::{
 use jstrict::{Object, Value as Json, object::Entry};
 use std::num::NonZeroU64;
 
-/// A member of the `TemporalQuery` object (Table 5.2.21-1).
+/// A member of the `TemporalQuery` object.
+///
+/// NGSI-LD Table 5.2.21-1.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification may add members to the table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr)]
@@ -44,7 +46,9 @@ pub enum TemporalQueryMember {
     AggrPeriodDuration,
 }
 
-/// Why JSON data is not a `TemporalQuery` object (NGSI-LD clause 5.2.21); a reader reports it as a
+/// Why JSON data is not a `TemporalQuery` object.
+///
+/// NGSI-LD clause 5.2.21 defines the object. A reader reports the error as a
 /// [`DocumentError<TemporalQueryError>`](DocumentError), whose `path` names the member at fault.
 // `DurationError` chains `jiff`'s error, which carries no equality, so neither can this error.
 #[derive(Debug, thiserror::Error)]

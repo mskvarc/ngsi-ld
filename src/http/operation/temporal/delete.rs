@@ -2,7 +2,9 @@
 
 use crate::{http::path::ResourcePath, model::EntityId};
 
-/// `DELETE /temporal/entities/{entityId}`: deletes the temporal evolution of an entity (NGSI-LD clause 6.19.3.2).
+/// Deletes the temporal evolution of an entity.
+///
+/// Its request is `DELETE /temporal/entities/{entityId}` (NGSI-LD clause 6.19.3.2).
 ///
 /// ```
 /// use iri_rs::iri;

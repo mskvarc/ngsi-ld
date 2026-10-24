@@ -25,7 +25,9 @@ use crate::{
 use bon::bon;
 use cefact_units::UnitCode;
 
-/// A `ListProperty`: an ordered list of values (NGSI-LD clauses 4.5.21 and 5.2.36).
+/// A `ListProperty`: an ordered list of values.
+///
+/// NGSI-LD clauses 4.5.21 and 5.2.36.
 ///
 /// Build one with [`ListProperty::builder`]; read one from a document through the representation parsers.
 ///
@@ -153,7 +155,9 @@ impl ListProperty<Output> {
     }
 }
 
-/// The members a `ListProperty` has only in a response (NGSI-LD clauses 4.5.21.2 and Table 5.2.36-2).
+/// The members a `ListProperty` has only in a response.
+///
+/// NGSI-LD clauses 4.5.21.2 and Table 5.2.36-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

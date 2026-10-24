@@ -8,7 +8,9 @@ use jsonld::{
     syntax::{ErrorCode, context::InvalidContext},
 };
 
-/// The JSON-LD processor refused a context or a document, with the error code of JSON-LD 1.1 API section 9.4.2.
+/// The JSON-LD processor refused a context or a document.
+///
+/// The error carries the error code of JSON-LD 1.1 API section 9.4.2.
 ///
 /// The processor's error types are not part of the crate's API: a [`JsonLdError`] carries the JSON-LD error code
 /// in its message and the processor's own error, when there is one, as its source.

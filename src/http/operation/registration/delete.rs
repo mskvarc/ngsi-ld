@@ -2,7 +2,9 @@
 
 use crate::{http::path::ResourcePath, registration::RegistrationId};
 
-/// `DELETE /csourceRegistrations/{registrationId}`: deletes a registration (NGSI-LD clause 6.9.3.3).
+/// Deletes a registration.
+///
+/// Its request is `DELETE /csourceRegistrations/{registrationId}` (NGSI-LD clause 6.9.3.3).
 ///
 /// ```
 /// use iri_rs::iri;

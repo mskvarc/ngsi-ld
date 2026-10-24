@@ -68,8 +68,9 @@ pub trait Direction: sealed::Sealed + Debug + Clone + Copy + PartialEq + Eq + De
     fn lacks<T: Debug + Clone + PartialEq + Eq>(seal: Seal, member: &Self::Member<T>) -> bool;
 }
 
-/// A direction whose attributes hold their optional members as they are, [`Input`] or [`Output`], unlike a
-/// [`Patch`], which holds changes to them.
+/// A direction whose attributes hold their optional members as they are.
+///
+/// It is [`Input`] or [`Output`], unlike a [`Patch`], which holds changes to them.
 ///
 /// The trait is sealed, as [`Direction`] is.
 pub trait Plain: Direction {
@@ -82,19 +83,25 @@ pub trait Plain: Direction {
     fn into_member<T: Debug + Clone + PartialEq + Eq>(seal: Seal, member: Self::Member<T>) -> Option<T>;
 }
 
-/// A document a client sends to create or replace an element (Create Entity, Replace Entity, Replace
-/// Attribute, Append Attributes). It holds neither system members nor the NGSI-LD Null.
+/// A document a client sends to create or replace an element.
+///
+/// Create Entity, Replace Entity, Replace Attribute and Append Attributes send it. It holds neither system members nor
+/// the NGSI-LD Null.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Input;
 
-/// A fragment that changes an existing element (NGSI-LD clause 5.4): Merge Entity, Update Attributes, Partial
-/// Attribute Update. Every attribute is a [`Change`], so a fragment can delete what it names.
+/// A fragment that changes an existing element.
+///
+/// Merge Entity, Update Attributes and Partial Attribute Update send it (NGSI-LD clause 5.4). Every attribute is a
+/// [`Change`], so a fragment can delete what it names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Patch;
 
-/// A document a broker returns (Retrieve Entity, Query Entities, notifications). It may hold the system members
-/// of clause 5.2.2 and the other output-only members: the `previous*` members of notifications, the linked
-/// entities of inline retrieval (clause 4.5.23.2) and the `lang` of the language filter (clause 4.15).
+/// A document a broker returns.
+///
+/// Retrieve Entity, Query Entities and notifications carry it. It may hold the system members of NGSI-LD clause 5.2.2
+/// and the other output-only members: the `previous*` members of notifications, the linked entities of inline retrieval
+/// (clause 4.5.23.2) and the `lang` of the language filter (clause 4.15).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Output;
 
@@ -182,7 +189,9 @@ impl Plain for Output {
     }
 }
 
-/// The members of an attribute only a broker writes (NGSI-LD clauses 5.2.2, 5.2.5-2, 5.2.6-2, 5.2.7-2).
+/// The members of an attribute only a broker writes.
+///
+/// NGSI-LD clauses 5.2.2, 5.2.5-2, 5.2.6-2, 5.2.7-2.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub struct AttributeOutputMembers {
     /// `createdAt`.
@@ -195,7 +204,9 @@ pub struct AttributeOutputMembers {
     pub instance_id: Option<InstanceId>,
 }
 
-/// The members of an entity only a broker writes (NGSI-LD clause 5.2.2).
+/// The members of an entity only a broker writes.
+///
+/// NGSI-LD clause 5.2.2.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub struct EntityOutputMembers {
     /// `createdAt`.
@@ -206,10 +217,13 @@ pub struct EntityOutputMembers {
     pub deleted_at: Option<DateTime>,
 }
 
-/// One change a fragment makes to an attribute (NGSI-LD clauses 5.4, 5.5.8 and 5.5.12). `X` is the deletion the
-/// fragment can write: a [`Deletion`] in an entity fragment, where an attribute is a member of the entity; an
-/// [`InstanceDeletion`] in the attribute fragment of Partial Attribute Update (clause 6.7.3.1), whose body is an
-/// object.
+/// One change a fragment makes to an attribute.
+///
+/// NGSI-LD clauses 5.4, 5.5.8 and 5.5.12.
+///
+/// `X` is the deletion the fragment can write: a [`Deletion`] in an entity fragment, where an attribute is a member of
+/// the entity; an [`InstanceDeletion`] in the attribute fragment of Partial Attribute Update (clause 6.7.3.1), whose
+/// body is an object.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]
 pub enum Change<T, X = Deletion> {
     /// Write the attribute: add it, or replace (or merge into) the instance with the same dataset id.
@@ -218,7 +232,9 @@ pub enum Change<T, X = Deletion> {
     Delete(X),
 }
 
-/// A deletion in a fragment: the NGSI-LD Null of clause 4.5.0, written in the shape the attribute kind needs.
+/// A deletion in a fragment: the NGSI-LD Null.
+///
+/// The Null is the one of NGSI-LD clause 4.5.0, written in the shape the attribute kind needs.
 ///
 /// The caller never spells `urn:ngsi-ld:null` nor picks the shape: the representation writes it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::IsVariant, derive_more::From)]
@@ -243,11 +259,14 @@ impl Deletion {
     }
 }
 
-/// The deletion of one instance of an attribute of a known kind: `{"type": kind, <payload>: NGSI-LD Null}`, with
-/// the dataset id when one instance among several is meant (clauses 4.5.0 and 5.5.8). Clauses 4.5.2.2, 4.5.3.2 and
-/// their counterparts let the Null stand as the payload of a partial update patch or a merge patch to delete the
-/// attribute; the shape of the Null follows the kind: `"urn:ngsi-ld:null"`, `["urn:ngsi-ld:null"]` for the list
-/// kinds, `{"@none": "urn:ngsi-ld:null"}` for a language map.
+/// The deletion of one instance of an attribute of a known kind.
+///
+/// It is written `{"type": kind, <payload>: NGSI-LD Null}`, with the dataset id when one instance among several is
+/// meant (NGSI-LD clauses 4.5.0 and 5.5.8).
+///
+/// Clauses 4.5.2.2, 4.5.3.2 and their counterparts let the Null stand as the payload of a partial update patch or a
+/// merge patch to delete the attribute; the shape of the Null follows the kind: `"urn:ngsi-ld:null"`,
+/// `["urn:ngsi-ld:null"]` for the list kinds, `{"@none": "urn:ngsi-ld:null"}` for a language map.
 ///
 /// ```
 /// use iri_rs::iri;

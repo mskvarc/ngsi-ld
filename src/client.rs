@@ -1,4 +1,6 @@
-//! The client: an [`Endpoint`](crate::http::Endpoint), which names the default tenant, a [`Transport`], and resource
+//! A client for a context broker.
+//!
+//! A client holds an [`Endpoint`](crate::http::Endpoint), which names the default tenant, a [`Transport`], and resource
 //! handles whose operation builders finish with `send()`.
 //!
 //! # Clients and transports

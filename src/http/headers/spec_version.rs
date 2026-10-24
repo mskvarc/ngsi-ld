@@ -3,7 +3,9 @@
 
 use std::{fmt, num::ParseIntError, str::FromStr};
 
-/// An NGSI-LD specification version, `major.minor` with an optional `.patch` (NGSI-LD clause 4.3.6.8).
+/// An NGSI-LD specification version, `major.minor` with an optional `.patch`.
+///
+/// NGSI-LD clause 4.3.6.8.
 ///
 /// Clause 4.3.6.8 names versions as `major.minor`; a `Preference-Applied` value may also carry a patch level, as in
 /// `ngsi-ld=1.8.1`. A version displays exactly as it was written, so `1.8` and `1.8.0` are different values.

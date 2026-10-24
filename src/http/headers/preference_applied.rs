@@ -17,8 +17,10 @@ static PREFERENCE_APPLIED: HeaderName = HeaderName::from_static("preference-appl
 /// The name of the NGSI-LD version preference (clause 6.3.6).
 pub(crate) const NGSI_LD_PREFERENCE: &str = "ngsi-ld";
 
-/// The `Preference-Applied` header as NGSI-LD uses it: the version a broker amended a payload to (NGSI-LD clauses
-/// 4.3.6.8 and 6.3.6), as in `Preference-Applied: ngsi-ld=1.8.1` on a 203 response.
+/// The `Preference-Applied` header: the version a broker amended a payload to.
+///
+/// NGSI-LD uses the header this way in clauses 4.3.6.8 and 6.3.6, as in `Preference-Applied: ngsi-ld=1.8.1` on a 203
+/// response.
 ///
 /// Decoding reads the first `ngsi-ld` preference of the field (RFC 7240 section 2 makes the first occurrence of a
 /// preference the one that counts) and ignores every other preference, which this crate does not ask for. A field

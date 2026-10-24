@@ -15,10 +15,12 @@ use crate::model::{
     attribute::pending::{insert, resolve_name},
 };
 
-/// An optional member of an attribute a fragment may delete with the NGSI-LD Null (clause 5.5.8): every member
-/// besides the payload, whose Null deletes the attribute itself (clauses 4.5.2.2, 4.5.3.2 and their counterparts),
-/// and besides `datasetId`, which clause 5.5.8 says "cannot be deleted by setting it to the value
-/// "urn:ngsi-ld:null"". The variants are written as the specification spells the members.
+/// An optional member of an attribute a fragment may delete with the NGSI-LD Null.
+///
+/// NGSI-LD clause 5.5.8 allows the deletion. The members are every member besides the payload, whose Null deletes the
+/// attribute itself (clauses 4.5.2.2, 4.5.3.2 and their counterparts), and besides `datasetId`, which clause 5.5.8 says
+/// "cannot be deleted by setting it to the value "urn:ngsi-ld:null"". The variants are written as the specification
+/// spells the members.
 ///
 /// The enum is `#[non_exhaustive]`: a later version of the specification may give attributes more optional members.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr, strum::EnumIter)]
@@ -41,8 +43,10 @@ pub enum PatchMember {
     ObjectType,
 }
 
-/// The attribute kind has no such member: a Relationship has no `unitCode` or `valueType`, and only the
-/// relationship kinds have an `objectType` (clauses 4.5.2.2, 4.5.3.2 and their counterparts).
+/// The attribute kind has no such member.
+///
+/// A Relationship has no `unitCode` or `valueType`, and only the relationship kinds have an `objectType` (NGSI-LD
+/// clauses 4.5.2.2, 4.5.3.2 and their counterparts).
 ///
 /// The struct is `#[non_exhaustive]`: its fields are readable, and only the crate builds it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]

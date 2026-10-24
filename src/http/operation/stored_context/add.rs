@@ -22,7 +22,9 @@ use bytes::Bytes;
 use http::{Method, Request, Response};
 use indexmap::IndexMap;
 
-/// `POST /jsonldContexts`: stores a context at the broker, which serves it from then on (NGSI-LD clause 6.29.3.1).
+/// Stores a context at the broker, which serves it from then on.
+///
+/// Its request is `POST /jsonldContexts` (NGSI-LD clause 6.29.3.1).
 ///
 /// The body is `{"@context": <context>}`, followed by the members of `extra_members` in order, sent as
 /// `application/ld+json` with no `Link` header (clause 6.3.5). The broker discards every member beside `@context`

@@ -9,7 +9,9 @@ use crate::{
 };
 use std::num::NonZeroU32;
 
-/// The joins that keep the answer of Retrieve Entity one entity: `inline` and `@none` (NGSI-LD clause 4.5.23).
+/// The joins that keep the answer of Retrieve Entity one entity: `inline` and `@none`.
+///
+/// NGSI-LD clause 4.5.23.
 ///
 /// A flattened join answers with an array of entities instead (clause 4.5.23.3), so it is asked for through
 /// [`Flattened`], which changes the type of the answer.
@@ -38,8 +40,10 @@ impl From<InlineJoin> for Join {
     }
 }
 
-/// Asks Retrieve Entity for a flattened join (`join=flat`, NGSI-LD clause 4.5.23.3): the target entity and the
-/// entities its relationships target, as an array.
+/// Asks Retrieve Entity for a flattened join.
+///
+/// The answer is the target entity and the entities its relationships target, as an array (`join=flat`, NGSI-LD clause
+/// 4.5.23.3).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Flattened;
 

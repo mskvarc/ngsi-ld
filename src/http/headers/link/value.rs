@@ -39,7 +39,9 @@ const NOT_IN_IRI: &AsciiSet = &CONTROLS
 /// query writes them verbatim for compound value paths (NGSI-LD clause 4.9).
 const NOT_IN_IRI_QUERY: &AsciiSet = &NOT_IN_IRI.add(b'[').add(b']');
 
-/// One link-value: a target and the parameters NGSI-LD reads from it (RFC 8288 section 3).
+/// One link-value: a target and the parameters NGSI-LD reads from it.
+///
+/// RFC 8288 section 3.
 ///
 /// The target is an IRI reference because pagination links are relative (`</ngsi-ld/v1/entities?offset=2>`), while
 /// context links are absolute. Of the parameters, `rel`, `type` and `profile` are kept; every other one is ignored.

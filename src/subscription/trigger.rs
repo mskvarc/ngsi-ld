@@ -5,7 +5,9 @@ use std::{
     iter::Copied,
 };
 
-/// A kind of change that triggers a notification (Table 5.2.12-1).
+/// A kind of change that triggers a notification.
+///
+/// NGSI-LD Table 5.2.12-1.
 ///
 /// The enum is exhaustive: the table lists exactly these six triggers. They are ordered as the table lists them,
 /// which is the order a set of triggers is written in.
@@ -55,8 +57,10 @@ pub enum NotificationTriggersError {
     },
 }
 
-/// The non-empty set of triggers a subscription notifies on (Table 5.2.12-1), written in the order the table lists
-/// them; a subscription without one notifies on `attributeCreated` and `attributeUpdated`.
+/// The non-empty set of triggers a subscription notifies on.
+///
+/// It is written in the order NGSI-LD Table 5.2.12-1 lists the triggers; a subscription without one notifies on
+/// `attributeCreated` and `attributeUpdated`.
 ///
 /// ```
 /// use ngsi_ld::subscription::{NotificationTrigger, NotificationTriggers};

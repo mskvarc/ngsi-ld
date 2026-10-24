@@ -5,8 +5,10 @@ use crate::{
     model::{ErrorType, ProblemDetails},
 };
 
-/// Why a call failed: the request was refused before sending, the broker answered with an error or with
-/// something the operation does not define, or the transport failed (`E` is the transport's own error).
+/// Why a call failed.
+///
+/// The request was refused before sending, the broker answered with an error or with something the operation does not
+/// define, or the transport failed (`E` is the transport's own error).
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum ClientError<E> {

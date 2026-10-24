@@ -20,8 +20,9 @@ use crate::model::{
 };
 use jstrict::{Value as Json, object::Entry};
 
-/// The entity types a broker holds instances of (NGSI-LD clauses 4.5.10 and 5.2.24), the answer of Retrieve
-/// Available Entity Types.
+/// The entity types a broker holds instances of.
+///
+/// It is the answer of Retrieve Available Entity Types (NGSI-LD clauses 4.5.10 and 5.2.24).
 ///
 /// ```
 /// use ngsi_ld::model::discovery::EntityTypeList;
@@ -97,8 +98,9 @@ impl EntityTypeList {
     }
 }
 
-/// One entity type with the names of the attributes its instances have (NGSI-LD clauses 4.5.11 and 5.2.25): an
-/// element of the answer of Retrieve Details of Available Entity Types.
+/// One entity type with the names of the attributes its instances have.
+///
+/// It is an element of the answer of Retrieve Details of Available Entity Types (NGSI-LD clauses 4.5.11 and 5.2.25).
 ///
 /// Clause 5.2.25 names this data type `EntityType`, its `type` token; the crate keeps that name for the `type`
 /// member of an entity.
@@ -187,8 +189,9 @@ impl EntityTypeDetails {
     }
 }
 
-/// What a broker holds of one entity type (NGSI-LD clauses 4.5.12 and 5.2.26): the answer of Retrieve Available
-/// Entity Type Information.
+/// What a broker holds of one entity type.
+///
+/// It is the answer of Retrieve Available Entity Type Information (NGSI-LD clauses 4.5.12 and 5.2.26).
 ///
 /// Clause 4.5.12 lists only `id`, `type` and `typeName` as mandatory; Table 5.2.26-1, which clause 5.7.7.5 names
 /// as the output of the operation, makes `attributeDetails` and `entityCount` mandatory too, so they are required.

@@ -14,8 +14,9 @@ use iri_rs::Iri;
 use jstrict::{Object, Value as Json, parse::parse_slice_value};
 use mediatype::{MediaType, MediaTypeBuf, names};
 
-/// Where a [`ContextLoader`] fetches a context. The two sources are the only ones the loader has, so the enum is
-/// exhaustive.
+/// Where a [`ContextLoader`] fetches a context.
+///
+/// The two sources are the only ones the loader has, so the enum is exhaustive.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ContextSource {
     /// From the context's own URL, as the JSON-LD 1.1 API `LoadDocumentCallback` does (section 9.4).
@@ -27,6 +28,7 @@ pub enum ContextSource {
 }
 
 /// Whether a [`ContextLoader`] fetching a context [`Direct`](ContextSource::Direct)ly requires a JSON media type.
+///
 /// A loader either checks or does not, so the enum is exhaustive.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum MediaTypeCheck {
@@ -38,7 +40,9 @@ pub enum MediaTypeCheck {
     Ignored,
 }
 
-/// Why a [`ContextLoader`] could not load a context; `E` is the error of the client's transport.
+/// Why a [`ContextLoader`] could not load a context.
+///
+/// `E` is the error of the client's transport.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum ContextLoadError<E> {
@@ -84,7 +88,9 @@ pub enum ContextLoadError<E> {
     },
 }
 
-/// A [`RemoteContextLoader`] over a [`Client`]'s transport, built with [`Client::context_loader`].
+/// A [`RemoteContextLoader`] over a [`Client`]'s transport.
+///
+/// It is built with [`Client::context_loader`].
 ///
 /// The loader fetches a context either from its own URL, as the `LoadDocumentCallback` of the JSON-LD 1.1 API
 /// (section 9.4) does, or from the broker the client speaks to, through the Serve @context operation (NGSI-LD

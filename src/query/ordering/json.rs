@@ -18,7 +18,9 @@ use crate::{
 };
 use jstrict::{Object, Value as Json, object::Entry};
 
-/// A member of the `OrderingParams` object (Table 5.2.43-1).
+/// A member of the `OrderingParams` object.
+///
+/// NGSI-LD Table 5.2.43-1.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification may add members to the table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr)]
@@ -38,7 +40,9 @@ pub enum OrderingParamsMember {
     Coordinates,
 }
 
-/// Why JSON data is not an `OrderingParams` object (NGSI-LD clause 5.2.43); a reader reports it as a
+/// Why JSON data is not an `OrderingParams` object.
+///
+/// NGSI-LD clause 5.2.43 defines the object. A reader reports the error as a
 /// [`DocumentError<OrderingParamsError>`](DocumentError), whose `path` names the member at fault.
 // `ParseError` carries no `Clone` or equality, so neither can the error that chains it.
 #[derive(Debug, thiserror::Error)]

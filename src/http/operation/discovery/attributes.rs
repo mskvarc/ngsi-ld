@@ -23,8 +23,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `GET /attributes`: the attributes the broker holds instances of (NGSI-LD clause 6.27.3.1), as an
-/// [`AttributeList`].
+/// Lists the attributes the broker holds.
+///
+/// Its request is `GET /attributes` (NGSI-LD clause 6.27.3.1), answered with an [`AttributeList`] of the attributes the
+/// broker holds instances of.
 ///
 /// ```
 /// use ngsi_ld::http::{

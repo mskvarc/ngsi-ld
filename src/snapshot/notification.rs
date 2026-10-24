@@ -24,8 +24,10 @@ use crate::{
 use bon::bon;
 use jstrict::{Object, Value as Json, object::Entry};
 
-/// A snapshot notification (NGSI-LD clause 5.3.4): sent once the queries of a snapshot have run and after every
-/// update of its status (clause 5.16.6), to the snapshot's `endpoint`.
+/// A snapshot notification, sent to the snapshot's `endpoint`.
+///
+/// NGSI-LD clause 5.3.4 defines it. It is sent once the queries of a snapshot have run and after every update of its
+/// status (clause 5.16.6).
 ///
 /// The status is a [`SettledStatus`]: Table 5.3.4-1 does not list `preparing`. The table spells the details of the
 /// temporal queries `temporalSnapshotQueriesDetails`, unlike the `snapshotTemporalQueriesDetails` of a snapshot

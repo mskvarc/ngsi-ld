@@ -4,8 +4,9 @@
 
 use crate::model::{ContextError, ContextSourceAliasError, DurationError, NameError, ScopeError, TemporalError, UriError, ValueError, geometry::GeometryError};
 
-/// What is wrong with a member, whatever the document; both
-/// [`DocumentErrorKind`](crate::model::DocumentErrorKind) and
+/// What is wrong with a member, whatever the document.
+///
+/// Both [`DocumentErrorKind`](crate::model::DocumentErrorKind) and
 /// [`ReadErrorKind`](crate::subscription::ReadErrorKind) hold it.
 ///
 /// Readers of future versions of the specification may meet new problems, so the enum is `#[non_exhaustive]`.

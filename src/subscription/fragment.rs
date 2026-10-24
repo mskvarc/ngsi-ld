@@ -34,7 +34,9 @@ use url::Url;
 
 pub(super) mod builder;
 
-/// The changes Update Subscription applies to a subscription (NGSI-LD clauses 5.4, 5.8.2 and 5.11.3).
+/// The changes Update Subscription applies to a subscription.
+///
+/// NGSI-LD clauses 5.4, 5.8.2 and 5.11.3.
 ///
 /// Each member a fragment gives replaces the subscription's member, and a member whose value is the NGSI-LD Null
 /// removes it (clause 5.4). A fragment names only the optional members it deletes, through [`SubscriptionMember`],

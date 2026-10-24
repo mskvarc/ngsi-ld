@@ -12,7 +12,9 @@ use crate::{
 use http::StatusCode;
 use std::num::NonZeroU64;
 
-/// Whether an answer holds every instance of the requested time range (NGSI-LD clause 6.3.10).
+/// Whether an answer holds every instance of the requested time range.
+///
+/// NGSI-LD clause 6.3.10.
 ///
 /// A broker that cannot answer a temporal request at once answers 206 Partial Content with a `Content-Range` naming
 /// the part it covers; every other success covers the whole range. The header is an [`OptionalHeader`]: a 206

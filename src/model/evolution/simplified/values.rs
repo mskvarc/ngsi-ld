@@ -20,8 +20,10 @@ use crate::model::{
 };
 use jstrict::{Object, Value as Json, object::Entry};
 
-/// One data point of a simplified temporal attribute: a payload and the time of the Temporal Property it was
-/// recorded at (`observedAt` unless the temporal query names another, clause 4.5.9).
+/// One data point of a simplified temporal attribute.
+///
+/// It holds a payload and the time of the Temporal Property it was recorded at (`observedAt` unless the temporal query
+/// names another, NGSI-LD clause 4.5.9).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TemporalValue<T> {
     /// The payload.
@@ -30,8 +32,9 @@ pub struct TemporalValue<T> {
     pub time: DateTime,
 }
 
-/// The temporal values of one attribute in simplified temporal representation (NGSI-LD clause 4.5.9), one variant
-/// per attribute kind.
+/// The temporal values of one attribute in simplified temporal representation.
+///
+/// There is one variant per attribute kind (NGSI-LD clause 4.5.9).
 ///
 /// The enum is exhaustive: clause 4.5.9 lists a simplified temporal form for each of the eight kinds, which the
 /// specification closes. A payload may be the NGSI-LD Null a broker records for a deleted instance (clause 4.5.0).

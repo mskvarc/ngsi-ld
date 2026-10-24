@@ -79,8 +79,9 @@ pub enum AttributesError {
     },
 }
 
-/// The attributes (or sub-attributes) of an element, by name, in document order (NGSI-LD clauses 4.5.1 and
-/// 5.2.4). Each name holds one or more [`Instances`] of the direction's attribute slot.
+/// The attributes or sub-attributes of an element, by name, in document order.
+///
+/// Each name holds one or more [`Instances`] of the direction's attribute slot (NGSI-LD clauses 4.5.1 and 5.2.4).
 ///
 /// [`Attributes::insert`] and [`Attributes::set`] keep the rules that tie a name to what it may hold: the dataset-id
 /// rules of clause 4.5.5 and the names clause 5.2.4 reserves for a `GeoProperty`.

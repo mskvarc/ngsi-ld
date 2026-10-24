@@ -49,7 +49,9 @@ fn validate_obfuscated(text: &str) -> Result<(), ObfuscatedIdentifierError> {
 )]
 pub struct ObfuscatedIdentifier(String);
 
-/// The name of a node (RFC 7239 section 6): an IP address, `unknown`, or an obfuscated identifier.
+/// The name of a node: an IP address, `unknown`, or an obfuscated identifier.
+///
+/// RFC 7239 section 6.
 ///
 /// The enum is exhaustive: RFC 7239 section 6 defines `nodename` as exactly these forms.
 ///
@@ -89,7 +91,9 @@ impl From<IpAddr> for NodeName {
     }
 }
 
-/// The port of a node (RFC 7239 section 6): a TCP port or an obfuscated identifier.
+/// The port of a node: a TCP port or an obfuscated identifier.
+///
+/// RFC 7239 section 6.
 ///
 /// The enum is exhaustive: RFC 7239 section 6 defines `node-port` as exactly these forms.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display, derive_more::From)]
@@ -114,8 +118,10 @@ pub enum NodeError {
     Port,
 }
 
-/// A node of a `Forwarded` element (RFC 7239 section 6): `nodename [ ":" node-port ]`, the client a request came
-/// from (`for`) or the proxy interface that received it (`by`).
+/// A node of a `Forwarded` element: a client or a proxy interface.
+///
+/// RFC 7239 section 6 writes it `nodename [ ":" node-port ]`. It is the client a request came from (`for`) or the proxy
+/// interface that received it (`by`).
 ///
 /// ```
 /// use ngsi_ld::http::headers::Node;

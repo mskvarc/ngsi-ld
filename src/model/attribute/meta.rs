@@ -19,9 +19,11 @@ use crate::{
     seal::Seal,
 };
 
-/// The members every attribute kind has: the dataset id that tells instances apart (clause 4.5.5), the
-/// `observedAt` and `expiresAt` timestamps (clauses 4.8 and 4.22), the digital signature (`ngsildproof`, clause
-/// 4.5.2.2), the attribute's own sub-attributes, and, in a response, the output-only members every kind shares.
+/// The members every attribute kind has.
+///
+/// They are the dataset id that tells instances apart (NGSI-LD clause 4.5.5), the `observedAt` and `expiresAt`
+/// timestamps (clauses 4.8 and 4.22), the digital signature (`ngsildproof`, clause 4.5.2.2), the attribute's own
+/// sub-attributes, and, in a response, the output-only members every kind shares.
 ///
 /// In a fragment ([`Patch`]) the timestamps are changes: a fragment may delete them with the NGSI-LD Null (clause
 /// 5.5.8), while its `datasetId` names the instance it changes and cannot be deleted.

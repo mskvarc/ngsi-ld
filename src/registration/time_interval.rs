@@ -3,7 +3,9 @@
 
 use crate::model::DateTime;
 
-/// A time interval (NGSI-LD clause 5.2.11): its start, and its end unless it is open.
+/// A time interval: its start, and its end unless it is open.
+///
+/// NGSI-LD clause 5.2.11.
 ///
 /// A registration's `observationInterval` and `managementInterval` are time intervals; whether the end follows the
 /// start is not a rule of Table 5.2.11-1, so it is not checked.

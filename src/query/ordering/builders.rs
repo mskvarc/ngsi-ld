@@ -1,5 +1,5 @@
-//! The builder of entity orderings (NGSI-LD clauses 4.23 and 5.2.43), started by [`by`](crate::query::ordering::by)
-//! and the other starting functions of [`ordering`](crate::query::ordering).
+//! The entity ordering builder, started by [`by`](crate::query::ordering::by) and the other functions of
+//! [`ordering`](crate::query::ordering).
 //!
 //! [`EntityOrderingBuilder`].
 
@@ -19,10 +19,11 @@ fn ordering_key(path: impl Into<PathBuilder>) -> Deferred<OrderingKey> {
     path.into().into_value_path().map(OrderingKey::from)
 }
 
-/// An entity ordering under construction, started by [`by`](crate::query::ordering::by),
-/// [`ascending`](crate::query::ordering::ascending), [`descending`](crate::query::ordering::descending),
-/// [`nearest`](crate::query::ordering::nearest) or [`farthest`](crate::query::ordering::farthest), or from a parsed
-/// [`OrderBy`].
+/// An entity ordering under construction.
+///
+/// It is started by [`by`](crate::query::ordering::by), [`ascending`](crate::query::ordering::ascending),
+/// [`descending`](crate::query::ordering::descending), [`nearest`](crate::query::ordering::nearest) or
+/// [`farthest`](crate::query::ordering::farthest), or from a parsed [`OrderBy`].
 ///
 /// Keys and the collation are validated on the spot, without panicking; [`build`](Self::build) reports every
 /// problem at once.

@@ -8,7 +8,9 @@ use jstrict::{Object, Value as Json};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-/// The type of an NGSI-LD error (NGSI-LD clause 5.5.2, Table 5.5.2-1).
+/// The type of an NGSI-LD error.
+///
+/// NGSI-LD clause 5.5.2, Table 5.5.2-1.
 ///
 /// The twelve types of the table have their own variants; any other problem type a broker reports is kept as
 /// [`ErrorType::Other`], as the IRI reference it was written as. RFC 7807 section 3.1 makes the type a URI reference,
@@ -128,7 +130,9 @@ impl From<ErrorType> for String {
     }
 }
 
-/// The body of an error response (NGSI-LD clause 5.5.3, IETF RFC 7807 section 3.1).
+/// The body of an error response.
+///
+/// NGSI-LD clause 5.5.3, IETF RFC 7807 section 3.1.
 ///
 /// Clause 5.5.3 requires `type`, `title` and `detail`; brokers do not always send all three, so every member is
 /// optional here and a missing one is no reason to lose the rest. A missing `type` means `about:blank` (RFC 7807

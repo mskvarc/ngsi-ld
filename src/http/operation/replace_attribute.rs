@@ -23,8 +23,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `PUT /entities/{entityId}/attrs/{attrId}`: replaces one attribute instance with a complete new one (NGSI-LD
-/// clause 6.7.3.3).
+/// Replaces one attribute instance with a complete new one.
+///
+/// Its request is `PUT /entities/{entityId}/attrs/{attrId}` (NGSI-LD clause 6.7.3.3).
 ///
 /// ```
 /// use iri_rs::iri;

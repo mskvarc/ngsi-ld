@@ -20,7 +20,9 @@ use jstrict::{Object, Value as Json, object::Entry};
 const IDENTITY_TYPE: &str = "ContextSourceIdentity";
 
 uri_identifier!(
-    /// The identifier of a context source: a URI (NGSI-LD Table 5.2.40-1).
+    /// The identifier of a context source: a URI.
+    ///
+    /// NGSI-LD Table 5.2.40-1.
     ///
     /// ```
     /// use iri_rs::iri;
@@ -81,8 +83,10 @@ fn validate_alias(alias: &str) -> Result<(), ContextSourceAliasError> {
 )]
 pub struct ContextSourceAlias(String);
 
-/// The identity of a context source (NGSI-LD clause 5.2.40): what Retrieve Context Source Identity Information
-/// answers. In a broker serving several tenants, it identifies the tenant the request named (clause 5.15.1.1).
+/// The identity of a context source.
+///
+/// It is what Retrieve Context Source Identity Information answers (NGSI-LD clause 5.2.40). In a broker serving several
+/// tenants, it identifies the tenant the request named (clause 5.15.1.1).
 ///
 /// Only a broker writes it; it is read strictly, a member Table 5.2.40-1 does not define failing the read.
 ///

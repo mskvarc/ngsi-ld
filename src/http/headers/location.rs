@@ -4,8 +4,9 @@ use crate::http::headers::{InvalidFieldValue, text_field::TextField};
 use http::{HeaderName, HeaderValue, header::LOCATION};
 use iri_rs::IriRefBuf;
 
-/// The `Location` header: where a created resource lives, such as the relative path of an entity a Create Entity
-/// operation made (NGSI-LD clause 6.4.3.1).
+/// The `Location` header: where a created resource lives.
+///
+/// For instance, it holds the relative path of an entity a Create Entity operation made (NGSI-LD clause 6.4.3.1).
 ///
 /// RFC 9110 makes the value a URI reference, so a relative path is kept as written. The field value is rendered
 /// once, by [`Location::try_new`], and kept: an IRI holding non-ASCII characters cannot be carried verbatim, and

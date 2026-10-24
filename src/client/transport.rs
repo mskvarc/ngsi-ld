@@ -4,8 +4,9 @@ use bytes::Bytes;
 use http::{Request, Response};
 use std::error::Error;
 
-/// Sends HTTP requests. The [`http`](crate::http) binding builds every request and reads every response; a
-/// transport only moves them.
+/// Sends HTTP requests.
+///
+/// The [`http`](crate::http) binding builds every request and reads every response; a transport only moves them.
 ///
 /// It is `Sync` because the client's futures borrow it across the await, and they are `Send`. Implement it to
 /// use any HTTP client, a test double, or a recorded exchange. The `reqwest` feature provides

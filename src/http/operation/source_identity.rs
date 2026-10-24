@@ -20,8 +20,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `GET /info/sourceIdentity`: the identity of the broker, or of the tenant the request names (NGSI-LD clauses
-/// 5.15.1.1 and 6.33.3.1).
+/// Reads the identity of the broker, or of the tenant the request names.
+///
+/// Its request is `GET /info/sourceIdentity` (NGSI-LD clauses 5.15.1.1 and 6.33.3.1).
 ///
 /// A broker that cannot supply it answers 501 with the error type `NotImplemented` (clause 5.15.1.4), which Table
 /// 5.5.2-1 does not list, so the problem's type is read as

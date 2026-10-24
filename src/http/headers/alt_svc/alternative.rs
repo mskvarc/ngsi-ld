@@ -44,8 +44,9 @@ pub enum AltAuthorityError {
     Port,
 }
 
-/// Where an alternative service listens (RFC 7838 section 3): `[ uri-host ] ":" port`, the host omitted when it is
-/// the host of the origin.
+/// Where an alternative service listens: an optional host and a port.
+///
+/// RFC 7838 section 3 writes it `[ uri-host ] ":" port`, the host omitted when it is the host of the origin.
 ///
 /// The host is held as a URL holds it, so the authority always renders as a header can carry it and reads back the
 /// same.
@@ -128,7 +129,9 @@ impl FromStr for AltAuthority {
     }
 }
 
-/// Whether a client keeps an alternative when its network changes (RFC 7838 section 3.1).
+/// Whether a client keeps an alternative when its network changes.
+///
+/// RFC 7838 section 3.1.
 ///
 /// The enum is exhaustive: section 3.1 defines `persist=1` as the one alternative to the default.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -158,9 +161,11 @@ pub enum AlternativeError {
     MaxAge,
 }
 
-/// An alternative service (RFC 7838 section 3): the protocol, as its percent-encoded ALPN id such as `h3`, `h2`
-/// or `http%2F1.1`, the authority it is reached at, how long the advertisement stays fresh (`ma`), and whether it
-/// survives a network change (`persist`).
+/// One alternative service of an `Alt-Svc` header.
+///
+/// RFC 7838 section 3 defines it: the protocol, as its percent-encoded ALPN id such as `h3`, `h2` or `http%2F1.1`, the
+/// authority it is reached at, how long the advertisement stays fresh (`ma`), and whether it survives a network change
+/// (`persist`).
 ///
 /// `ma` is a whole number of seconds; a fraction of a second given to the builder is dropped. Reading an alternative
 /// ignores a parameter RFC 7838 does not define and a `persist` value other than `1`, as section 3 and 3.1 require.

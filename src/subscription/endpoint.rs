@@ -8,7 +8,9 @@ use bon::bon;
 use jstrict::{Object, Value as Json};
 use url::Url;
 
-/// The endpoint a notification is delivered to, and how (NGSI-LD clause 5.2.15).
+/// The endpoint a notification is delivered to, and how.
+///
+/// NGSI-LD clause 5.2.15.
 ///
 /// ```
 /// use ngsi_ld::{model::NgsiLdMediaType, subscription::Endpoint};

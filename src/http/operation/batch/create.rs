@@ -22,9 +22,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `POST /entityOperations/create`: creates every entity of the batch (NGSI-LD clause 6.14.3.1). Of several
-/// instances of one entity, the first creates it and every later one is reported as `AlreadyExists` (clause
-/// 5.5.11.1).
+/// Creates every entity of the batch.
+///
+/// Its request is `POST /entityOperations/create` (NGSI-LD clause 6.14.3.1). Of several instances of one entity, the
+/// first creates it and every later one is reported as `AlreadyExists` (clause 5.5.11.1).
 ///
 /// ```
 /// use iri_rs::iri;

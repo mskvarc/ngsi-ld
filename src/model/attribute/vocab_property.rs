@@ -26,7 +26,9 @@ use crate::{
 };
 use bon::bon;
 
-/// A `VocabProperty`: one or more terms the `@context` coerces into IRIs (NGSI-LD clauses 4.5.20 and 5.2.35).
+/// A `VocabProperty`: one or more terms the `@context` coerces into IRIs.
+///
+/// NGSI-LD clauses 4.5.20 and 5.2.35.
 ///
 /// Build one with [`VocabProperty::builder`] from a term or a `Vec` of terms; read one from a document through the
 /// representation parsers.
@@ -147,7 +149,9 @@ impl VocabProperty<Output> {
     }
 }
 
-/// The members a `VocabProperty` has only in a response (NGSI-LD clauses 4.5.20.2 and Table 5.2.35-2).
+/// The members a `VocabProperty` has only in a response.
+///
+/// NGSI-LD clauses 4.5.20.2 and Table 5.2.35-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

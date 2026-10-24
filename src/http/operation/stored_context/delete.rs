@@ -21,8 +21,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// What Delete and Reload @context does with a stored context (NGSI-LD clause 5.13.5.4, the `reload` parameter of
-/// Table 6.30.3.2-1): removes it, with `reload` left out or stated `false`, or reloads it.
+/// What Delete and Reload @context does with a stored context.
+///
+/// It removes it, with `reload` left out or stated `false`, or reloads it (NGSI-LD clause 5.13.5.4, the `reload`
+/// parameter of Table 6.30.3.2-1).
 ///
 /// The enum is exhaustive: a boolean parameter is absent, `false` or `true`.
 ///
@@ -55,7 +57,9 @@ impl ContextDeletion {
     }
 }
 
-/// `DELETE /jsonldContexts/{contextId}`: removes or reloads a stored context (NGSI-LD clause 6.30.3.2).
+/// Removes or reloads a stored context.
+///
+/// Its request is `DELETE /jsonldContexts/{contextId}` (NGSI-LD clause 6.30.3.2).
 ///
 /// ```
 /// use iri_rs::iri;

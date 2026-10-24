@@ -18,8 +18,10 @@ pub enum ReceivedByError {
     Port,
 }
 
-/// Who received a message on a `Via` hop (RFC 9110 section 7.6.3): `pseudonym [ ":" port ]`, the host name and port
-/// of the recipient or a pseudonym standing for it.
+/// Who received a message on a `Via` hop.
+///
+/// RFC 9110 section 7.6.3 writes it `pseudonym [ ":" port ]`: the host name and port of the recipient or a pseudonym
+/// standing for it.
 ///
 /// The pseudonym is an HTTP token, the same grammar as the `contextSourceAlias` a context broker writes as its
 /// pseudonym when it forwards a distributed operation (NGSI-LD clause 6.3.18, Table 5.2.40-1), so it is held as a

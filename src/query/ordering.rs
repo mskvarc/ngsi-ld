@@ -1,6 +1,7 @@
-//! The NGSI-LD Entity Ordering Language (NGSI-LD clause 4.23), written in the `orderBy` parameter, and the
-//! parameters that complete an ordering: `collation`, `orderFrom` and `orderGeometry` (the `OrderingParams` of
-//! clause 5.2.43).
+//! The NGSI-LD Entity Ordering Language.
+//!
+//! It is written in the `orderBy` parameter (NGSI-LD clause 4.23). The module also holds the parameters that complete
+//! an ordering: `collation`, `orderFrom` and `orderGeometry` (the `OrderingParams` of clause 5.2.43).
 //!
 //! An ordering lists the members entities are sorted by, separated by `,` and applied in turn, each an attribute
 //! path or one of the entity members `id`, `type` and `scope`, optionally followed by `;` and a direction. The
@@ -58,7 +59,9 @@ pub mod builders;
 mod json;
 mod parser;
 
-/// The direction of one ordering term (the `directionOp` production of NGSI-LD clause 4.23.3).
+/// The direction of one ordering term.
+///
+/// It is the `directionOp` production of NGSI-LD clause 4.23.3.
 ///
 /// The enum is exhaustive: clause 4.23.1 defines four sort orders.
 ///
@@ -98,7 +101,9 @@ impl SortDirection {
     }
 }
 
-/// What an ordering term sorts by: an entity member or an attribute path (NGSI-LD clause 6.4.3.2, `orderBy`).
+/// What an ordering term sorts by: an entity member or an attribute path.
+///
+/// It keys a term of the `orderBy` parameter (NGSI-LD clause 6.4.3.2).
 ///
 /// The enum is exhaustive: clause 6.4.3.2 names `id`, `type`, `scope` or an attribute.
 ///
@@ -132,8 +137,9 @@ impl From<ValuePath> for OrderingKey {
     }
 }
 
-/// One term of an ordering: what it sorts by and, optionally, in which direction (the `OrderingTerm` production of
-/// NGSI-LD clause 4.23.3, without its list).
+/// One term of an ordering: what it sorts by and, optionally, in which direction.
+///
+/// It is the `OrderingTerm` production of NGSI-LD clause 4.23.3, without its list.
 ///
 /// ```
 /// use ngsi_ld::query::{
@@ -196,8 +202,9 @@ impl fmt::Display for OrderingTerm {
     }
 }
 
-/// The value of the `orderBy` parameter (the NGSI-LD Entity Ordering Language of clause 4.23.3): a non-empty list of
-/// terms, applied in turn.
+/// The value of the `orderBy` parameter: a non-empty list of terms, applied in turn.
+///
+/// It is written in the NGSI-LD Entity Ordering Language of clause 4.23.3.
 ///
 /// ```
 /// use ngsi_ld::query::ordering::OrderBy;
@@ -234,8 +241,10 @@ impl FromStr for OrderBy {
     }
 }
 
-/// An entity ordering: the `orderBy` terms, the collation strings are compared with, and the origin distances are
-/// measured from (the `OrderingParams` of NGSI-LD clause 5.2.43).
+/// An entity ordering, with its collation and the origin of its distances.
+///
+/// It holds the `orderBy` terms, the collation strings are compared with, and the origin distances are measured from
+/// (the `OrderingParams` of NGSI-LD clause 5.2.43).
 ///
 /// Built by [`by`] and the other starting functions, or from a parsed [`OrderBy`] through
 /// [`EntityOrderingBuilder`]. Every ordering that sorts by distance has an origin, and only attributes are sorted by
@@ -281,7 +290,9 @@ impl EntityOrdering {
         self.origin.as_ref()
     }
 }
-/// Starts an ordering with `key`, in the default ascending direction, without writing a direction.
+/// Starts an ordering with `key`, in the default ascending direction.
+///
+/// The direction is not written.
 ///
 /// `key` is an attribute name (or `id`, `type`, `scope`), or a path built with [`q::attr`](crate::query::q::attr):
 ///
@@ -309,13 +320,17 @@ pub fn descending(key: impl Into<PathBuilder>) -> EntityOrderingBuilder {
     EntityOrderingBuilder::empty().then_descending(key)
 }
 
-/// Starts an ordering with the `GeoProperty` `key`, nearest to the origin first (`;dist-asc`).
+/// Starts an ordering with the `GeoProperty` `key`, nearest to the origin first.
+///
+/// It writes `;dist-asc`.
 #[must_use]
 pub fn nearest(key: impl Into<PathBuilder>) -> EntityOrderingBuilder {
     EntityOrderingBuilder::empty().then_nearest(key)
 }
 
-/// Starts an ordering with the `GeoProperty` `key`, farthest from the origin first (`;dist-desc`).
+/// Starts an ordering with the `GeoProperty` `key`, farthest from the origin first.
+///
+/// It writes `;dist-desc`.
 #[must_use]
 pub fn farthest(key: impl Into<PathBuilder>) -> EntityOrderingBuilder {
     EntityOrderingBuilder::empty().then_farthest(key)

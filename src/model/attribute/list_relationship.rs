@@ -31,7 +31,9 @@ use crate::{
 use bon::bon;
 use iri_rs::Iri;
 
-/// A `ListRelationship`: an ordered list of linked entities (NGSI-LD clauses 4.5.22 and 5.2.37).
+/// A `ListRelationship`: an ordered list of linked entities.
+///
+/// NGSI-LD clauses 4.5.22 and 5.2.37.
 ///
 /// Build one with [`ListRelationship::builder`]; read one from a document through the representation parsers.
 ///
@@ -149,7 +151,9 @@ impl ListRelationship<Output> {
     }
 }
 
-/// The members a `ListRelationship` has only in a response (NGSI-LD clauses 4.5.22.2, 4.5.23.2 and Table 5.2.37-2).
+/// The members a `ListRelationship` has only in a response.
+///
+/// NGSI-LD clauses 4.5.22.2, 4.5.23.2 and Table 5.2.37-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

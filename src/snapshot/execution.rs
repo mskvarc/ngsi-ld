@@ -15,7 +15,9 @@ use crate::{
 use jstrict::{Object, Value as Json, object::Entry};
 use std::error::Error;
 
-/// How the execution of a request ended (the `resultStatus` of Table 5.2.42-1).
+/// How the execution of a request ended.
+///
+/// It is the `resultStatus` of NGSI-LD Table 5.2.42-1.
 ///
 /// The enum is exhaustive: the table allows exactly these three values.
 ///
@@ -36,8 +38,9 @@ pub enum ExecutionStatus {
     Empty,
 }
 
-/// The details of the result of executing a request, such as one query of a snapshot (NGSI-LD clause 5.2.42): how it
-/// ended and, especially for an error, the problem it reported.
+/// The details of the result of executing a request, such as a snapshot query.
+///
+/// They say how the execution ended and, especially for an error, the problem it reported (NGSI-LD clause 5.2.42).
 ///
 /// A broker writes it, in the `snapshotQueriesDetails` and `snapshotTemporalQueriesDetails` of a snapshot (Table
 /// 5.2.41-2) and in a snapshot notification (Table 5.3.4-1), one per query in the order of the queries.

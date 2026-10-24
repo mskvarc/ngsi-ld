@@ -11,8 +11,10 @@ use http::{HeaderName, HeaderValue, Method, Request, Uri};
 use jstrict::{Object, Print, Value as Json};
 use std::{fmt, str};
 
-/// A JSON document that may break any rule: a member removed, any member set to any JSON, an attribute renamed to
-/// an invalid name, an NGSI-LD Null where one is not allowed.
+/// A JSON document that may break any rule.
+///
+/// It may have a member removed, any member set to any JSON, an attribute renamed to an invalid name, or an NGSI-LD
+/// Null where one is not allowed.
 ///
 /// It starts from a valid entity, from any document the crate renders (a subscription, a registration, a snapshot,
 /// a fragment, through [`TryFrom<RawJson>`](#impl-TryFrom%3CRawJson%3E-for-UncheckedDocument)), or from nothing.
@@ -144,8 +146,10 @@ impl fmt::Display for UncheckedDocument {
     }
 }
 
-/// An HTTP request that may break any rule: built from a valid operation through the one pipeline, then changed
-/// by name: another method or URI, any header added or removed, any body.
+/// An HTTP request that may break any rule.
+///
+/// It is built from a valid operation through the one pipeline, then changed by name: another method or URI, any header
+/// added or removed, any body.
 ///
 /// The client sends it with `Client::send_unchecked`, which decodes the response with the same decoders as every
 /// other call, so a rejection comes back as a typed problem.

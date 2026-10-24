@@ -9,7 +9,9 @@ use http::{HeaderName, HeaderValue};
 /// The header name.
 static NGSILD_TENANT: HeaderName = HeaderName::from_static("ngsild-tenant");
 
-/// The `NGSILD-Tenant` header: the tenant an operation targets (NGSI-LD clause 6.3.14).
+/// The `NGSILD-Tenant` header: the tenant an operation targets.
+///
+/// NGSI-LD clause 6.3.14.
 ///
 /// The field value is rendered once, by [`NgsiLdTenant::try_new`], and kept: [`headers::Header::encode`] cannot fail,
 /// so a tenant that could not be carried must be refused before encoding is reached.

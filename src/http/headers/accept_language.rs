@@ -13,8 +13,10 @@ use crate::{
 };
 use http::{HeaderName, HeaderValue, header::ACCEPT_LANGUAGE};
 
-/// An `Accept-Language` header (RFC 9110 section 12.5.4): the natural languages a client prefers, in order, each a
-/// basic language range (RFC 4647 section 2.1) with an optional weight.
+/// An `Accept-Language` header: the natural languages a client prefers.
+///
+/// RFC 9110 section 12.5.4 defines the header. The languages are listed in order, each a basic language range (RFC 4647
+/// section 2.1) with an optional weight.
 ///
 /// The NGSI-LD Language Filter (clause 4.15) writes the syntax of this header in its `lang` parameter, with one
 /// difference: clause 4.15 takes BCP 47 language tags (RFC 5646), where this header takes any basic language range.

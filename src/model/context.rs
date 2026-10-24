@@ -5,7 +5,9 @@ use iri_rs::{InvalidIri, Iri, IriBuf, IriRefBuf, iri};
 use jstrict::Value as Json;
 use std::{slice, str::FromStr};
 
-/// The URL of the NGSI-LD core context this crate implements, v1.9 (NGSI-LD clause 4.4).
+/// The URL of the NGSI-LD core context this crate implements, v1.9.
+///
+/// NGSI-LD clause 4.4.
 ///
 /// The core context is implicitly part of every `@context`, as its last entry: a body that must carry an
 /// `@context` names it when the client has none of its own (clause 6.3.5).
@@ -28,8 +30,9 @@ pub(crate) fn core_context_reference() -> IriRefBuf {
     IriRefBuf::parse_unchecked(CORE_CONTEXT.as_str().to_owned())
 }
 
-/// One entry of an `@context` (NGSI-LD clause 5.2.3): a reference to a context document, or an inline context
-/// definition.
+/// One entry of an `@context`.
+///
+/// It is a reference to a context document, or an inline context definition (NGSI-LD clause 5.2.3).
 ///
 /// The enum is exhaustive: Table 5.2.3-1 types an `@context` as a URI, a JSON object or an array of them. JSON-LD
 /// also allows `null`, but NGSI-LD does not: clause 4.5.0 rules out `null` as a value anywhere in NGSI-LD.
@@ -51,8 +54,10 @@ pub enum ContextEntry {
     Inline(InlineContext),
 }
 
-/// An inline context definition: a JSON object (JSON-LD 1.1 section 9.15), the only JSON value besides a reference
-/// that an `@context` entry may be (Table 5.2.3-1).
+/// An inline context definition: a JSON object.
+///
+/// JSON-LD 1.1 section 9.15 defines it. It is the only JSON value besides a reference that an `@context` entry may be
+/// (NGSI-LD Table 5.2.3-1).
 ///
 /// ```
 /// use ngsi_ld::model::{InlineContext, InlineContextError};
@@ -106,7 +111,9 @@ impl FromStr for InlineContext {
     }
 }
 
-/// An `@context` member: one entry or an array of entries (NGSI-LD clause 5.2.3).
+/// An `@context` member: one entry or an array of entries.
+///
+/// NGSI-LD clause 5.2.3.
 ///
 /// The data model carries contexts as given; resolving and applying them is the job of `ngsi_ld::linked_data`,
 /// behind the `linked-data` feature.

@@ -35,7 +35,9 @@ pub enum ValueError {
     },
 }
 
-/// An NGSI-LD Value (NGSI-LD clause 3.1).
+/// An NGSI-LD Value.
+///
+/// NGSI-LD clause 3.1.
 ///
 /// Objects keep their member order. Everything that converts into a JSON value without loss converts into a
 /// `Value` with `From`; floating-point numbers, which may be NaN, go through [`Number::try_from`].

@@ -1,7 +1,8 @@
 //! Members the core `@context` reserves, which can never name an attribute (NGSI-LD clause 4.5.1).
 
-/// A member of an entity or attribute that the core `@context` defines, and that therefore cannot be used as an
-/// attribute name.
+/// A member of an entity or attribute that cannot be used as an attribute name.
+///
+/// The core `@context` defines it, which reserves the name.
 ///
 /// Clause 4.5.1 forbids the terms the core `@context` defines as non-reified Properties (`datasetId`,
 /// `instanceId`, ...) as attribute names; the structural members of an entity (`id`, `type`, `scope`,

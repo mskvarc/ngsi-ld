@@ -11,8 +11,10 @@ mod sealed {
     pub trait Sealed {}
 }
 
-/// How a client answers a call: [`OutcomeOnly`], the default, with the typed outcome alone, or [`WithHead`], from
-/// [`Client::with_heads`](crate::client::Client::with_heads), with the outcome, the status and the head of the
+/// How a client answers a call.
+///
+/// [`OutcomeOnly`], the default, answers with the typed outcome alone. [`WithHead`], from
+/// [`Client::with_heads`](crate::client::Client::with_heads), answers with the outcome, the status and the head of the
 /// response in an [`Answered`].
 ///
 /// The trait is sealed: the two modes are the only ones.
@@ -44,12 +46,14 @@ pub trait Answering: sealed::Sealed + Debug + Clone + Copy + Default + Send + Sy
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct OutcomeOnly;
 
-/// A call answers its typed outcome together with the status and the head of the response, for a caller that also
-/// reads a header the outcome does not carry (`Content-Type`, `ETag`, `Vary`, `NGSILD-Tenant`, ...).
+/// Calls answer with the typed outcome, the status and the head of the response.
+///
+/// It serves a caller that also reads a header the outcome does not carry (`Content-Type`, `ETag`, `Vary`,
+/// `NGSILD-Tenant`, ...).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct WithHead;
 
-/// The typed outcome of a call, with the status and the head of the response that carried it.
+/// The typed outcome of a call, with the status and the head of its response.
 ///
 /// ```
 /// use http::StatusCode;

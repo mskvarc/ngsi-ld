@@ -26,8 +26,10 @@ use http::{Method, Request, Response};
 
 pub(super) mod parameters;
 
-/// `POST /entities/{entityId}/attrs`: adds attributes to an entity, replacing those that exist unless told
-/// otherwise (NGSI-LD clause 6.6.3.1). The fragment may name its entity or not ([`Completeness`]).
+/// Adds attributes to an entity, replacing those that exist unless told otherwise.
+///
+/// Its request is `POST /entities/{entityId}/attrs` (NGSI-LD clause 6.6.3.1). The fragment may name its entity or not
+/// ([`Completeness`]).
 ///
 /// ```
 /// use iri_rs::iri;

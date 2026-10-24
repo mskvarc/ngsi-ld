@@ -16,9 +16,11 @@ use crate::model::{
 };
 use bon::bon;
 
-/// The temporal evolution of an entity in simplified temporal representation, as a client sends it to Create or
-/// Update Temporal Evolution of an Entity (NGSI-LD clauses 5.2.20 and 5.6.11.3): `id`, `type`, the scope's values over
-/// time, and each attribute's [`TemporalValues`].
+/// The simplified temporal evolution of an entity, as a client sends it.
+///
+/// The client sends it in simplified temporal representation to Create or Update Temporal Evolution of an Entity
+/// (NGSI-LD clauses 5.2.20 and 5.6.11.3). It holds `id`, `type`, the scope's values over time, and each attribute's
+/// [`TemporalValues`].
 ///
 /// Clause 5.2.20 allows this representation as an alternative to the normalized one
 /// ([`TemporalEntity`](crate::model::evolution::TemporalEntity)), which carries everything it can and more. Unlike

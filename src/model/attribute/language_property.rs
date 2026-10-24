@@ -25,7 +25,9 @@ use crate::{
 };
 use bon::bon;
 
-/// A `LanguageProperty`: text in several natural languages (NGSI-LD clauses 4.5.18 and 5.2.32).
+/// A `LanguageProperty`: text in several natural languages.
+///
+/// NGSI-LD clauses 4.5.18 and 5.2.32.
 ///
 /// Build one with [`LanguageProperty::builder`]; read one from a document through the representation parsers.
 ///
@@ -137,7 +139,9 @@ impl LanguageProperty<Output> {
     }
 }
 
-/// The members a `LanguageProperty` has only in a response (NGSI-LD clauses 4.5.18.2 and Table 5.2.32-2).
+/// The members a `LanguageProperty` has only in a response.
+///
+/// NGSI-LD clauses 4.5.18.2 and Table 5.2.32-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

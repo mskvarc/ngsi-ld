@@ -7,7 +7,7 @@ use crate::{
     registration::{ContextSourceInfoError, ContextSourcePropertyName, ContextSourcePropertyNameError, RegistrationField},
 };
 
-/// One rule a registration document breaks, or one invalid input given to its builders.
+/// One rule a registration document breaks, or one invalid input to its builders.
 ///
 /// `build()` returns every problem at once as a [`BuildError`](crate::model::BuildError) of `Problem`.
 ///

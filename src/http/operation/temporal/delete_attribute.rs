@@ -21,9 +21,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `DELETE /temporal/entities/{entityId}/attrs/{attrId}`: deletes an attribute from the temporal evolution of an
-/// entity, every instance over time of the default instance, of one dataset, or of all of them (NGSI-LD clause
-/// 6.21.3.1, whose `datasetId` and `deleteAll` select the instances as for Delete Attribute).
+/// Deletes an attribute from the temporal evolution of an entity.
+///
+/// Its request is `DELETE /temporal/entities/{entityId}/attrs/{attrId}` (NGSI-LD clause 6.21.3.1). It deletes every
+/// instance over time of the default instance, of one dataset, or of all of them; the clause's `datasetId` and
+/// `deleteAll` select the instances as for Delete Attribute.
 ///
 /// ```
 /// use iri_rs::iri;

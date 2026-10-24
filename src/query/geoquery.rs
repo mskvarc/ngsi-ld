@@ -1,5 +1,8 @@
-//! The NGSI-LD Geoquery Language (NGSI-LD clause 4.10), written in the `georel`, `geometry`, `coordinates` and
-//! `geoproperty` parameters, and the `GeoQuery` object that carries the same four members in a body (clause 5.2.13).
+//! The NGSI-LD Geoquery Language.
+//!
+//! The language (NGSI-LD clause 4.10) is written in the `georel`, `geometry`, `coordinates` and `geoproperty`
+//! parameters. The module also holds the `GeoQuery` object that carries the same four members in a body (clause
+//! 5.2.13).
 //!
 //! A geoquery tests a spatial relationship between a target geometry, the value of a `GeoProperty` of each entity
 //! (`location` unless another is named), and a reference geometry. Only the relationship has a grammar: the
@@ -52,7 +55,9 @@ pub mod builders;
 mod json;
 mod parser;
 
-/// Why a number is not the distance of a `near` relation (the `PositiveNumber` production of NGSI-LD clause 4.10).
+/// Why a number is not the distance of a `near` relation.
+///
+/// The distance is the `PositiveNumber` production of NGSI-LD clause 4.10.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 #[non_exhaustive]
 pub enum DistanceError {
@@ -64,8 +69,10 @@ pub enum DistanceError {
     NotPositive,
 }
 
-/// The distance of a `near` relation, in metres: a JSON number other than zero and without a minus sign (the
-/// `PositiveNumber` production of NGSI-LD clause 4.10), kept in its lexical form.
+/// The distance of a `near` relation, in metres.
+///
+/// It is a JSON number other than zero and without a minus sign (the `PositiveNumber` production of NGSI-LD clause
+/// 4.10), kept in its lexical form.
 ///
 /// ```
 /// use ngsi_ld::{model::Number, query::geoquery::Distance};
@@ -129,7 +136,9 @@ impl FromStr for Distance {
     }
 }
 
-/// The distance modifier of a `near` relation (the `distance` production of NGSI-LD clause 4.10).
+/// The distance modifier of a `near` relation.
+///
+/// It is the `distance` production of NGSI-LD clause 4.10.
 ///
 /// The enum is exhaustive: clause 4.10 defines these two modifiers.
 ///
@@ -163,8 +172,9 @@ impl NearDistance {
     }
 }
 
-/// The spatial relationship a geoquery tests (the `georel` production of NGSI-LD clause 4.10), written in the
-/// `georel` parameter.
+/// The spatial relationship a geoquery tests, written in the `georel` parameter.
+///
+/// It is the `georel` production of NGSI-LD clause 4.10.
 ///
 /// The enum is exhaustive: clause 4.10 closes the set of relationships. A `near` relation always carries one
 /// distance, and no other relation carries one.
@@ -211,8 +221,9 @@ impl FromStr for GeoRelation {
     }
 }
 
-/// A geoquery (NGSI-LD clauses 4.10 and 5.2.13): a spatial relationship, the reference geometry, and the
-/// `GeoProperty` it is applied to, `location` when none is named.
+/// A geoquery: a spatial relationship, a reference geometry and a `GeoProperty`.
+///
+/// The relationship is applied to the `GeoProperty`, `location` when none is named (NGSI-LD clauses 4.10 and 5.2.13).
 ///
 /// Built by [`near_max`] and the other starting functions, or from validated parts with [`GeoQuery::new`].
 ///
@@ -279,7 +290,9 @@ impl GeoQuery {
     }
 }
 
-/// Starts a geoquery matching the entities within `metres` of `geometry` (`near;maxDistance==`).
+/// Starts a geoquery matching the entities within `metres` of `geometry`.
+///
+/// It writes `near;maxDistance==`.
 ///
 /// `metres` is a [`Number`], or an integer; a decimal goes through [`Number::try_from`].
 #[must_use]
@@ -290,7 +303,9 @@ pub fn near_max(metres: impl Into<Number>, geometry: Shape) -> GeoQueryBuilder {
     )
 }
 
-/// Starts a geoquery matching the entities farther than `metres` from `geometry` (`near;minDistance==`).
+/// Starts a geoquery matching the entities farther than `metres` from `geometry`.
+///
+/// It writes `near;minDistance==`.
 #[must_use]
 pub fn near_min(metres: impl Into<Number>, geometry: Shape) -> GeoQueryBuilder {
     GeoQueryBuilder::new(
@@ -299,7 +314,9 @@ pub fn near_min(metres: impl Into<Number>, geometry: Shape) -> GeoQueryBuilder {
     )
 }
 
-/// Starts a geoquery matching the entities whose target geometry lies within `geometry`.
+/// Starts a geoquery matching the entities whose geometry lies within `geometry`.
+///
+/// The tested geometry is the target geometry of each entity.
 #[must_use]
 pub const fn within(geometry: Shape) -> GeoQueryBuilder {
     GeoQueryBuilder::new(Deferred::valid(GeoRelation::Within), geometry)
@@ -311,7 +328,9 @@ pub const fn contains(geometry: Shape) -> GeoQueryBuilder {
     GeoQueryBuilder::new(Deferred::valid(GeoRelation::Contains), geometry)
 }
 
-/// Starts a geoquery matching the entities whose target geometry intersects `geometry`.
+/// Starts a geoquery matching the entities whose geometry intersects `geometry`.
+///
+/// The tested geometry is the target geometry of each entity.
 #[must_use]
 pub const fn intersects(geometry: Shape) -> GeoQueryBuilder {
     GeoQueryBuilder::new(Deferred::valid(GeoRelation::Intersects), geometry)
@@ -323,7 +342,9 @@ pub const fn equals(geometry: Shape) -> GeoQueryBuilder {
     GeoQueryBuilder::new(Deferred::valid(GeoRelation::Equals), geometry)
 }
 
-/// Starts a geoquery matching the entities whose target geometry is disjoint from `geometry`.
+/// Starts a geoquery matching the entities disjoint from `geometry`.
+///
+/// The tested geometry is the target geometry of each entity.
 #[must_use]
 pub const fn disjoint(geometry: Shape) -> GeoQueryBuilder {
     GeoQueryBuilder::new(Deferred::valid(GeoRelation::Disjoint), geometry)

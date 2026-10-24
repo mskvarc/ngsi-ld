@@ -66,7 +66,9 @@ fn validate_member(value: &str) -> Result<(), MemberError> {
 )]
 pub struct MemberName(String);
 
-/// An attribute path (the `Attribute` production of NGSI-LD clause 4.9).
+/// An attribute path.
+///
+/// It is the `Attribute` production of NGSI-LD clause 4.9.
 ///
 /// The enum is exhaustive: clause 4.9 addresses an attribute either directly or through a relationship.
 ///
@@ -88,8 +90,10 @@ pub enum AttributePath {
     Linked(LinkedPath),
 }
 
-/// A dotted path of attribute names, optionally followed by a member path into the compound value of the last
-/// one (the `ValuePath` production of NGSI-LD clause 4.9): `sensor.rawdata[airquality.particulate]`.
+/// A dotted path of attribute names, optionally followed by a member path.
+///
+/// The member path leads into the compound value of the last attribute: `sensor.rawdata[airquality.particulate]` (the
+/// `ValuePath` production of NGSI-LD clause 4.9).
 ///
 /// ```
 /// use ngsi_ld::query::q::ValuePath;
@@ -168,9 +172,10 @@ impl fmt::Display for ValuePath {
     }
 }
 
-/// A relationship an attribute path follows into the entity it targets, with an optional hint of the types of
-/// that entity: one `AttrName{` step of the `LinkedEntityRelation` and `LinkedEntityPath` productions of NGSI-LD
-/// clause 4.9.
+/// A relationship an attribute path follows into the entity it targets.
+///
+/// It carries an optional hint of the types of that entity. It is one `AttrName{` step of the `LinkedEntityRelation`
+/// and `LinkedEntityPath` productions of NGSI-LD clause 4.9.
 ///
 /// The hint lets a broker narrow its lookup of the targeted entity (clause 4.9, example 14).
 ///
@@ -220,8 +225,10 @@ impl Link {
     }
 }
 
-/// A path through one or more relationships into the entity the last one targets (the `LinkedEntityRelation`
-/// production of NGSI-LD clause 4.9): `sensor{Device:humidity}`, or `building{owner{name}}` through two.
+/// A path through one or more relationships into the entity the last one targets.
+///
+/// It is the `LinkedEntityRelation` production of NGSI-LD clause 4.9: `sensor{Device:humidity}`, or
+/// `building{owner{name}}` through two.
 ///
 /// The links are held as a list, outermost first, rather than as a path nested inside a path: clause 4.9 does not
 /// bound how many relationships a path follows, and a list is copied, compared, printed and dropped without

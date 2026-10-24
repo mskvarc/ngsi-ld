@@ -11,8 +11,9 @@ use crate::model::{
 };
 use jstrict::{Object, Value as Json};
 
-/// A JSON-LD value object with an explicit datatype, the form clause C.6 uses for Date, Time and `DateTime`
-/// Property values.
+/// A JSON-LD value object with an explicit datatype.
+///
+/// NGSI-LD clause C.6 uses this form for Date, Time and `DateTime` Property values.
 ///
 /// A core datatype always carries a lexical form of that datatype (clause 4.6.3), so `DateTime` with
 /// `"yesterday"` cannot be represented.
@@ -33,7 +34,9 @@ pub struct TypedValue {
     lexical: String,
 }
 
-/// The lexical form of a typed value is not one of its core datatype (clause 4.6.3).
+/// The lexical form of a typed value is not one of its core datatype.
+///
+/// NGSI-LD clause 4.6.3.
 ///
 /// The struct is `#[non_exhaustive]`: its fields are readable, and only the crate builds it.
 #[derive(Debug, Clone, thiserror::Error)]
@@ -111,8 +114,10 @@ impl TypedValue {
     }
 }
 
-/// The datatypes of the core `@context` clause C.6 writes typed Property values with. The set is the one
-/// clause 4.6.3 gives lexical forms for, so the enum is exhaustive.
+/// The datatypes of the core `@context` for typed Property values.
+///
+/// NGSI-LD clause C.6 writes typed Property values with them. The set is the one clause 4.6.3 gives lexical forms for,
+/// so the enum is exhaustive.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr)]
 pub enum CoreDatatype {
     /// `DateTime`.

@@ -23,8 +23,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `GET /types/{type}`: what the broker holds of one entity type (NGSI-LD clause 6.26.3.1), as an
-/// [`EntityTypeInfo`]. An unknown type answers 404 `ResourceNotFound`.
+/// Reads what the broker holds of one entity type.
+///
+/// Its request is `GET /types/{type}` (NGSI-LD clause 6.26.3.1), answered with an [`EntityTypeInfo`]. An unknown type
+/// answers 404 `ResourceNotFound`.
 ///
 /// ```
 /// use ngsi_ld::{

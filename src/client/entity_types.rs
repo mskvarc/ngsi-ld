@@ -12,9 +12,10 @@ use crate::{
 };
 use bon::bon;
 
-/// The entity type discovery operations of a [`Client`](crate::client::Client), from
-/// [`Client::entity_types`](crate::client::Client::entity_types), named after the operations "Retrieve Available Entity
-/// Types" and "Retrieve Available Entity Type Information".
+/// The entity type discovery operations of a [`Client`](crate::client::Client).
+///
+/// [`Client::entity_types`](crate::client::Client::entity_types) returns them. They are named after the operations
+/// "Retrieve Available Entity Types" and "Retrieve Available Entity Type Information".
 ///
 /// Each operation is a builder that finishes with `send()`.
 ///

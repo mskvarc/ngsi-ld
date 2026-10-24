@@ -45,7 +45,9 @@ pub(super) mod property;
 pub(super) mod relationship;
 pub(super) mod vocab_property;
 
-/// The kind of an attribute, as its `type` member names it (NGSI-LD clause 5.2.4).
+/// The kind of an attribute, as its `type` member names it.
+///
+/// NGSI-LD clause 5.2.4.
 ///
 /// The specification closes the set, so the enum is exhaustive.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr, strum::EnumIter)]
@@ -91,7 +93,9 @@ impl AttributeKind {
     }
 }
 
-/// An attribute of any kind (NGSI-LD clause 5.2.4).
+/// An attribute of any kind.
+///
+/// NGSI-LD clause 5.2.4.
 ///
 /// Each kind is its own type, generic over the [`Direction`] of the document it belongs to; `Attribute` is the
 /// closed sum of the eight.
@@ -193,7 +197,9 @@ impl<D: Direction> InstanceKey for Attribute<D> {
     }
 }
 
-/// What occupies an attribute's place in its parent: an attribute, or, in a fragment, a change to one.
+/// What occupies an attribute's place in its parent.
+///
+/// It is an attribute, or, in a fragment, a change to one.
 pub trait AttributeSlot: InstanceKey {
     /// The kind the slot writes; `None` for a deletion that names no kind.
     #[doc(hidden)]
@@ -298,8 +304,10 @@ impl Attribute<Input> {
     }
 }
 
-/// Something that becomes an attribute of kind `T` when a builder finishes: an attribute already built, an
-/// attribute builder whose required members are set, or a value the kind can be made from directly.
+/// Something that becomes an attribute of kind `T` when a builder finishes.
+///
+/// It is an attribute already built, an attribute builder whose required members are set, or a value the kind can be
+/// made from directly.
 ///
 /// Builders take drafts so a caller never finishes an inner builder by hand; every problem found in any of
 /// them is reported once, by the outermost `build()`.

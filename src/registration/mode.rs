@@ -1,7 +1,8 @@
 //! The mode of distributed operation a context source supports (NGSI-LD clauses 4.3.6 and 5.2.9).
 
-/// How a broker distributes operations to a registered context source (the `mode` of Table 5.2.9-1, clause
-/// 4.3.6); `inclusive` when absent.
+/// How a broker distributes operations to a registered context source.
+///
+/// It is the `mode` of NGSI-LD Table 5.2.9-1 (clause 4.3.6); `inclusive` applies when it is absent.
 ///
 /// The enum is exhaustive: Table 5.2.9-1 allows exactly these four modes.
 ///

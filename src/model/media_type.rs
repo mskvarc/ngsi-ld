@@ -29,7 +29,9 @@ pub enum NgsiLdMediaTypeError {
     },
 }
 
-/// A media type an NGSI-LD document is exchanged as (NGSI-LD clause 6.3.4).
+/// A media type an NGSI-LD document is exchanged as.
+///
+/// NGSI-LD clause 6.3.4.
 ///
 /// The enum is exhaustive: clause 6.3.4 closes the set of representations to these three. Each variant is the
 /// structured [`media_type`](Self::media_type) of the clause; its text is that media type's rendering, and text

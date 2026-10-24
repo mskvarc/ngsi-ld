@@ -96,8 +96,10 @@ pub enum Expected {
     Scope,
 }
 
-/// Why a string is not a valid query, type selection, projection, language filter, entity ordering,
-/// geo-relationship or scope query.
+/// Why a string is not a valid expression of a query language.
+///
+/// The expression is a query, type selection, projection, language filter, entity ordering, geo-relationship or scope
+/// query.
 ///
 /// Every variant carries the byte offset in the input where the problem starts.
 // `langtag`'s error carries no `Clone` and `TemporalError` no equality, so neither can the error that chains them.

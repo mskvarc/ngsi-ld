@@ -54,9 +54,11 @@ impl<A> Cursor<A> {
     }
 }
 
-/// Every page of a query, from [`Client::pages`]: the first page as received, then each page its predecessor's `next`
-/// link leads to, requested on the tenant and snapshot and with the entity map of the query (clauses 4.3.6.7 and
-/// 6.3.22), until a page has no `next` link.
+/// Every page of a query, from [`Client::pages`].
+///
+/// The walk yields the first page as received, then each page its predecessor's `next` link leads to, until a page has
+/// no `next` link. Each page is requested on the tenant and snapshot and with the entity map of the query (NGSI-LD
+/// clauses 4.3.6.7 and 6.3.22).
 ///
 /// A failed request ends the walk: [`next`](Self::next) returns that error once and `None` afterwards.
 ///

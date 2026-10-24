@@ -1,5 +1,7 @@
-//! `@context`s kept in local files: a JSON-LD document `{"@context": ...}` read from the file system, made
-//! self-contained so a broker can use it.
+//! `@context` documents kept in local files.
+//!
+//! Each is a JSON-LD document `{"@context": ...}`, read from the file system and made self-contained so a broker can
+//! use it.
 //!
 //! Reading is synchronous, with `std::fs`, so the crate depends on no async runtime and never blocks behind an
 //! `async` signature. A context file is small and is usually read once, when a client is set up; a caller on an
@@ -91,8 +93,10 @@ pub enum ContextFileError {
     },
 }
 
-/// Reads the JSON-LD document at `path`, `{"@context": ...}`, and returns its `@context` with every reference to a
-/// local file replaced by the entries of that file, recursively.
+/// Reads a JSON-LD document's `@context` and inlines every local file it references.
+///
+/// The document at `path` is `{"@context": ...}`. Every reference to a local file in its `@context` is replaced by the
+/// entries of that file, recursively.
 ///
 /// ```no_run
 /// use ngsi_ld::context_file;

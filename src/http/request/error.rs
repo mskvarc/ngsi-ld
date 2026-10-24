@@ -7,8 +7,10 @@ use crate::http::{
 use http::uri::InvalidUri;
 use iri_rs::IriRefBuf;
 
-/// Why a request was not built: the operation's arguments are refused, the client's context cannot travel with
-/// the request, or a value cannot be written into the request.
+/// Why a request was not built.
+///
+/// The operation's arguments are refused, the client's context cannot travel with the request, or a value cannot be
+/// written into the request.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum RequestError {
@@ -41,7 +43,9 @@ pub enum RequestError {
     },
 }
 
-/// Why the client's context cannot travel with a request (clause 6.3.5).
+/// Why the client's context cannot travel with a request.
+///
+/// NGSI-LD clause 6.3.5.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum ContextDeliveryError {

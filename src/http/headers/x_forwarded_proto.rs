@@ -12,7 +12,9 @@ use http::{HeaderName, HeaderValue};
 /// The header name.
 static X_FORWARDED_PROTO: HeaderName = HeaderName::from_static("x-forwarded-proto");
 
-/// An `X-Forwarded-Proto` header: the scheme a client used to reach a proxy, which the proxy passes on.
+/// An `X-Forwarded-Proto` header: the scheme a client used to reach a proxy.
+///
+/// The proxy passes the scheme on.
 ///
 /// No RFC defines the header; RFC 7239 section 5.4 standardises its content as the `proto` parameter of
 /// `Forwarded`. Proxies that append rather than replace write a comma-separated list, ordered from the client

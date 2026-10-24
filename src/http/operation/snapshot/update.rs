@@ -21,8 +21,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// Updates a snapshot (NGSI-LD clause 5.16.4): `PATCH /snapshots/{snapshotId}` with the [`SnapshotFragment`] as the
-/// body (clause 6.37.3.2), answered 200 with the updated snapshot, so the request asks for `application/json`.
+/// Updates a snapshot.
+///
+/// NGSI-LD clause 5.16.4 defines the operation. Its request is `PATCH /snapshots/{snapshotId}` with the
+/// [`SnapshotFragment`] as the body (clause 6.37.3.2), answered 200 with the updated snapshot, so the request asks for
+/// `application/json`.
 ///
 /// ```
 /// use iri_rs::iri;

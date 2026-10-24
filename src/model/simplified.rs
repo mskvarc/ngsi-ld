@@ -39,7 +39,9 @@ pub(super) mod fragment;
 #[cfg(feature = "linked-data")]
 mod names;
 
-/// The simplified value of one attribute (NGSI-LD clause 4.5.4).
+/// The simplified value of one attribute.
+///
+/// NGSI-LD clause 4.5.4.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::From, derive_more::IsVariant)]
 pub enum SimplifiedValue {
     /// A Property value, a Relationship object or objects, a `ListProperty` or `ListRelationship` list: the
@@ -75,7 +77,9 @@ enum WrappingMember {
     Dataset,
 }
 
-/// An entity in simplified representation (NGSI-LD clause 4.5.4).
+/// An entity in simplified representation.
+///
+/// NGSI-LD clause 4.5.4.
 ///
 /// The representation is lossy: sub-attributes, `observedAt`, `unitCode` and the attribute kinds are gone, and
 /// a Relationship's object cannot be told from a string Property value. It is therefore its own model.

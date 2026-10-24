@@ -199,8 +199,9 @@ pub struct AttributeName(String);
 )]
 pub struct EntityTypeName(String);
 
-/// A string a JSON-LD processor coerces into an IRI under the `@context`: the `vocab` of a `VocabProperty`
-/// (NGSI-LD clause 4.5.20) and the `valueType` of a Property (clause 4.5.2.2).
+/// A string a JSON-LD processor coerces into an IRI under the `@context`.
+///
+/// It is the `vocab` of a `VocabProperty` (NGSI-LD clause 4.5.20) and the `valueType` of a Property (clause 4.5.2.2).
 ///
 /// It is a term, a compact IRI or an absolute IRI. Terms are free-form in JSON-LD (the specification's own
 /// examples use `non-commercial`), so the only restrictions are the ones that make a string unusable as a

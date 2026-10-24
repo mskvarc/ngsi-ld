@@ -28,7 +28,9 @@ use crate::{
 use bon::bon;
 use cefact_units::UnitCode;
 
-/// A Property: a value of an entity or attribute (NGSI-LD clauses 4.5.2 and 5.2.5).
+/// A Property: a value of an entity or attribute.
+///
+/// NGSI-LD clauses 4.5.2 and 5.2.5.
 ///
 /// Build one with [`Property::builder`]; read one from a document through the representation parsers. Its members
 /// are read through getters, so a built or read Property keeps the rules it was checked against.
@@ -233,7 +235,9 @@ impl Property<Output> {
     }
 }
 
-/// The members a Property has only in a response (NGSI-LD clauses 4.5.2.2, 4.15 and Table 5.2.5-2).
+/// The members a Property has only in a response.
+///
+/// NGSI-LD clauses 4.5.2.2, 4.15 and Table 5.2.5-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

@@ -28,9 +28,11 @@ pub(super) mod member;
 pub(crate) mod reader;
 pub(crate) mod writer;
 
-/// The `Query` data type (NGSI-LD clause 5.2.23), of the kind `K`: a query of entities ([`EntityQuery`], the
-/// default) or of the temporal evolution of entities ([`TemporalEvolutionQuery`]), as a snapshot holds them in
-/// `snapshotQueries` and `snapshotTemporalQueries` (Table 5.2.41-1).
+/// The `Query` data type, of the kind `K`: a query of entities or of their evolution.
+///
+/// NGSI-LD clause 5.2.23 defines it. The kind is a query of entities ([`EntityQuery`], the default) or of the temporal
+/// evolution of entities ([`TemporalEvolutionQuery`]), as a snapshot holds them in `snapshotQueries` and
+/// `snapshotTemporalQueries` (Table 5.2.41-1).
 ///
 /// It is named [`QueryDocument`] because [`Query`](crate::query::q::Query) is the query language of clause 4.9. The
 /// `POST` bindings of Query Entities and Query Temporal Evolution write the same members from the fields of their

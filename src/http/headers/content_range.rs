@@ -13,8 +13,10 @@ use std::{iter, num::NonZeroU64};
 /// The range unit NGSI-LD gives the time range of a partial temporal answer (clause 6.3.10).
 const DATE_TIME_UNIT: &str = "DateTime";
 
-/// The `size` of a temporal [`ContentRange`] (NGSI-LD clause 6.3.10): the `lastN` of a request that paginates
-/// backwards, or `*` for one that paginates forwards.
+/// The `size` of a temporal [`ContentRange`].
+///
+/// It is the `lastN` of a request that paginates backwards, or `*` for one that paginates forwards (NGSI-LD clause
+/// 6.3.10).
 ///
 /// The enum is exhaustive: clause 6.3.10 allows these two forms only.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -25,8 +27,10 @@ pub enum ContentRangeSize {
     LastN(NonZeroU64),
 }
 
-/// The `Content-Range` header of a 206 Partial Content answer to a temporal request (NGSI-LD clause 6.3.10): the
-/// unit `DateTime`, the range the answer covers and its size, written `DateTime <start>-<end>/<size>`.
+/// The `Content-Range` header of a 206 Partial Content answer to a temporal request.
+///
+/// It holds the unit `DateTime`, the range the answer covers and its size, written `DateTime <start>-<end>/<size>`
+/// (NGSI-LD clause 6.3.10).
 ///
 /// Clause 6.3.10 fixes what the bounds are. A request without `lastN` runs forwards: `start` is the `timeAt` of an
 /// `after` or `between` request (the least recent instance of the answer for `before`) and `end` the most recent

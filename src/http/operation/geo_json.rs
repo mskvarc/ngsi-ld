@@ -25,8 +25,10 @@ use crate::{
 };
 use jstrict::Value as Json;
 
-/// Asks for entities in `GeoJSON` representation (`Accept: application/geo+json`, clause 6.3.15): one entity is
-/// answered with a `GeoJSON` Feature, a list of entities with a `FeatureCollection` (clauses 4.5.16 and 4.5.17).
+/// Asks for entities in `GeoJSON` representation.
+///
+/// The request sends `Accept: application/geo+json` (NGSI-LD clause 6.3.15). One entity is answered with a `GeoJSON`
+/// Feature, a list of entities with a `FeatureCollection` (clauses 4.5.16 and 4.5.17).
 ///
 /// `F` is the representation of each entity within its Feature: a [`Lossless`] one answers with
 /// [`Feature<Entity<Output>>`] values, [`Simplified`] with [`Feature<SimplifiedEntity>`] values. The

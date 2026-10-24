@@ -12,9 +12,10 @@ use crate::{
 };
 use bon::bon;
 
-/// The attribute discovery operations of a [`Client`](crate::client::Client), from
-/// [`Client::attributes`](crate::client::Client::attributes), named after the operations "Retrieve Available
-/// Attributes" and "Retrieve Available Attribute Information".
+/// The attribute discovery operations of a [`Client`](crate::client::Client).
+///
+/// [`Client::attributes`](crate::client::Client::attributes) returns them. They are named after the operations
+/// "Retrieve Available Attributes" and "Retrieve Available Attribute Information".
 ///
 /// Each operation is a builder that finishes with `send()`.
 ///

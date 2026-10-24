@@ -25,8 +25,10 @@ use http::{Method, Request, Response};
 
 pub(super) mod parameters;
 
-/// Which instances of an attribute Delete Attribute removes (NGSI-LD clause 6.7.3.2), and which instances' evolution
-/// Delete Attribute from Temporal Evolution removes (clause 6.21.3.1).
+/// Which instances of an attribute a deletion removes.
+///
+/// It selects the instances Delete Attribute removes (NGSI-LD clause 6.7.3.2), and the instances whose evolution Delete
+/// Attribute from Temporal Evolution removes (clause 6.21.3.1).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum InstanceSelection<'a> {
     /// The default instance, the one without a dataset id.
@@ -50,7 +52,9 @@ impl InstanceSelection<'_> {
     }
 }
 
-/// `DELETE /entities/{entityId}/attrs/{attrId}`: removes instances of an attribute (NGSI-LD clause 6.7.3.2).
+/// Removes instances of an attribute.
+///
+/// Its request is `DELETE /entities/{entityId}/attrs/{attrId}` (NGSI-LD clause 6.7.3.2).
 ///
 /// ```
 /// use iri_rs::iri;

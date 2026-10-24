@@ -3,7 +3,9 @@
 
 use std::{fmt, str::FromStr};
 
-/// An operation a context source may accept, named as Table 4.20-1 names it.
+/// An operation a context source may accept.
+///
+/// It is named as NGSI-LD Table 4.20-1 names it.
 ///
 /// The enum is `#[non_exhaustive]`: each version of the specification adds operations to the table.
 ///
@@ -112,7 +114,9 @@ pub enum DistributedOperation {
     RetrieveContextSourceIdentity,
 }
 
-/// A named group of operations (Table 4.20-2).
+/// A named group of operations.
+///
+/// NGSI-LD Table 4.20-2.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification may name more groups.
 ///
@@ -224,8 +228,9 @@ impl OperationGroup {
     }
 }
 
-/// An entry of a registration's `operations` (Table 5.2.9-1): an operation of Table 4.20-1 or a group of Table
-/// 4.20-2, whose names never collide.
+/// An entry of a registration's `operations`: an operation or a group of them.
+///
+/// It is an operation of NGSI-LD Table 4.20-1 or a group of Table 4.20-2, whose names never collide (Table 5.2.9-1).
 ///
 /// ```
 /// use ngsi_ld::registration::{DistributedOperation, OperationGroup, SupportedOperation};

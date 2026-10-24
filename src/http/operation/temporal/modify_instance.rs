@@ -21,8 +21,9 @@ use bytes::Bytes;
 use http::{Method, Request, Response};
 use jstrict::{Object, Value as Json};
 
-/// `PATCH /temporal/entities/{entityId}/attrs/{attrId}/{instanceId}`: replaces one instance of an attribute in the
-/// temporal evolution of an entity (NGSI-LD clause 6.22.3.1).
+/// Replaces one instance of an attribute in the temporal evolution of an entity.
+///
+/// Its request is `PATCH /temporal/entities/{entityId}/attrs/{attrId}/{instanceId}` (NGSI-LD clause 6.22.3.1).
 ///
 /// Clause 5.6.14.3 makes the body a fragment holding the new instance "contained by an Array of exactly one
 /// item", so it is written `{"<attrId>": [<instance>]}`, the attribute named by the path; taking one attribute

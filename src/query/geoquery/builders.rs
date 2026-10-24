@@ -1,5 +1,4 @@
-//! The builder of geoqueries (NGSI-LD clauses 4.10 and 5.2.13), started by
-//! [`near_max`](crate::query::geoquery::near_max) and the other starting functions of
+//! The geoquery builder, started by [`near_max`](crate::query::geoquery::near_max) and the other functions of
 //! [`geoquery`](crate::query::geoquery).
 //!
 //! [`GeoQueryBuilder`].

@@ -19,7 +19,9 @@ pub enum ConformanceVersionError {
     },
 }
 
-/// A semantic version of the specification in the form `major.minor` (Table 5.2.12-1).
+/// A semantic version of the specification in the form `major.minor`.
+///
+/// NGSI-LD Table 5.2.12-1.
 ///
 /// ```
 /// use ngsi_ld::model::ConformanceVersion;

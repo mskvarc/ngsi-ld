@@ -2,8 +2,10 @@
 //! it (NGSI-LD clauses 5.5.13 and 6.3.18), whether those sources may each hold part of one entity, and whether a
 //! distributed query returns the location of the entity map it used (clauses 4.3.6.7 and 4.5.25).
 
-/// Whether an operation or a subscription is limited to the broker's own data (NGSI-LD clauses 5.5.13 and 6.3.18:
-/// the `local` parameter, and the `localOnly` member of a subscription, Table 5.2.12-1).
+/// Whether an operation or a subscription is limited to the broker's own data.
+///
+/// It is the `local` parameter (NGSI-LD clauses 5.5.13 and 6.3.18) and the `localOnly` member of a subscription (Table
+/// 5.2.12-1).
 ///
 /// ```
 /// use ngsi_ld::query::Locality;
@@ -23,9 +25,10 @@ pub enum Locality {
 
 flag_choice!(Locality, Local, Distributed);
 
-/// Whether the matching context sources may each hold part of one entity (NGSI-LD clause 6.4.3.2: the
-/// `splitEntities` parameter, and the `splitEntities` member of a subscription, Table 5.2.12-1), which decides
-/// whether filters are applied before or after the parts are merged.
+/// Whether the matching context sources may each hold part of one entity.
+///
+/// It is the `splitEntities` parameter (NGSI-LD clause 6.4.3.2) and the `splitEntities` member of a subscription (Table
+/// 5.2.12-1). It decides whether filters are applied before or after the parts are merged.
 ///
 /// ```
 /// use ngsi_ld::query::EntitySplitting;
@@ -46,8 +49,10 @@ pub enum EntitySplitting {
 
 flag_choice!(EntitySplitting, Split, Whole);
 
-/// Whether a query asks for the location of its entity map (the `entityMap` member of Table 5.2.23-1, clause
-/// 4.5.25), with an explicit `false` kept apart from an absent member so that it survives a round trip.
+/// Whether a query asks for the location of its entity map.
+///
+/// It is the `entityMap` member of NGSI-LD Table 5.2.23-1 (clause 4.5.25). An explicit `false` is kept apart from an
+/// absent member so that it survives a round trip.
 ///
 /// ```
 /// use ngsi_ld::query::EntityMapReturn;

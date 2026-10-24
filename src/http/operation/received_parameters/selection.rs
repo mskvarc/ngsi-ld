@@ -54,9 +54,10 @@ pub(crate) const ASSEMBLY: [QueryParameter; 7] = [
     QueryParameter::EntityMapLifetime,
 ];
 
-/// The entities a received query matches and what of them the answer holds: `type`, `id`, `idPattern`, `attrs`,
-/// `q`, the geoquery, `scopeQ`, `csf`, `pick`, `omit`, `expandValues`, `jsonKeys`, `datasetId` and `lang`
-/// (Tables 6.4.3.2-1 and 6.18.3.2-1).
+/// The entities a received query matches and what of them the answer holds.
+///
+/// The parameters are `type`, `id`, `idPattern`, `attrs`, `q`, the geoquery, `scopeQ`, `csf`, `pick`, `omit`,
+/// `expandValues`, `jsonKeys`, `datasetId` and `lang` (NGSI-LD Tables 6.4.3.2-1 and 6.18.3.2-1).
 ///
 /// Each parameter is read with its grammar. Of the rules that tie parameters together, only those without which
 /// the typed value cannot be built are checked: `georel`, `geometry` and `coordinates` make one geoquery, so each
@@ -151,8 +152,10 @@ pub(crate) fn read_geo_query(received: &ReceivedQuery<'_>) -> Result<(Option<Geo
     Ok((geo_q, lone_geoproperty))
 }
 
-/// How a received query asks for its answer to be assembled: the ordering (clause 4.23), `splitEntities`, and the
-/// entity map (`entityMap`, `entityMapLifetime`, clause 4.5.25).
+/// How a received query asks for its answer to be assembled.
+///
+/// The parameters are the ordering (NGSI-LD clause 4.23), `splitEntities`, and the entity map (`entityMap`,
+/// `entityMapLifetime`, clause 4.5.25).
 ///
 /// `collation`, `orderFrom` and `orderGeometry` complete an `orderBy` (clause 4.23.3), so each is refused without
 /// it; every other parameter is read on its own.

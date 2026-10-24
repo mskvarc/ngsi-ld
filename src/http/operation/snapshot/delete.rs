@@ -2,7 +2,10 @@
 
 use crate::{http::path::ResourcePath, snapshot::SnapshotId};
 
-/// Deletes a snapshot (NGSI-LD clause 5.16.5): `DELETE /snapshots/{snapshotId}` (clause 6.37.3.3), answered 204.
+/// Deletes a snapshot.
+///
+/// NGSI-LD clause 5.16.5 defines the operation. Its request is `DELETE /snapshots/{snapshotId}` (clause 6.37.3.3),
+/// answered 204.
 ///
 /// ```
 /// use iri_rs::iri;

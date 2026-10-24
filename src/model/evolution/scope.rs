@@ -59,8 +59,10 @@ impl ScopeValue {
     }
 }
 
-/// One instance of the temporal evolution of an entity's scope (NGSI-LD clause 4.5.6): the scope or scopes it held,
-/// when that was observed, and, in a response, when the broker created, modified or deleted the instance.
+/// One instance of the temporal evolution of an entity's scope.
+///
+/// It holds the scope or scopes it held, when that was observed, and, in a response, when the broker created, modified
+/// or deleted the instance (NGSI-LD clause 4.5.6).
 ///
 /// ```
 /// use ngsi_ld::model::{

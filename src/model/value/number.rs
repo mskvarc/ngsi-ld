@@ -3,7 +3,9 @@
 use jstrict::{NumberBuf, Value as Json};
 use std::str::FromStr;
 
-/// A floating-point number is NaN or infinite, which JSON cannot write; the variant says which.
+/// A floating-point number is NaN or infinite, which JSON cannot write.
+///
+/// The variant says which.
 ///
 /// The enum is exhaustive: IEEE 754 has no other value that is not finite.
 ///
@@ -41,12 +43,16 @@ impl NotFinite {
     }
 }
 
-/// The text is not a JSON number (IETF RFC 8259 section 6).
+/// The text is not a JSON number.
+///
+/// IETF RFC 8259 section 6 defines JSON numbers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 #[error("not a JSON number")]
 pub struct NumberError;
 
-/// A JSON number, kept with the exact lexical form it was read or written with, so `1.10` stays `1.10`.
+/// A JSON number, kept with the exact lexical form it was read or written with.
+///
+/// For example, `1.10` stays `1.10`.
 ///
 /// A number the Rust primitives cannot hold exactly, such as a decimal beyond the precision of an `f64` or an
 /// integer beyond the range of a `u64`, is parsed from its lexical form (clause 4.6.3 takes JSON numbers as IETF RFC

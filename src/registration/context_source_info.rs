@@ -12,7 +12,9 @@ use url::Url;
 /// The value clause 4.3.6.5 lets stand for the value of the triggering request.
 const FROM_REQUEST: &str = "urn:ngsi-ld:request";
 
-/// A key of `contextSourceInfo` that clause 4.3.6.6 defines.
+/// A key of `contextSourceInfo` that the specification defines.
+///
+/// NGSI-LD clause 4.3.6.6 defines the keys.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification define more keys.
 ///
@@ -38,8 +40,9 @@ pub enum ContextSourceInfoKey {
     NgsildConformance,
 }
 
-/// A media type `accept` and `contentType` allow (clause 4.3.6.6): one of the NGSI-LD media types, whose text it
-/// is written and read as.
+/// A media type `accept` and `contentType` allow.
+///
+/// It is one of the NGSI-LD media types, whose text it is written and read as (NGSI-LD clause 4.3.6.6).
 ///
 /// The enum is exhaustive: clause 4.3.6.6 allows these two.
 ///
@@ -86,8 +89,10 @@ impl ContextSourceMediaType {
     }
 }
 
-/// The value of a `contextSourceInfo` pair: given, or `urn:ngsi-ld:request`, the value of the request that triggered
-/// the distributed operation (clause 4.3.6.5).
+/// The value of a `contextSourceInfo` pair: given, or `urn:ngsi-ld:request`.
+///
+/// `urn:ngsi-ld:request` stands for the value of the request that triggered the distributed operation (NGSI-LD clause
+/// 4.3.6.5).
 ///
 /// The enum is exhaustive: clause 4.3.6.5 adds this one alternative.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display)]
@@ -111,8 +116,10 @@ impl<T> ContextSourceInfoValue<T> {
     }
 }
 
-/// A pair of `contextSourceInfo` whose key clause 4.3.6.6 does not define, such as an HTTP header for the context
-/// source. Its key is never one of [`ContextSourceInfoKey`]; it is made only by [`ContextSourceInfo::parse`].
+/// A pair of `contextSourceInfo` whose key the specification does not define.
+///
+/// NGSI-LD clause 4.3.6.6 defines the keys; such a pair is, for instance, an HTTP header for the context source. Its
+/// key is never one of [`ContextSourceInfoKey`]; it is made only by [`ContextSourceInfo::parse`].
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OtherContextSourceInfo {
     /// The key, free text (Table 5.2.22-1).
@@ -135,7 +142,9 @@ impl OtherContextSourceInfo {
     }
 }
 
-/// One pair of a registration's `contextSourceInfo`, typed by its key (clauses 4.3.6.5 and 4.3.6.6).
+/// One pair of a registration's `contextSourceInfo`, typed by its key.
+///
+/// NGSI-LD clauses 4.3.6.5 and 4.3.6.6.
 ///
 /// The enum is `#[non_exhaustive]`: a key a later version of the specification defines becomes a variant.
 ///
@@ -175,7 +184,9 @@ pub enum ContextSourceInfo {
     Other(OtherContextSourceInfo),
 }
 
-/// Why the value of a `contextSourceInfo` pair is not one its key allows (clause 4.3.6.6).
+/// Why the value of a `contextSourceInfo` pair is not one its key allows.
+///
+/// NGSI-LD clause 4.3.6.6.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
 pub enum ContextSourceInfoError {
@@ -268,8 +279,10 @@ impl ContextSourceInfo {
     }
 }
 
-/// A `contextSourceInfo` pair given to a builder: a [`ContextSourceInfo`], or a key and a value read when the
-/// builder finishes, so every invalid pair is reported together.
+/// A `contextSourceInfo` pair given to a builder.
+///
+/// It is a [`ContextSourceInfo`], or a key and a value read when the builder finishes, so every invalid pair is
+/// reported together.
 ///
 /// ```
 /// use ngsi_ld::registration::ContextSourceInfoDraft;

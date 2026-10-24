@@ -117,8 +117,9 @@ pub enum GeometryError {
     },
 }
 
-/// A member of a `GeoJSON` geometry object that NGSI-LD accepts: RFC 7946 section 3.1 defines `type` and
-/// `coordinates`, section 5 `bbox`, and a geometry carries nothing else.
+/// A member of a `GeoJSON` geometry object that NGSI-LD accepts.
+///
+/// RFC 7946 section 3.1 defines `type` and `coordinates`, section 5 `bbox`, and a geometry carries nothing else.
 ///
 /// The enum is exhaustive: RFC 7946 closes the set of members a geometry object defines.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr)]

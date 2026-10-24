@@ -55,8 +55,9 @@ fn validate_coding(coding: &str) -> Result<(), ContentCodingError> {
 )]
 pub struct ContentCoding(String);
 
-/// A coding an `Accept-Encoding` element names (RFC 9110 section 12.5.3): a content coding, `identity`, or `*` for
-/// any coding.
+/// A coding an `Accept-Encoding` element names.
+///
+/// It is a content coding, `identity`, or `*` for any coding (RFC 9110 section 12.5.3).
 ///
 /// The enum is exhaustive: section 12.5.3 defines `codings` as exactly these three forms.
 ///

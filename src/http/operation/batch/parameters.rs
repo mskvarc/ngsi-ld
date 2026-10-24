@@ -18,8 +18,9 @@ use crate::{
 /// (clause 6.3.18).
 const ACCEPTED: [QueryParameter; 2] = [QueryParameter::Options, QueryParameter::Local];
 
-/// The query string of a Batch Entity Upsert request (`POST /entityOperations/upsert`, clause 6.15.3.1), read in
-/// typed form.
+/// The query string of a Batch Entity Upsert request, read in typed form.
+///
+/// The request is `POST /entityOperations/upsert` (NGSI-LD clause 6.15.3.1).
 ///
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///
@@ -59,8 +60,9 @@ impl BatchUpsertParameters {
     }
 }
 
-/// The query string of a Batch Entity Update request (`POST /entityOperations/update`, clause 6.16.3.1), read in
-/// typed form.
+/// The query string of a Batch Entity Update request, read in typed form.
+///
+/// The request is `POST /entityOperations/update` (NGSI-LD clause 6.16.3.1).
 ///
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///

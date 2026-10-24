@@ -9,7 +9,9 @@ use crate::{
 use bon::bon;
 use jstrict::{Object, Value as Json, object::Entry};
 
-/// The changes Update Snapshot Status applies to a snapshot (NGSI-LD clauses 5.4 and 5.16.4).
+/// The changes Update Snapshot Status applies to a snapshot.
+///
+/// NGSI-LD clauses 5.4 and 5.16.4.
 ///
 /// `snapshotStatus` and the other members of Table 5.2.41-2 are output-only, the queries become read-only once the
 /// snapshot exists (Table 5.2.41-1) and the `id` cannot be modified, so a fragment changes the settings only: it

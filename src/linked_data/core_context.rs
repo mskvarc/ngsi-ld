@@ -41,8 +41,9 @@ pub enum BundledContextError {
     Context(#[source] JsonLdError),
 }
 
-/// A remote context was referenced where nothing may be loaded: an active context processed offline names a
-/// remote context other than the core context.
+/// A remote context was referenced where nothing may be loaded.
+///
+/// An active context processed offline names a remote context other than the core context.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 #[error("the remote context needs a loader")]
 pub struct RequiresLoader;

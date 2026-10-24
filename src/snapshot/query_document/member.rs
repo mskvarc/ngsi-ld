@@ -1,8 +1,9 @@
 //! The members of the queries a snapshot holds (NGSI-LD Tables 5.2.23-1 and 5.2.44-1), named once: the readers and
 //! writers spell them through [`QueryMember`] and [`AggregationMember`], and a problem names them.
 
-/// A member of a `Query` a snapshot holds (Table 5.2.23-1), `temporalQ` and `aggrParams` of a temporal query
-/// included.
+/// A member of a `Query` a snapshot holds.
+///
+/// NGSI-LD Table 5.2.23-1 defines the members; `temporalQ` and `aggrParams` of a temporal query are included.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members to the table.
 ///
@@ -59,7 +60,9 @@ pub enum QueryMember {
     SplitEntities,
 }
 
-/// A member of the `AggregationParams` of a temporal query (Table 5.2.44-1).
+/// A member of the `AggregationParams` of a temporal query.
+///
+/// NGSI-LD Table 5.2.44-1.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification add members to the table.
 ///

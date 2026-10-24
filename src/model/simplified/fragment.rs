@@ -30,7 +30,9 @@ use jstrict::{Object, Value as Json};
 #[cfg(feature = "linked-data")]
 mod names;
 
-/// What a simplified fragment does to one instance of an attribute (NGSI-LD clause 5.6.17.4).
+/// What a simplified fragment does to one instance of an attribute.
+///
+/// NGSI-LD clause 5.6.17.4.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]
 pub enum SimplifiedChange {
     /// Merges the value into the instance, keeping the kind the attribute has, or appends a new instance.
@@ -49,9 +51,10 @@ impl SimplifiedChange {
     }
 }
 
-/// What a simplified fragment does to one attribute: a change to its default instance, written as the bare member
-/// value, or changes to instances named by dataset id, written `{"dataset": {...}}` with `@none` for the default
-/// instance (NGSI-LD clauses 4.5.4 and 4.5.5).
+/// What a simplified fragment does to one attribute.
+///
+/// It is a change to its default instance, written as the bare member value, or changes to instances named by dataset
+/// id, written `{"dataset": {...}}` with `@none` for the default instance (NGSI-LD clauses 4.5.4 and 4.5.5).
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]
 pub enum SimplifiedAttributeChange {
     /// The default instance.
@@ -70,8 +73,9 @@ impl SimplifiedAttributeChange {
     }
 }
 
-/// An entity fragment in simplified representation (NGSI-LD clauses 4.5.4 and 5.6.17): the body of Merge Entity
-/// with `format=simplified`.
+/// An entity fragment in simplified representation.
+///
+/// It is the body of Merge Entity with `format=simplified` (NGSI-LD clauses 4.5.4 and 5.6.17).
 ///
 /// Each attribute is a bare value the broker merges into the attribute the entity holds, keeping its kind
 /// (clause 5.6.17.4); a `LanguageProperty` given as a string is merged under the request's `lang`. `id`, `type` and
@@ -122,7 +126,9 @@ struct PendingSimplifiedChange {
     change: SimplifiedChange,
 }
 
-/// The changes a simplified fragment builder collects; validated together when it finishes.
+/// The changes a simplified fragment builder collects.
+///
+/// They are validated together when the builder finishes.
 #[derive(Debug, Default)]
 pub struct PendingSimplifiedChanges(Vec<PendingSimplifiedChange>);
 

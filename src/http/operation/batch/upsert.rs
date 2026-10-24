@@ -23,9 +23,11 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `POST /entityOperations/upsert`: creates every entity of the batch that does not exist and replaces or updates
-/// every one that does (NGSI-LD clause 6.15.3.1). Later instances of one entity replace or update it in array
-/// order (clause 5.5.11.2).
+/// Creates the missing entities of the batch and replaces or updates the others.
+///
+/// Its request is `POST /entityOperations/upsert` (NGSI-LD clause 6.15.3.1). An entity of the batch that does not exist
+/// is created, and every one that does is replaced or updated. Later instances of one entity replace or update it in
+/// array order (clause 5.5.11.2).
 ///
 /// ```
 /// use iri_rs::iri;

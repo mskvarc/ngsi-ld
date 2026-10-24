@@ -2,7 +2,9 @@
 
 use crate::model::geometry::{GeometryError, LinearRing};
 
-/// A polygon: an exterior ring and any number of holes (RFC 7946 section 3.1.6).
+/// A polygon: an exterior ring and any number of holes.
+///
+/// RFC 7946 section 3.1.6.
 ///
 /// ```
 /// use ngsi_ld::model::geometry::{GeometryError, LinearRing, Polygon, Position, Shape};

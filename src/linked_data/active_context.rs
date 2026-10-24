@@ -22,8 +22,9 @@ use jsonld::{
 };
 use std::sync::Arc;
 
-/// A term of a JSON-LD context: any non-empty string a term definition names (JSON-LD 1.1 section 3.1), so not one
-/// of the crate's name types.
+/// A term of a JSON-LD context.
+///
+/// It is any non-empty string a term definition names (JSON-LD 1.1 section 3.1), so not one of the crate's name types.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display)]
 pub struct ContextTerm(String);
 
@@ -35,8 +36,9 @@ impl ContextTerm {
     }
 }
 
-/// Why an `@context` could not be processed; `E` is the error of the [`RemoteContextLoader`] that loads its remote
-/// contexts.
+/// Why an `@context` could not be processed.
+///
+/// `E` is the error of the [`RemoteContextLoader`] that loads its remote contexts.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum ProcessingError<E> {
@@ -94,7 +96,9 @@ fn processing_error<E>(error: ContextProcessingError<E>) -> ProcessingError<E> {
     }
 }
 
-/// A processed `@context`: the user context a document carries, with the NGSI-LD core context processed on top.
+/// A processed `@context`.
+///
+/// It is the user context a document carries, with the NGSI-LD core context processed on top.
 ///
 /// NGSI-LD treats the core context as the last entry of every `@context`, protected and immutable (clause 4.4):
 /// a user context cannot redefine a core term such as `location` and must prefix its own instead (clause C.9).

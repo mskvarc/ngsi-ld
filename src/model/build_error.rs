@@ -3,9 +3,10 @@
 use crate::model::{AttributeName, BuildProblem};
 use std::{error::Error, fmt};
 
-/// Every problem a builder found, in the order the builder calls were made; `P` is the problem of the document
-/// family: [`BuildProblem`] for the data model, and the `Problem` of the query languages, subscriptions,
-/// registrations and snapshots for theirs.
+/// Every problem a builder found, in the order the builder calls were made.
+///
+/// `P` is the problem of the document family: [`BuildProblem`] for the data model, and the `Problem` of the query
+/// languages, subscriptions, registrations and snapshots for theirs.
 ///
 /// Builders accept convenient inputs (`&str` names, string values) and validate them once, when the document
 /// is built, so a caller sees every problem at the same time rather than one per attempt. A value the caller

@@ -1,4 +1,6 @@
-//! The NGSI-LD Scope Query Language (NGSI-LD clause 4.19), written in the `scopeQ` parameter.
+//! The NGSI-LD Scope Query Language, written in the `scopeQ` parameter.
+//!
+//! NGSI-LD clause 4.19.
 //!
 //! A scope query is `/#`, which matches every entity with a scope, or a disjunction of alternatives, each a scope
 //! pattern (`/Madrid/+/ParqueNorte`), a pattern with the whole tree of scopes below it (`/Madrid/Gardens/#`), or a
@@ -40,8 +42,9 @@ pub mod builders;
 mod parser;
 mod pattern;
 
-/// A parenthesised conjunction of scope patterns: the entities within all of them (the first `OrScopeQ`
-/// production of NGSI-LD clause 4.19).
+/// A parenthesised conjunction of scope patterns: the entities within all of them.
+///
+/// It is the first `OrScopeQ` production of NGSI-LD clause 4.19.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ScopeConjunction(Vec<ScopePattern>);
 
@@ -62,7 +65,9 @@ impl fmt::Display for ScopeConjunction {
     }
 }
 
-/// One alternative of a scope query (the `OrScopeQ` production of NGSI-LD clause 4.19).
+/// One alternative of a scope query.
+///
+/// It is the `OrScopeQ` production of NGSI-LD clause 4.19.
 ///
 /// The enum is exhaustive: clause 4.19 defines these three forms.
 ///
@@ -98,7 +103,9 @@ enum Selection {
     Alternatives(Vec<ScopeAlternative>),
 }
 
-/// A scope query (the `ScopesQ` production of NGSI-LD clause 4.19).
+/// A scope query.
+///
+/// It is the `ScopesQ` production of NGSI-LD clause 4.19.
 ///
 /// ```
 /// use ngsi_ld::query::scope_query::ScopeQuery;
@@ -150,7 +157,9 @@ impl FromStr for ScopeQuery {
     }
 }
 
-/// The scope query `/#`, which selects every entity with a scope (clause 4.19).
+/// The scope query `/#`, which selects every entity with a scope.
+///
+/// NGSI-LD clause 4.19.
 ///
 /// ```
 /// use ngsi_ld::query::scope_query;
@@ -162,7 +171,9 @@ pub const fn any_scope() -> ScopeQuery {
     ScopeQuery(Selection::AnyScope)
 }
 
-/// Starts a scope query with the entities within a scope `pattern` matches, such as `/Madrid/+/ParqueNorte`.
+/// Starts a scope query with the entities within a scope `pattern` matches.
+///
+/// An example pattern is `/Madrid/+/ParqueNorte`.
 ///
 /// ```
 /// use ngsi_ld::query::scope_query;
@@ -176,8 +187,10 @@ pub fn scope(pattern: impl AsRef<str>) -> ScopeQueryBuilder {
     ScopeQueryBuilder::empty().or(pattern)
 }
 
-/// Starts a scope query with the entities within a scope `pattern` matches or any scope below one, written with
-/// `/#` after the pattern.
+/// Starts a scope query with the entities in or below a scope `pattern` matches.
+///
+/// The query matches the entities within a scope the pattern matches or any scope below one, written with `/#` after
+/// the pattern.
 ///
 /// ```
 /// use ngsi_ld::query::scope_query;

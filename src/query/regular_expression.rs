@@ -11,7 +11,9 @@
 
 use std::{iter::Peekable, str::CharIndices};
 
-/// Why a string is not a regular expression whose groups, bracket expressions and escapes close.
+/// Why a string is not a well-formed regular expression.
+///
+/// A well-formed expression closes its groups, bracket expressions and escapes.
 ///
 /// The enum is `#[non_exhaustive]`: a later check may find more.
 ///

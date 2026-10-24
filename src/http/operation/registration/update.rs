@@ -20,7 +20,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `PATCH /csourceRegistrations/{registrationId}`: applies a fragment to a registration (NGSI-LD clause 6.9.3.2).
+/// Applies a fragment to a registration.
+///
+/// Its request is `PATCH /csourceRegistrations/{registrationId}` (NGSI-LD clause 6.9.3.2).
 ///
 /// The body is the fragment alone, with its `type` and without an `id`: clause 5.9.3.3 takes the target from the
 /// path and the changes from a Context Source Registration Fragment (clause 5.4), and Table 6.9.3.2-1, unlike

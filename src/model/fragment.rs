@@ -46,7 +46,9 @@ pub enum ScopeChange {
     Delete,
 }
 
-/// An entity fragment (NGSI-LD clause 5.4): the members to add, change or delete in an existing entity.
+/// An entity fragment: the members to add, change or delete in an existing entity.
+///
+/// NGSI-LD clause 5.4.
 ///
 /// `C` says whether the fragment names its entity. A fragment sent to one entity ([`Projected`], the default)
 /// has an optional `id` and `type`, because the HTTP binding names the entity in the path. A fragment in the body

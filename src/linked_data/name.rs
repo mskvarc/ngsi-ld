@@ -131,9 +131,10 @@ mod sealed {
 
 use sealed::{NamePosition, Prefixing};
 
-/// A name an [`ActiveContext`] expands, compacts and translates: [`EntityTypeName`], [`AttributeName`],
-/// [`VocabTerm`] (the `vocab` of a `VocabProperty`, clause 4.5.20) and [`Term`] (the bare names of the query
-/// languages, clause 4.9).
+/// A name an [`ActiveContext`] expands, compacts and translates.
+///
+/// The names are [`EntityTypeName`], [`AttributeName`], [`VocabTerm`] (the `vocab` of a `VocabProperty`, NGSI-LD clause
+/// 4.5.20) and [`Term`] (the bare names of the query languages, clause 4.9).
 ///
 /// The trait is sealed: the set of names is the one NGSI-LD defines.
 ///

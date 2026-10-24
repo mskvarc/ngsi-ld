@@ -14,9 +14,11 @@ use crate::{
 };
 use std::sync::Arc;
 
-/// Builds [`ActiveContext`]s. It reads the bundled core context once, when it is made, and every active context it
-/// builds shares that copy, so a caller that processes many contexts keeps one processor and parses the core
-/// context once. The processor is the caller's: the crate holds no processor of its own.
+/// Builds [`ActiveContext`]s.
+///
+/// It reads the bundled core context once, when it is made, and every active context it builds shares that copy, so a
+/// caller that processes many contexts keeps one processor and parses the core context once. The processor is the
+/// caller's: the crate holds no processor of its own.
 ///
 /// ```
 /// use ngsi_ld::{

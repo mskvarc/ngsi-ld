@@ -3,8 +3,9 @@
 
 use crate::snapshot::QueryMember;
 
-/// A member of a snapshot a fragment may set or delete (Table 5.2.41-1), in the order the canonical form writes
-/// them.
+/// A member of a snapshot a fragment may set or delete.
+///
+/// NGSI-LD Table 5.2.41-1 defines the members; they are in the order the canonical form writes them.
 ///
 /// ```
 /// use ngsi_ld::snapshot::SnapshotMember;
@@ -30,8 +31,9 @@ pub enum SnapshotMember {
     ReceiverInfo,
 }
 
-/// A member a snapshot problem names: a member of the snapshot or of one of the queries it holds. It displays as the
-/// member's own name.
+/// A member a snapshot problem names, displayed as the member's own name.
+///
+/// It is a member of the snapshot or of one of the queries it holds.
 ///
 /// The enum is exhaustive: a snapshot has no other part.
 ///

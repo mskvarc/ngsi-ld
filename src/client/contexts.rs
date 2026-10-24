@@ -23,8 +23,10 @@ use bon::bon;
 use indexmap::IndexMap;
 use url::Url;
 
-/// The stored `@context` operations of a [`Client`], from [`Client::contexts`], named after clause 5.13, "Storing,
-/// Managing and Serving @contexts".
+/// The stored `@context` operations of a [`Client`].
+///
+/// [`Client::contexts`] returns them. They are named after NGSI-LD clause 5.13, "Storing, Managing and Serving
+/// @contexts".
 ///
 /// Each operation is a builder that finishes with `send()`.
 ///

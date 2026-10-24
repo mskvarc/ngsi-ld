@@ -1,5 +1,6 @@
-//! The NGSI-LD Language Filter (NGSI-LD clause 4.15), written in the `lang` parameter of Retrieve Entity and Query
-//! Entities.
+//! The NGSI-LD Language Filter.
+//!
+//! It is written in the `lang` parameter of Retrieve Entity and Query Entities (NGSI-LD clause 4.15).
 //!
 //! A filter asks the broker to return each `LanguageProperty` as a `Property` whose value is the text of one
 //! language, with a `lang` member naming the language chosen. It lists language preferences separated by `,`, each a
@@ -51,7 +52,9 @@ mod parser;
 /// The wildcard of a language filter, which matches any language (clause 4.15, example 3).
 const WILDCARD: &str = "*";
 
-/// The languages a preference of a language filter accepts: one language tag, or any language.
+/// The languages a preference of a language filter accepts.
+///
+/// It accepts one language tag, or any language.
 ///
 /// Clause 4.15 takes the language tags of IETF RFC 5646, so a range here is a well-formed BCP 47 tag, not any basic
 /// language range of IETF RFC 4647 as an HTTP `Accept-Language` field allows; `en-a-b`, a valid basic range but no
@@ -74,7 +77,9 @@ pub enum LanguageRange {
     Any,
 }
 
-/// A language filter (NGSI-LD clause 4.15): a non-empty list of language preferences.
+/// A language filter: a non-empty list of language preferences.
+///
+/// NGSI-LD clause 4.15.
 ///
 /// ```
 /// use ngsi_ld::query::language_filter::LanguageFilter;
@@ -139,7 +144,9 @@ pub fn language(tag: impl AsRef<str>) -> LanguageFilterBuilder {
     LanguageFilterBuilder(Deferred::valid(Vec::new())).language(tag)
 }
 
-/// Starts a filter with the wildcard `*`: the text of any language the broker supports (clause 4.15, example 3).
+/// Starts a filter with the wildcard `*`: the text of any language.
+///
+/// The broker returns the text of any language it supports (NGSI-LD clause 4.15, example 3).
 #[must_use]
 pub fn any() -> LanguageFilterBuilder {
     LanguageFilterBuilder(Deferred::valid(Vec::new())).any()

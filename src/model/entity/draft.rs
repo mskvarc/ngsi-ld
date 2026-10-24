@@ -54,7 +54,9 @@ fn resolve_list<T, E>(
 }
 
 draft!(
-    /// An entity id given to a builder: an [`EntityId`], a compile-time IRI literal, or a string.
+    /// An entity id given to a builder.
+    ///
+    /// It is an [`EntityId`], a compile-time IRI literal, or a string.
     IdDraft(EntityId, UriError)
 );
 
@@ -74,7 +76,9 @@ impl From<Iri<&str>> for IdDraft {
     }
 }
 
-/// The entity type or types given to a builder: names, or strings validated when the entity is built.
+/// The entity type or types given to a builder.
+///
+/// They are names, or strings validated when the entity is built.
 #[derive(Debug, Clone)]
 pub struct TypeDraft(Result<OneOrMany<EntityTypeName>, ListProblem<NameError>>);
 
@@ -120,7 +124,9 @@ impl<const N: usize> From<[&str; N]> for TypeDraft {
     }
 }
 
-/// The scope or scopes given to a builder: scopes, or strings validated when the entity is built.
+/// The scope or scopes given to a builder.
+///
+/// They are scopes, or strings validated when the entity is built.
 #[derive(Debug, Clone)]
 pub struct ScopeDraft(Result<OneOrMany<Scope>, ListProblem<ScopeError>>);
 

@@ -1,4 +1,4 @@
-//! The builders of NGSI-LD queries (NGSI-LD clause 4.9), started by [`attr`](crate::query::q::attr).
+//! The builders of queries, started by [`attr`](crate::query::q::attr).
 //!
 //! [`PathBuilder`], [`QueryBuilder`].
 
@@ -38,8 +38,9 @@ impl PathState {
     }
 }
 
-/// An attribute path under construction (the `Attribute` production of NGSI-LD clause 4.9), started by
-/// [`attr`](crate::query::q::attr).
+/// An attribute path under construction, started by [`attr`](crate::query::q::attr).
+///
+/// It is the `Attribute` production of NGSI-LD clause 4.9.
 ///
 /// Its comparison methods ([`eq`](Self::eq), [`gt`](Self::gt), ...) turn it into a query term.
 ///

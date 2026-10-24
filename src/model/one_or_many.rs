@@ -10,7 +10,9 @@ use crate::model::{
 use jstrict::Value as Json;
 use std::slice::{self, Iter};
 
-/// A list that must hold at least one value is empty: an empty array carries no value at all.
+/// A list that must hold at least one value is empty.
+///
+/// An empty array carries no value at all.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 #[error("the list must hold at least one value")]
 pub struct EmptyList;
@@ -112,8 +114,10 @@ impl<'a, T> IntoIterator for &'a OneOrMany<T> {
     }
 }
 
-/// One value or several given to a builder: a value, a [`OneOrMany`], or a `Vec` whose emptiness is reported when
-/// the document is built, together with every other problem.
+/// One value or several given to a builder.
+///
+/// It is a value, a [`OneOrMany`], or a `Vec` whose emptiness is reported when the document is built, together with
+/// every other problem.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OneOrManyDraft<T>(Result<OneOrMany<T>, EmptyList>);
 

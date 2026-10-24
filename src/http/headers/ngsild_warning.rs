@@ -6,7 +6,9 @@ use http::{HeaderName, HeaderValue};
 /// The header name.
 static NGSILD_WARNING: HeaderName = HeaderName::from_static("ngsild-warning");
 
-/// The IANA warning code of an `NGSILD-Warning` (NGSI-LD Table 6.3.17-1).
+/// The IANA warning code of an `NGSILD-Warning`.
+///
+/// NGSI-LD Table 6.3.17-1.
 ///
 /// The enum is `#[non_exhaustive]`: the codes come from the IANA warning code registry, of which Table 6.3.17-1 uses
 /// four, and a later version of the specification may use more.
@@ -61,8 +63,10 @@ impl WarningCode {
     }
 }
 
-/// One warning of an `NGSILD-Warning` header: what went wrong in the distributed part of a GET on `/entities` or
-/// `/entities/{entityId}` (NGSI-LD clause 6.3.17).
+/// One warning of an `NGSILD-Warning` header.
+///
+/// It says what went wrong in the distributed part of a GET on `/entities` or `/entities/{entityId}` (NGSI-LD clause
+/// 6.3.17).
 ///
 /// The warning is its [`WarningCode`] and the text the broker wrote after it, such as `- Response is Stale`, kept as
 /// received: clause 6.3.17 writes the code and its phrase, while the IANA registry the codes come from also allows a
@@ -139,9 +143,10 @@ impl NgsiLdWarning {
     }
 }
 
-/// The `NGSILD-Warning` header: the warnings a broker attaches to the answer of a GET on `/entities` or
-/// `/entities/{entityId}` when a distributed part of it behaved abnormally or was served from a cache (NGSI-LD clause
-/// 6.3.17).
+/// The `NGSILD-Warning` header: the warnings a broker attaches to an answer.
+///
+/// The broker attaches them to the answer of a GET on `/entities` or `/entities/{entityId}` when a distributed part of
+/// it behaved abnormally or was served from a cache (NGSI-LD clause 6.3.17).
 ///
 /// The header holds at least one warning. Clause 6.3.17 sends one warning per header field; a field line holding
 /// several, separated by commas as the HTTP list syntax allows, is read too: a comma starts a new warning when a

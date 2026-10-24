@@ -1,6 +1,8 @@
 //! How a request carries its JSON-LD `@context` (NGSI-LD clause 6.3.5).
 
-/// Where a request with a body carries its `@context` (NGSI-LD clause 6.3.5).
+/// Where a request with a body carries its `@context`.
+///
+/// NGSI-LD clause 6.3.5.
 ///
 /// GET and DELETE requests always carry the context in a `Link` header; this choice decides POST, PATCH and PUT,
 /// where clause 6.3.5 forbids mixing the two: with `application/json` the context goes in the `Link` header and

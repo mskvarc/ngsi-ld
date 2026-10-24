@@ -20,8 +20,9 @@ use jstrict::{Object, Value as Json, object::Entry};
 #[cfg(feature = "linked-data")]
 mod names;
 
-/// The `GeoJSON` object types of the `GeoJSON` representation (Tables 5.2.29-1 and 5.2.30-1), spelled as their `type`
-/// member.
+/// The `GeoJSON` object types of the `GeoJSON` representation.
+///
+/// They are spelled as their `type` member (NGSI-LD Tables 5.2.29-1 and 5.2.30-1).
 ///
 /// The enum is exhaustive: clauses 4.5.16 and 4.5.17 use these two types only.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr)]
@@ -66,7 +67,9 @@ enum CollectionMember {
     Context,
 }
 
-/// An entity in `GeoJSON` representation (NGSI-LD clauses 4.5.16.2, 4.5.17.1 and 5.2.29): a `GeoJSON` Feature.
+/// An entity in `GeoJSON` representation: a `GeoJSON` Feature.
+///
+/// NGSI-LD clauses 4.5.16.2, 4.5.17.1 and 5.2.29.
 ///
 /// `E` is the entity: an [`Entity<Output>`] for the normalized and concise `GeoJSON` representation, a
 /// [`SimplifiedEntity`] for the simplified one. Its `id` is the Feature's `id`; its other members are the
@@ -125,8 +128,9 @@ impl<E> Feature<E> {
     }
 }
 
-/// A list of entities in `GeoJSON` representation (NGSI-LD clauses 4.5.16.3, 4.5.17.2 and 5.2.30): a `GeoJSON`
-/// `FeatureCollection`.
+/// A list of entities in `GeoJSON` representation: a `GeoJSON` `FeatureCollection`.
+///
+/// NGSI-LD clauses 4.5.16.3, 4.5.17.2 and 5.2.30.
 ///
 /// ```
 /// use ngsi_ld::model::{FeatureCollection, SimplifiedEntity};

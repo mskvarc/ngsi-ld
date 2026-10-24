@@ -23,10 +23,11 @@ use crate::{
 use jstrict::{Object, Value as Json, object::Entry};
 use std::{fmt, str::FromStr};
 
-/// The `type` of an [`EntitySelector`] and of a query: an entity type selection (clause 4.17), or `*` for the
-/// entities of every type, which implies local scope (Table 5.2.33-1, and the `type` parameter of Tables 6.4.3.2-1,
-/// 6.4.3.3-1 and 6.18.3.2-1). An operation on one entity takes a [`TypeSelection`] alone, since its table does not
-/// allow `*` (Table 6.5.3.1-1).
+/// The `type` of an [`EntitySelector`] and of a query.
+///
+/// It is an entity type selection (NGSI-LD clause 4.17), or `*` for the entities of every type, which implies local
+/// scope (Table 5.2.33-1, and the `type` parameter of Tables 6.4.3.2-1, 6.4.3.3-1 and 6.18.3.2-1). An operation on one
+/// entity takes a [`TypeSelection`] alone, since its table does not allow `*` (Table 6.5.3.1-1).
 ///
 /// The enum is exhaustive: Table 5.2.33-1 allows a type selection or `*`, and the type selection language of clause
 /// 4.17 grows inside [`TypeSelection`], not here.
@@ -67,8 +68,10 @@ impl FromStr for SelectorType {
     }
 }
 
-/// The `type` of a query under construction: every entity type (`*`), or a type selection whose names are checked
-/// when it is built (clause 4.17, Table 6.4.3.2-1).
+/// The `type` of a query under construction.
+///
+/// It is every entity type (`*`), or a type selection whose names are checked when it is built (NGSI-LD clause 4.17,
+/// Table 6.4.3.2-1).
 ///
 /// A string names one entity type, as [`type_selection::entity_type`] does; `*` is not an entity type name, so
 /// every type is asked for with [`SelectorTypeBuilder::All`] or [`SelectorType::All`].
@@ -141,9 +144,11 @@ impl TryFrom<SelectorTypeBuilder> for SelectorType {
 }
 
 draft!(
-    /// An entity selector given to a builder: an [`EntitySelector`], or text naming one entity type, validated when
-    /// the builder finishes, so every invalid type is reported together. A list may mix both, each converted with
-    /// `.into()`; a selector by identifier, by pattern or of several types is an [`EntitySelector`].
+    /// An entity selector given to a builder.
+    ///
+    /// It is an [`EntitySelector`], or text naming one entity type, validated when the builder finishes, so every
+    /// invalid type is reported together. A list may mix both, each converted with `.into()`; a selector by identifier,
+    /// by pattern or of several types is an [`EntitySelector`].
     ///
     /// ```
     /// use iri_rs::iri;
@@ -162,7 +167,9 @@ draft!(
     parse = |text: &str| text.parse().map(EntitySelector::of_type)
 );
 
-/// Why JSON data is not an `EntitySelector` (NGSI-LD clause 5.2.33); a reader reports it as a
+/// Why JSON data is not an `EntitySelector`.
+///
+/// NGSI-LD clause 5.2.33 defines the selector. A reader reports the error as a
 /// [`DocumentError<EntitySelectorError>`](DocumentError), whose `path` names the member at fault.
 // `ParseError` carries no `Clone` or equality, so neither can the error that chains it.
 #[derive(Debug, thiserror::Error)]
@@ -191,8 +198,9 @@ pub enum EntitySelectorError {
     },
 }
 
-/// Selects entities by type and, optionally, by identifier or identifier pattern (NGSI-LD clause 5.2.33); `id`
-/// takes precedence over `idPattern`.
+/// Selects entities by type and, optionally, by identifier or identifier pattern.
+///
+/// NGSI-LD clause 5.2.33 defines it; `id` takes precedence over `idPattern`.
 ///
 /// ```
 /// use iri_rs::iri;

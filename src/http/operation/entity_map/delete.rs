@@ -2,7 +2,9 @@
 
 use crate::{http::path::ResourcePath, registration::EntityMapId};
 
-/// `DELETE /entityMaps/{entityMapId}`: removes an entity map from the broker (NGSI-LD clause 6.32.3.3).
+/// Removes an entity map from the broker.
+///
+/// Its request is `DELETE /entityMaps/{entityMapId}` (NGSI-LD clause 6.32.3.3).
 ///
 /// ```
 /// use iri_rs::iri;

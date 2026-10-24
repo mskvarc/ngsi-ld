@@ -2,7 +2,7 @@
 
 use crate::model::{MemberProblem, Number};
 
-/// A number is zero or negative where the specification requires one greater than 0.
+/// A number is zero or negative where the specification requires it above 0.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, thiserror::Error)]
 #[error("{number} is not greater than 0")]
 pub struct NotPositive {
@@ -10,9 +10,10 @@ pub struct NotPositive {
     pub number: Number,
 }
 
-/// A JSON number greater than 0, kept in its lexical form: the restriction NGSI-LD places on periods and counts such
-/// as a subscription's `throttling` and `timeInterval` (Table 5.2.12-1) and an endpoint's `timeout` and `cooldown`
-/// (Table 5.2.15-1).
+/// A JSON number greater than 0, kept in its lexical form.
+///
+/// It is the restriction NGSI-LD places on periods and counts such as a subscription's `throttling` and `timeInterval`
+/// (Table 5.2.12-1) and an endpoint's `timeout` and `cooldown` (Table 5.2.15-1).
 ///
 /// ```
 /// use ngsi_ld::model::{Number, PositiveNumber};

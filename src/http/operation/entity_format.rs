@@ -32,9 +32,11 @@ use bytes::Bytes;
 use http::{Response, StatusCode};
 use jstrict::Value as Json;
 
-/// Asks for entities in simplified representation (clause 4.5.4). Operations that return entities take either a
-/// [`Lossless`] representation, answered with [`Entity`] values, or this marker, answered with
-/// [`SimplifiedEntity`] values, so the type of the answer follows the format asked for.
+/// Asks for entities in simplified representation.
+///
+/// Operations that return entities take either a [`Lossless`] representation, answered with [`Entity`] values, or this
+/// marker, answered with [`SimplifiedEntity`] values (NGSI-LD clause 4.5.4), so the type of the answer follows the
+/// format asked for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Simplified;
 

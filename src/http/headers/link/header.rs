@@ -14,7 +14,9 @@ use http::{HeaderName, HeaderValue, header::LINK};
 use iri_rs::IriRefBuf;
 use std::{fmt, iter, str::FromStr};
 
-/// A `Link` header: one or more link-values (RFC 8288, NGSI-LD clauses 6.3.5 and 6.3.10).
+/// A `Link` header: one or more link-values.
+///
+/// RFC 8288, NGSI-LD clauses 6.3.5 and 6.3.10.
 ///
 /// The field value is rendered whenever a `Link` is built or decoded, and kept: a target holding non-ASCII
 /// characters cannot be carried verbatim, and [`headers::Header::encode`] cannot fail. Several `Link` field lines

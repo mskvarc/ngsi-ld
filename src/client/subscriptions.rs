@@ -22,9 +22,10 @@ use crate::{
 };
 use bon::bon;
 
-/// The subscription operations of a [`Client`](crate::client::Client) for subscriptions of kind `K`: from
-/// [`Client::subscriptions`](crate::client::Client::subscriptions) for context information subscriptions
-/// (`subscriptions`, clauses 6.10 and 6.11), from
+/// The subscription operations of a [`Client`](crate::client::Client), for subscriptions of kind `K`.
+///
+/// [`Client::subscriptions`](crate::client::Client::subscriptions) returns them for context information subscriptions
+/// (`subscriptions`, NGSI-LD clauses 6.10 and 6.11), and
 /// [`Client::registration_subscriptions`](crate::client::Client::registration_subscriptions) for Context Source
 /// Registration Subscriptions (`csourceSubscriptions`, clauses 6.12 and 6.13).
 ///

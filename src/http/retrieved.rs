@@ -16,12 +16,15 @@ use crate::{
 use bytes::Bytes;
 use http::{Response, StatusCode};
 
-/// What Retrieve Entity and Retrieve Temporal Evolution return: the entity (or, for a flattened join, the entities),
-/// with the location of the Entity map the broker used (clause 6.5.3.1), the version it amended the payload to when it
-/// answered 203 (clause 4.3.6.8), the warnings it attached when a distributed part of the retrieval was served from a
-/// cache or behaved abnormally (clause 6.3.17), and, for a temporal evolution, the part of the requested time range a
-/// 206 Partial Content covers (clause 6.3.10). The creation of an entity map (Tables 6.34.3.1-1 to 6.35.3.2-1) answers
-/// with the same parts: the map in the body, and its location in `NGSILD-EntityMap`.
+/// What Retrieve Entity and Retrieve Temporal Evolution return.
+///
+/// It holds the entity (or, for a flattened join, the entities), with the location of the Entity map the broker used
+/// (NGSI-LD clause 6.5.3.1), the version it amended the payload to when it answered 203 (clause 4.3.6.8), the warnings
+/// it attached when a distributed part of the retrieval was served from a cache or behaved abnormally (clause 6.3.17),
+/// and, for a temporal evolution, the part of the requested time range a 206 Partial Content covers (clause 6.3.10).
+///
+/// The creation of an entity map (Tables 6.34.3.1-1 to 6.35.3.2-1) answers with the same parts: the map in the body,
+/// and its location in `NGSILD-EntityMap`.
 ///
 /// Like a [`Page`](crate::http::Page), it is read leniently: a malformed `NGSILD-EntityMap` is kept as
 /// [`OptionalHeader::Malformed`] and a `Preference-Applied` without a readable `ngsi-ld` version is ignored, so the

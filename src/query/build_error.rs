@@ -11,8 +11,9 @@ use crate::{
     },
 };
 
-/// One invalid input given to a query-language builder. A problem names what is wrong, not the text given, which the
-/// caller has.
+/// One invalid input given to a query-language builder.
+///
+/// A problem names what is wrong, not the text given, which the caller has.
 ///
 /// The builders of the query languages take names as plain strings so the common case reads in one line, and
 /// they never panic on an invalid one. Each builder carries the problems it found along with the tree it is

@@ -45,8 +45,10 @@ pub(super) mod parameters;
 pub(super) mod query;
 pub(super) mod retrieve;
 
-/// Asks for the simplified temporal representation (`format=temporalValues`, NGSI-LD clauses 4.5.9 and 6.3.12),
-/// answered with [`SimplifiedTemporalEntity`] values.
+/// Asks for the simplified temporal representation.
+///
+/// It is written `format=temporalValues` (NGSI-LD clauses 4.5.9 and 6.3.12) and answered with
+/// [`SimplifiedTemporalEntity`] values.
 ///
 /// ```
 /// use iri_rs::iri;
@@ -89,8 +91,10 @@ pub(super) mod retrieve;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct SimplifiedTemporal;
 
-/// Asks for the aggregated temporal representation (`format=aggregatedValues`, NGSI-LD clauses 4.5.19 and
-/// 6.3.12), answered with [`AggregatedTemporalEntity`] values.
+/// Asks for the aggregated temporal representation.
+///
+/// It is written `format=aggregatedValues` (NGSI-LD clauses 4.5.19 and 6.3.12) and answered with
+/// [`AggregatedTemporalEntity`] values.
 ///
 /// Tables 6.18.3.2-1 and 6.19.3.1-1 require `aggrMethods` with this format, so a request whose
 /// [`TemporalSelection`] names no aggregation method is refused before sending
@@ -136,9 +140,11 @@ pub struct SimplifiedTemporal;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Aggregated;
 
-/// The representations of a temporal answer (NGSI-LD clause 6.3.12, Table 6.3.12-1): the normalized and concise
-/// temporal representations (clauses 4.5.7 and 4.5.8), the simplified one (`temporalValues`, clause 4.5.9) and the
-/// aggregated one (`aggregatedValues`, clause 4.5.19).
+/// The representations of a temporal answer.
+///
+/// They are the normalized and concise temporal representations (NGSI-LD clauses 4.5.7 and 4.5.8), the simplified one
+/// (`temporalValues`, clause 4.5.9) and the aggregated one (`aggregatedValues`, clause 4.5.19), as clause 6.3.12 and
+/// Table 6.3.12-1 list them.
 ///
 /// The enum is exhaustive: clause 6.3.12 closes the set.
 ///
@@ -188,8 +194,9 @@ impl RepresentationFamily for TemporalRepresentation {
     }
 }
 
-/// The instances of each attribute a temporal request asks for (NGSI-LD clause 4.11, Tables 6.18.3.2-1 and
-/// 6.19.3.1-1).
+/// The instances of each attribute a temporal request asks for.
+///
+/// NGSI-LD clause 4.11, Tables 6.18.3.2-1 and 6.19.3.1-1.
 ///
 /// A temporal query selects instances by time, and carries `timeproperty`, `lastN`, `aggrMethods` and
 /// `aggrPeriodDuration` with it (Table 5.2.21-1). Retrieve Temporal Evolution may also be sent without one (Table

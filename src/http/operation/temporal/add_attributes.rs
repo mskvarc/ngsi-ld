@@ -25,8 +25,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `POST /temporal/entities/{entityId}/attrs`: adds attribute instances to the temporal evolution of an entity
-/// (NGSI-LD clause 6.20.3.1). Each evolution is written as an array, as clause 5.6.12.3 requires.
+/// Adds attribute instances to the temporal evolution of an entity.
+///
+/// Its request is `POST /temporal/entities/{entityId}/attrs` (NGSI-LD clause 6.20.3.1). Each evolution is written as an
+/// array, as clause 5.6.12.3 requires.
 ///
 /// ```
 /// use iri_rs::iri;

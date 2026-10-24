@@ -23,8 +23,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `GET /attributes/{attrId}`: what the broker holds of one attribute (NGSI-LD clause 6.28.3.1), as an
-/// [`AttributeInfo`]. An unknown attribute answers 404 `ResourceNotFound`.
+/// Reads what the broker holds of one attribute.
+///
+/// Its request is `GET /attributes/{attrId}` (NGSI-LD clause 6.28.3.1), answered with an [`AttributeInfo`]. An unknown
+/// attribute answers 404 `ResourceNotFound`.
 ///
 /// ```
 /// use ngsi_ld::{

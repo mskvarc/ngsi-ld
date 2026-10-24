@@ -1,5 +1,7 @@
-//! The NGSI-LD data model (NGSI-LD clauses 4.5 to 4.8 and 5.2): names, identifiers, values, attributes, entities
-//! and their representations.
+//! The data model.
+//!
+//! It holds names, identifiers, values, attributes, entities and their representations (NGSI-LD clauses 4.5 to 4.8 and
+//! 5.2).
 //!
 //! Nothing in this module knows about HTTP or any other transport; it is usable on its own by a broker, a
 //! notification receiver or a data pipeline.

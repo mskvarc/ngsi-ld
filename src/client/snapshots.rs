@@ -13,7 +13,9 @@ use crate::{
 };
 use bon::bon;
 
-/// The snapshot operations of a [`Client`] (clauses 6.36 to 6.38).
+/// The snapshot operations of a [`Client`].
+///
+/// NGSI-LD clauses 6.36 to 6.38.
 ///
 /// Each operation is a builder that finishes with `send()`; operations of the Core and Temporal APIs are aimed at a
 /// snapshot through [`Client::on_snapshot`].

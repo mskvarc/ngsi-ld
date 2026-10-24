@@ -1,6 +1,5 @@
-//! The builder of temporal queries (NGSI-LD clauses 4.11 and 5.2.21), started by
-//! [`before`](crate::query::temporal_query::before), [`after`](crate::query::temporal_query::after) and
-//! [`between`](crate::query::temporal_query::between).
+//! The builder of temporal queries, started by [`before`](crate::query::temporal_query::before),
+//! [`after`](crate::query::temporal_query::after) and [`between`](crate::query::temporal_query::between).
 //!
 //! [`TemporalQueryBuilder`].
 

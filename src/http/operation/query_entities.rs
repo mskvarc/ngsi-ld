@@ -52,8 +52,10 @@ use std::num::NonZeroU32;
 mod body;
 pub(super) mod parameters;
 
-/// Queries entities (NGSI-LD clause 5.7.2), through `GET /entities` (clause 6.4.3.2) or
-/// `POST /entityOperations/query` (clause 6.23.3.1); both bindings are built from these same fields.
+/// Queries entities.
+///
+/// NGSI-LD clause 5.7.2 defines the operation. Its request is `GET /entities` (clause 6.4.3.2) or `POST
+/// /entityOperations/query` (clause 6.23.3.1); both bindings are built from these same fields.
 ///
 /// `F` is the representation asked for: a [`Lossless`] one answers with pages of [`Entity`] values, [`Simplified`]
 /// with pages of [`SimplifiedEntity`] values, and [`GeoJson`] with pages of [`Feature`] values (clause 6.3.15). `C`

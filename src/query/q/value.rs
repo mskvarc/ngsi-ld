@@ -8,8 +8,10 @@ use crate::{
 use jstrict::print::string_literal;
 use std::fmt;
 
-/// A value that can be ordered (the `ComparableValue` production of NGSI-LD clause 4.9): the operand of `>`,
-/// `>=`, `<` and `<=`, and the bounds of a range.
+/// A value that can be ordered.
+///
+/// It is the operand of `>`, `>=`, `<` and `<=`, and the bounds of a range (the `ComparableValue` production of NGSI-LD
+/// clause 4.9).
 ///
 /// Strings are quoted and escaped as JSON strings (IETF RFC 8259, section 7). Identifiers and URIs given to the
 /// builder become quoted strings, as in clause 4.9 example 3: an unquoted URI may hold `;`, `,` or `)`, which
@@ -79,7 +81,9 @@ impl From<Uri> for ComparableValue {
     }
 }
 
-/// A value of a value list (the `Value` production of NGSI-LD clause 4.9): a comparable value or a boolean.
+/// A value of a value list: a comparable value or a boolean.
+///
+/// It is the `Value` production of NGSI-LD clause 4.9.
 ///
 /// The enum is exhaustive: clause 4.9 closes the list of value kinds.
 ///
@@ -99,8 +103,9 @@ pub enum Value {
     Boolean(bool),
 }
 
-/// A list of at least two values (the `ValueList` production of NGSI-LD clause 4.9), matched when the target
-/// value equals any of them.
+/// A list of at least two values, matched when the target value equals any of them.
+///
+/// It is the `ValueList` production of NGSI-LD clause 4.9.
 ///
 /// ```
 /// use ngsi_ld::query::q::{Value, ValueList};
@@ -147,8 +152,10 @@ impl fmt::Display for ValueList {
     }
 }
 
-/// An inclusive range (the `Range` production of NGSI-LD clause 4.9), matched when the target value lies
-/// between the minimum and the maximum, both included.
+/// An inclusive range, matched when the target value lies within it.
+///
+/// The target value lies between the minimum and the maximum, both included (the `Range` production of NGSI-LD clause
+/// 4.9).
 ///
 /// ```
 /// use ngsi_ld::query::q::Range;
@@ -187,8 +194,9 @@ impl Range {
     }
 }
 
-/// A URI written unquoted after `==` or `!=` (the `URI` alternative of the `CompEqualityValue` production of
-/// NGSI-LD clause 4.9).
+/// A URI written unquoted after `==` or `!=`.
+///
+/// It is the `URI` alternative of the `CompEqualityValue` production of NGSI-LD clause 4.9.
 ///
 /// Clause 4.9 does not say where an unquoted URI ends, and a URI may hold the delimiters of the query
 /// language. An unquoted URI here ends at the first `;`, `|` or `)`, so it cannot hold those characters. The
@@ -237,7 +245,9 @@ impl TryFrom<Uri> for UnquotedUri {
     }
 }
 
-/// The value of `==` and `!=` (the `ComparableValue` and `CompEqualityValue` productions of NGSI-LD clause 4.9).
+/// The value of `==` and `!=`.
+///
+/// It is the `ComparableValue` and `CompEqualityValue` productions of NGSI-LD clause 4.9.
 ///
 /// The enum is exhaustive: clause 4.9 closes the list of equality operands.
 ///

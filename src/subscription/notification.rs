@@ -27,7 +27,9 @@ use bon::bon;
 use jstrict::{Object, Value as Json, object::Entry};
 use std::{convert::Infallible, error::Error};
 
-/// A notification (NGSI-LD clause 5.3.1): the entities a subscription reports, as `T`.
+/// A notification: the entities a subscription reports, as `T`.
+///
+/// NGSI-LD clause 5.3.1.
 ///
 /// `T` is the type of `data`, decided by the subscription: `Vec<Entity<Output>>` for normalized or concise
 /// entities, `Vec<SimplifiedEntity>` for simplified ones, their projected counterparts when `pick` or `omit`

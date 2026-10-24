@@ -30,7 +30,9 @@ use crate::{
 use bon::bon;
 use iri_rs::Iri;
 
-/// A Relationship: a link to one or more entities (NGSI-LD clauses 4.5.3 and 5.2.6).
+/// A Relationship: a link to one or more entities.
+///
+/// NGSI-LD clauses 4.5.3 and 5.2.6.
 ///
 /// Build one with [`Relationship::builder`] from an entity id or a `Vec` of them; read one from a document through
 /// the representation parsers.
@@ -154,7 +156,9 @@ impl Relationship<Output> {
     }
 }
 
-/// The members a Relationship has only in a response (NGSI-LD clauses 4.5.3.2, 4.5.23.2 and Table 5.2.6-2).
+/// The members a Relationship has only in a response.
+///
+/// NGSI-LD clauses 4.5.3.2, 4.5.23.2 and Table 5.2.6-2.
 ///
 /// A broker writes them and a request never carries them, so the type exists only on the [`Output`] direction.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

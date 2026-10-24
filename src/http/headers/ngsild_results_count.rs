@@ -7,8 +7,9 @@ use std::iter;
 /// The header name.
 static NGSILD_RESULTS_COUNT: HeaderName = HeaderName::from_static("ngsild-results-count");
 
-/// The `NGSILD-Results-Count` header: the total number of matching results of a paginated query (NGSI-LD clause
-/// 6.3.13).
+/// The `NGSILD-Results-Count` header: the total number of results of a query.
+///
+/// It counts the matching results of a paginated query (NGSI-LD clause 6.3.13).
 ///
 /// Encoding goes through `HeaderValue::from(u64)`, which cannot fail. Decoding accepts ASCII digits only, so a sign
 /// or a fraction is rejected.

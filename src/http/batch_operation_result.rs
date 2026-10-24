@@ -4,7 +4,9 @@ use crate::model::{EntityId, ProblemDetails, RawJson, Uri};
 use jstrict::{Object, Value as Json};
 use serde::{Deserialize, Serialize};
 
-/// Which entities an operation treated and which failed (NGSI-LD clause 5.2.16), the body of a 207 response.
+/// Which entities an operation treated and which failed.
+///
+/// It is the body of a 207 response (NGSI-LD clause 5.2.16).
 ///
 /// Both members are mandatory in the specification; a broker that omits one is read as having listed nothing
 /// there.
@@ -40,7 +42,9 @@ pub struct BatchOperationResult {
     pub errors: Vec<BatchEntityError>,
 }
 
-/// An error tied to one entity of a batch or distributed operation (NGSI-LD clause 5.2.17).
+/// An error tied to one entity of a batch or distributed operation.
+///
+/// NGSI-LD clause 5.2.17.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BatchEntityError {

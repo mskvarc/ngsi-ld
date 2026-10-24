@@ -1,4 +1,6 @@
-//! Typed NGSI-LD HTTP headers (NGSI-LD clause 6.3).
+//! Typed NGSI-LD HTTP headers.
+//!
+//! NGSI-LD clause 6.3.
 //!
 //! Every header here is a [`headers::Header`] implementation over a validated type, so the request pipeline never
 //! reads or writes a header value as text. Each type guarantees that its encoding exists before

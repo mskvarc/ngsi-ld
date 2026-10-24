@@ -22,7 +22,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `GET /csourceRegistrations/{registrationId}`: reads a registration (NGSI-LD clause 6.9.3.1).
+/// Reads a registration.
+///
+/// Its request is `GET /csourceRegistrations/{registrationId}` (NGSI-LD clause 6.9.3.1).
 ///
 /// The registration is read strictly: a member Tables 5.2.9-1 and 5.2.9-2 do not define fails the response.
 ///

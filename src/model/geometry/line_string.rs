@@ -2,7 +2,9 @@
 
 use crate::model::geometry::{GeometryError, Position, position::at_least};
 
-/// A line string: two or more positions (RFC 7946 section 3.1.4).
+/// A line string: two or more positions.
+///
+/// RFC 7946 section 3.1.4.
 ///
 /// ```
 /// use ngsi_ld::model::geometry::{LineString, Position, Shape};

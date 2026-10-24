@@ -1,8 +1,10 @@
 //! Linked entity retrieval (NGSI-LD clause 4.5.23): how the entities that relationships target are returned
 //! alongside the entities a query, a retrieval or a notification carries.
 
-/// How the entities that relationships target are returned (the `join` parameter of Tables 6.4.3.2-1 and
-/// 6.5.3.1-1, and the `join` member of a subscription's notification, Table 5.2.14.1-1; NGSI-LD clause 4.5.23).
+/// How the entities that relationships target are returned.
+///
+/// It is the `join` parameter of NGSI-LD Tables 6.4.3.2-1 and 6.5.3.1-1, and the `join` member of a subscription's
+/// notification (Table 5.2.14.1-1; clause 4.5.23).
 ///
 /// The enum is exhaustive: the specification allows exactly `flat`, `inline` and `@none`.
 ///

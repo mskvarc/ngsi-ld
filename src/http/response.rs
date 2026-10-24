@@ -154,8 +154,10 @@ pub enum BodyError {
     Snapshot(#[source] DocumentError<ReadErrorKind<SnapshotProblem>>),
 }
 
-/// Why a JSON body does not have the shape of the typed result the status code promises, such as the
-/// `BatchOperationResult` of clause 5.2.16; it displays the member that is missing or of the wrong type.
+/// Why a JSON body is not the typed result its status code promises.
+///
+/// One such result is the `BatchOperationResult` of NGSI-LD clause 5.2.16. The error displays the member that is
+/// missing or of the wrong type.
 ///
 /// The deserializer's error type is not part of the crate's API: a [`ShapeError`] carries its message.
 #[derive(Debug, Clone, thiserror::Error)]

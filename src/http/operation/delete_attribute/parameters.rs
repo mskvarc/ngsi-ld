@@ -18,7 +18,9 @@ const ACCEPTED: [QueryParameter; 4] = [
     QueryParameter::Local,
 ];
 
-/// The `deleteAll` flag of Delete Attribute (Table 6.7.3.2-1).
+/// The `deleteAll` flag of Delete Attribute.
+///
+/// NGSI-LD Table 6.7.3.2-1.
 ///
 /// The enum is exhaustive: the flag is given as `true`, given as `false`, or absent.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -32,8 +34,10 @@ pub enum DeleteAll {
     Selected,
 }
 
-/// The query string of a Delete Attribute request (`DELETE /entities/{entityId}/attrs/{attrId}`, Table 6.7.3.2-1),
-/// read in typed form. [`instances`](Self::instances) says which instances it removes.
+/// The query string of a Delete Attribute request, read in typed form.
+///
+/// The request is `DELETE /entities/{entityId}/attrs/{attrId}` (NGSI-LD Table 6.7.3.2-1).
+/// [`instances`](Self::instances) says which instances it removes.
 ///
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///

@@ -1,6 +1,8 @@
-//! Context source registrations (NGSI-LD clauses 5.2.8 to 5.2.11, 5.2.34, 5.3.2, 5.9 and 5.10): the documents a
-//! context provider registers a context source with, and the notifications a Context Source Registration
-//! Subscription receives, independent of any transport.
+//! Context source registrations.
+//!
+//! They are the documents a context provider registers a context source with, and the notifications a Context Source
+//! Registration Subscription receives, independent of any transport (NGSI-LD clauses 5.2.8 to 5.2.11, 5.2.34, 5.3.2,
+//! 5.9 and 5.10).
 //!
 //! `CSourceRegistration<Input>` is what Register Context Source sends, `CSourceRegistration<Output>` what Retrieve
 //! and Query Context Source Registrations return, and a [`RegistrationFragment`]
@@ -149,8 +151,10 @@ mod rules;
 mod time_interval;
 mod writer;
 
-/// A context source registration (NGSI-LD clause 5.2.9): the endpoint of a context source and the entities and
-/// attributes it may provide information about.
+/// A context source registration.
+///
+/// It holds the endpoint of a context source and the entities and attributes it may provide information about (NGSI-LD
+/// clause 5.2.9).
 ///
 /// `D` is the direction: [`Input`] for what Register Context Source sends, with an optional `id`; [`Output`] for
 /// what Retrieve and Query Context Source Registrations return, with an `id` and the members only a broker writes.

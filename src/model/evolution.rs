@@ -1,6 +1,7 @@
-//! The temporal evolution of an entity (NGSI-LD clauses 4.5.6 to 4.5.9, 4.5.19 and 5.2.20) in its three
-//! representations: normalized or concise ([`TemporalEntity`]), simplified
-//! ([`SimplifiedTemporalEntity`], `format=temporalValues`) and aggregated
+//! The temporal evolution of an entity.
+//!
+//! It comes in three representations (NGSI-LD clauses 4.5.6 to 4.5.9, 4.5.19 and 5.2.20): normalized or concise
+//! ([`TemporalEntity`]), simplified ([`SimplifiedTemporalEntity`], `format=temporalValues`) and aggregated
 //! ([`AggregatedTemporalEntity`], `format=aggregatedValues`).
 //!
 //! The representation is the caller's choice, made by the request's `format` (clause 6.3.12) and the parse method

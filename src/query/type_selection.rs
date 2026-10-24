@@ -1,4 +1,6 @@
-//! The NGSI-LD Entity Type Selection Language (NGSI-LD clause 4.17), written in the `type` parameter.
+//! The NGSI-LD Entity Type Selection Language, written in the `type` parameter.
+//!
+//! NGSI-LD clause 4.17.
 //!
 //! A selection is a disjunction of alternatives, each one entity type or a parenthesised conjunction of entity
 //! types: `(Home;Vehicle)|Motorhome`. Clause 4.17 accepts `,` as an alternative spelling of the OR operator;
@@ -73,8 +75,9 @@ pub(crate) const fn is_separator(c: char) -> bool {
     matches!(c, ',' | ';' | '|' | '(' | ')')
 }
 
-/// An entity type a type selection can hold (the `EntityType` production of NGSI-LD clause 4.17): a name of
-/// clause 4.6.2 or a URI.
+/// An entity type a type selection can hold: a name or a URI.
+///
+/// It is the `EntityType` production of NGSI-LD clause 4.17: a name of clause 4.6.2 or a URI.
 ///
 /// The note of clause 4.17 warns that `,`, `;`, `(` and `)` are allowed in URIs but are also the operators of
 /// the language, and recommends short names. A URI holding one of them (or `|`) cannot be written in a
@@ -121,8 +124,10 @@ impl FromStr for SelectableType {
     }
 }
 
-/// A selection of entities by type (the `EntityTypes` production of NGSI-LD clause 4.17): the entities having
-/// all the types of at least one alternative.
+/// A selection of entities by type.
+///
+/// It matches the entities having all the types of at least one alternative (the `EntityTypes` production of NGSI-LD
+/// clause 4.17).
 ///
 /// ```
 /// use ngsi_ld::query::type_selection::TypeSelection;

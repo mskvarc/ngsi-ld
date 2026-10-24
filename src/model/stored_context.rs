@@ -22,9 +22,11 @@ pub(super) mod extra_member;
 pub(super) mod other_kind;
 
 uri_identifier!(
-    /// The local identifier of a stored `@context`: a URI the broker generates when it stores the context (NGSI-LD
-    /// clause 5.13.2.4). A context of kind [`Cached`](StoredContextKind::Cached) is also named by the URL it was
-    /// downloaded from (Table 6.30.2-1), which is a URI too.
+    /// The local identifier of a stored `@context`.
+    ///
+    /// It is a URI the broker generates when it stores the context (NGSI-LD clause 5.13.2.4). A context of kind
+    /// [`Cached`](StoredContextKind::Cached) is also named by the URL it was downloaded from (Table 6.30.2-1), which is
+    /// a URI too.
     ///
     /// ```
     /// use iri_rs::iri;
@@ -37,8 +39,9 @@ uri_identifier!(
     ContextId
 );
 
-/// The kind of a stored `@context` (NGSI-LD clause 5.13.1), written as the clause spells it in the `kind` member
-/// and parameter.
+/// The kind of a stored `@context`.
+///
+/// It is written as NGSI-LD clause 5.13.1 spells it in the `kind` member and parameter.
 ///
 /// Clause 5.13.3.3 lists the kinds "currently" possible, so a kind the clause does not define is read into
 /// [`Other`](Self::Other) with its token rather than refused, and written back as read. The enum is
@@ -97,8 +100,10 @@ impl FromStr for StoredContextKind {
     }
 }
 
-/// What a broker reports about one stored `@context` (NGSI-LD clause 5.13.3.5): an element of the detailed answer
-/// of List @contexts, and the detailed answer of Serve @context.
+/// What a broker reports about one stored `@context`.
+///
+/// It is an element of the detailed answer of List @contexts, and the detailed answer of Serve @context (NGSI-LD clause
+/// 5.13.3.5).
 ///
 /// Clause 5.13.3.5 closes the member set ("a list of resulting JSON objects containing the following fields") and
 /// gives implementations `extraInfo` for anything else, so a reader refuses any other member. The set of kinds is
@@ -227,8 +232,10 @@ impl ContextMetadata {
     }
 }
 
-/// A JSON-LD local context document: "a JSON object that has a root node named @context" (NGSI-LD Tables
-/// 6.29.3.1-1 and 6.30.3.1-2), what Add @context sends and Serve @context answers with.
+/// A JSON-LD local context document.
+///
+/// It is "a JSON object that has a root node named @context" (NGSI-LD Tables 6.29.3.1-1 and 6.30.3.1-2), what Add
+/// @context sends and Serve @context answers with.
 ///
 /// Beside the `@context` member, the object may carry other members, which clause 5.13.2.3 has the broker discard:
 /// a stored context is the `@context` subtree alone. They are kept in order, by name, as NGSI-LD Values (clause

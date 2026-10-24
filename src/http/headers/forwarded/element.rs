@@ -13,7 +13,9 @@ use crate::http::headers::{
 use bon::bon;
 use std::{fmt, str::FromStr};
 
-/// A parameter of a `Forwarded` element (RFC 7239 section 5), written in lowercase; names are case-insensitive.
+/// A parameter of a `Forwarded` element, written in lowercase.
+///
+/// RFC 7239 section 5 defines the parameters; their names are case-insensitive.
 ///
 /// The enum is exhaustive over the parameters this crate reads: RFC 7239 section 5 defines these four.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString)]
@@ -56,8 +58,9 @@ pub enum ForwardedElementError {
     Proto(#[from] SchemeError),
 }
 
-/// One element of a `Forwarded` header (RFC 7239 section 4): what one proxy learnt of a request, as `by`, `for`,
-/// `host` and `proto` parameters, at least one of them.
+/// One element of a `Forwarded` header: what one proxy learnt of a request.
+///
+/// RFC 7239 section 4 defines it. It holds `by`, `for`, `host` and `proto` parameters, at least one of them.
 ///
 /// ```
 /// use ngsi_ld::http::headers::{ForwardedElement, ForwardedElementError};

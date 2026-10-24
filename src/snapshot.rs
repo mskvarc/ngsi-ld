@@ -1,5 +1,7 @@
-//! Snapshot documents (NGSI-LD clauses 4.3.7, 5.2.41 and 5.16): a snapshot freezes the answer of queries inside the
-//! broker, so that the operations aimed at it later work on consistent data (clause 5.5.15).
+//! Snapshots of query answers.
+//!
+//! A snapshot freezes the answer of queries inside the broker, so that the operations aimed at it later work on
+//! consistent data (NGSI-LD clause 5.5.15). The module holds the snapshot documents (clauses 4.3.7, 5.2.41 and 5.16).
 //!
 //! [`Snapshot`] is the document of Create, Retrieve and Update Snapshot Status, in the direction its type parameter
 //! names; [`SnapshotClone`] is the body of Clone Snapshot, [`SnapshotFragment`] the body of Update Snapshot Status,
@@ -91,9 +93,11 @@ mod settings;
 mod status;
 mod writer;
 
-/// A snapshot (NGSI-LD clause 5.2.41) in direction `D`: [`Input`] for what Create Snapshot sends, built with
-/// [`Snapshot::builder`], or [`Output`] for what Retrieve and Update Snapshot Status return, with the members only
-/// a broker writes (Table 5.2.41-2).
+/// A snapshot in direction `D`.
+///
+/// NGSI-LD clause 5.2.41 defines it. [`Input`] is what Create Snapshot sends, built with [`Snapshot::builder`];
+/// [`Output`] is what Retrieve and Update Snapshot Status return, with the members only a broker writes (Table
+/// 5.2.41-2).
 ///
 /// A snapshot holds queries of entities (`snapshotQueries`) and queries of their temporal evolution
 /// (`snapshotTemporalQueries`), two kinds of [`QueryDocument`], so a query of one kind cannot land in the other

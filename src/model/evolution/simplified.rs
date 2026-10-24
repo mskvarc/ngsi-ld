@@ -34,8 +34,10 @@ pub(super) mod input;
 pub(super) mod output;
 pub(super) mod values;
 
-/// The temporal evolution of an entity in simplified temporal representation (NGSI-LD clause 4.5.9): `id`, `type`,
-/// the scope's values over time (Annex C.5.16), each attribute's [`TemporalValues`], and the `@context`.
+/// The temporal evolution of an entity in simplified temporal representation.
+///
+/// It holds `id`, `type`, the scope's values over time (Annex C.5.16), each attribute's [`TemporalValues`], and the
+/// `@context` (NGSI-LD clause 4.5.9).
 ///
 /// A broker writes it as the answer to `format=temporalValues` (clause 6.3.12), where a payload may be the NGSI-LD Null
 /// of a deleted instance. `C` says whether the entity holds its `id` and `type`, which a projection may remove (clause

@@ -19,8 +19,9 @@ use crate::{
 use bon::bon;
 use std::num::NonZeroU32;
 
-/// Whether a notification shows the previous value of what changed (the `showChanges` member of Table
-/// 5.2.14.1-1).
+/// Whether a notification shows the previous value of what changed.
+///
+/// It is the `showChanges` member of NGSI-LD Table 5.2.14.1-1.
 ///
 /// ```
 /// use ngsi_ld::subscription::ChangeReporting;
@@ -41,8 +42,10 @@ pub enum ChangeReporting {
 
 flag_choice!(ChangeReporting, WithPrevious, CurrentOnly);
 
-/// Whether a notification includes the system attributes `createdAt`, `modifiedAt`, `expiresAt`, and `deletedAt`
-/// for a deletion (the `sysAttrs` member of Table 5.2.14.1-1).
+/// Whether a notification includes the system attributes.
+///
+/// The system attributes are `createdAt`, `modifiedAt`, `expiresAt`, and `deletedAt` for a deletion (the `sysAttrs`
+/// member of NGSI-LD Table 5.2.14.1-1).
 ///
 /// ```
 /// use ngsi_ld::subscription::SystemAttributeReporting;
@@ -65,7 +68,9 @@ pub enum SystemAttributeReporting {
 
 flag_choice!(SystemAttributeReporting, Include, Omit);
 
-/// Whether the last notification succeeded (the `status` member of Table 5.2.14.2-1).
+/// Whether the last notification succeeded.
+///
+/// It is the `status` member of NGSI-LD Table 5.2.14.2-1.
 ///
 /// The enum is exhaustive: the table allows exactly these two values.
 ///
@@ -87,8 +92,10 @@ pub enum NotificationStatus {
     Failed,
 }
 
-/// How a subscription notifies (NGSI-LD clause 5.2.14): the endpoint, the representation and the members of the
-/// entities a notification carries, and, in a response, the broker's record of past notifications.
+/// How a subscription notifies.
+///
+/// It holds the endpoint, the representation and the members of the entities a notification carries, and, in a
+/// response, the broker's record of past notifications (NGSI-LD clause 5.2.14).
 ///
 /// Build one with [`NotificationParams::builder`]; a response's comes with the [`Subscription`] it belongs to.
 ///

@@ -10,7 +10,9 @@ pub(crate) mod sealed {
     pub trait Sealed {}
 }
 
-/// Something that is one instance of an attribute, and so has a dataset id or is the default instance.
+/// Something that is one instance of an attribute.
+///
+/// As such, it has a dataset id or is the default instance.
 ///
 /// The trait is sealed: an attribute and, in a fragment, a change to one are its only implementors.
 pub trait InstanceKey: sealed::Sealed {
@@ -30,7 +32,9 @@ pub trait InstanceKey: sealed::Sealed {
     }
 }
 
-/// Why a set of instances breaks clause 4.5.5.
+/// Why a set of instances of one attribute is invalid.
+///
+/// It breaks NGSI-LD clause 4.5.5.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, thiserror::Error)]
 #[non_exhaustive]
 pub enum InstancesError {
@@ -51,9 +55,11 @@ pub enum InstancesError {
     BareDeletionAmongInstances,
 }
 
-/// The instances of one attribute: at least one, at most one default instance, no dataset id twice
-/// (NGSI-LD clause 4.5.5), and a deletion of the whole attribute only on its own. One instance is written as an
-/// object, several as an array of objects (clauses 4.5.2.2 and 4.5.3.2).
+/// The instances of one attribute.
+///
+/// There is at least one, at most one default instance, no dataset id twice (NGSI-LD clause 4.5.5), and a deletion of
+/// the whole attribute only on its own. One instance is written as an object, several as an array of objects (clauses
+/// 4.5.2.2 and 4.5.3.2).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Instances<T>(Vec<T>);
 

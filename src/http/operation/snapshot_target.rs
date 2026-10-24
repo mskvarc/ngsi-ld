@@ -55,10 +55,12 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// An operation that can be aimed at a snapshot: an operation of the Core API or the Temporal API (clause 5.5.15,
-/// Table 4.3.5-1), that is of Context Information Provision and Consumption (clauses 5.6 and 5.7.1 to 5.7.10, Purge
-/// Entities of clause 5.6.21 included, which the table does not list), of Context Information Subscription (clause
-/// 5.8), and of the temporal evolution of entities (clauses 5.6.11 to 5.6.16, 5.7.3 and 5.7.4).
+/// An operation that can be aimed at a snapshot.
+///
+/// It is an operation of the Core API or the Temporal API (NGSI-LD clause 5.5.15, Table 4.3.5-1), that is of Context
+/// Information Provision and Consumption (clauses 5.6 and 5.7.1 to 5.7.10, Purge Entities of clause 5.6.21 included,
+/// which the table does not list), of Context Information Subscription (clause 5.8), and of the temporal evolution of
+/// entities (clauses 5.6.11 to 5.6.16, 5.7.3 and 5.7.4).
 ///
 /// The operations of the Registry, Snapshot and `JSONLDContext` APIs, and the support operations of distributed
 /// deployments (entity maps, source identity), do not implement it, so [`OnSnapshot`] cannot wrap them. Like
@@ -113,8 +115,10 @@ impl SnapshotOperation for DeleteAttributeInstance<'_> {}
 impl SnapshotOperation for DeleteTemporalEvolution<'_> {}
 impl<F, C> SnapshotOperation for RetrieveTemporalEvolution<'_, F, C> where Self: Operation {}
 
-/// An operation aimed at a snapshot (NGSI-LD clauses 5.5.15 and 6.3.22): its request is the operation's own, with
-/// the `NGSILD-Snapshot` header naming the snapshot, and its outcome is the operation's.
+/// An operation aimed at a snapshot.
+///
+/// Its request is the operation's own, with the `NGSILD-Snapshot` header naming the snapshot, and its outcome is the
+/// operation's (NGSI-LD clauses 5.5.15 and 6.3.22).
 ///
 /// The operation runs on the information of the snapshot only, and locally (clause 5.5.15), so no `local` is added, and
 /// a query or a purge needs no restriction (see [`SnapshotOperation::snapshot_request`]). The tenant is orthogonal: an

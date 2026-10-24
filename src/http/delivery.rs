@@ -36,9 +36,11 @@ pub enum DeliveryError {
     NotText(#[source] Utf8Error),
 }
 
-/// A notification request a broker sent (NGSI-LD clause 6.3.8): the media type of its body, the `@context` the
-/// `Link` header names for an `application/json` body, the tenant of the subscription (`NGSILD-Tenant`, clause
-/// 6.3.14), the custom headers the subscription's `receiverInfo` asked for, and the body.
+/// A notification request a broker sent.
+///
+/// It holds the media type of its body, the `@context` the `Link` header names for an `application/json` body, the
+/// tenant of the subscription (`NGSILD-Tenant`, clause 6.3.14), the custom headers the subscription's `receiverInfo`
+/// asked for, and the body (NGSI-LD clause 6.3.8).
 ///
 /// The crate implements no server; a receiver that got a request from its own HTTP server reads it with
 /// [`NotificationDelivery::read`], then the body with the parse method of the notification it subscribed to:

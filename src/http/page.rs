@@ -16,12 +16,16 @@ use bytes::Bytes;
 use http::{HeaderValue, Response, StatusCode, header::LINK};
 use url::Url;
 
-/// One page of results: the items, the links to the neighbouring pages (clause 6.3.10), the total when the query
-/// asked for it (clause 6.3.13), the location of the entity map the broker used when the query asked for one (clause
-/// 6.4.3.2), the version the broker amended the payload to when it answered 203 (clause 4.3.6.8), the `@context`
-/// of a `GeoJSON` `FeatureCollection` (clause 4.5.16.3), the warnings the broker attached when a distributed part of
-/// the query was served from a cache or behaved abnormally (clause 6.3.17), and, for the temporal evolution of
-/// entities, the part of the requested time range a 206 Partial Content covers (clause 6.3.10).
+/// One page of results.
+///
+/// A page holds the items and the links to the neighbouring pages (NGSI-LD clause 6.3.10). It also holds the total when
+/// the query asked for it (clause 6.3.13), the location of the entity map the broker used when the query asked for one
+/// (clause 6.4.3.2), the version the broker amended the payload to when it answered 203 (clause 4.3.6.8), and the
+/// `@context` of a `GeoJSON` `FeatureCollection` (clause 4.5.16.3).
+///
+/// It holds, too, the warnings the broker attached when a distributed part of the query was served from a cache or
+/// behaved abnormally (clause 6.3.17), and, for the temporal evolution of entities, the part of the requested time
+/// range a 206 Partial Content covers (clause 6.3.10).
 ///
 /// The links are resolved against the URL of the request that returned the page, the default context of a link (RFC
 /// 8288 section 3.2), so they can be requested as they are. The page remembers the tenant that request addressed, the

@@ -9,7 +9,9 @@ use iri_rs::IriRefBuf;
 use serde::de::DeserializeOwned;
 use std::{marker::PhantomData, str::FromStr};
 
-/// The outcome of Create Entity (NGSI-LD clause 6.4.3.1).
+/// The outcome of Create Entity.
+///
+/// NGSI-LD clause 6.4.3.1.
 ///
 /// Clause 6.4.3.1 requires a `Location` header on both outcomes; a broker that omits it, or sends one that is not a
 /// URI reference, still created the entity, so the location is an [`OptionalHeader`] rather than the success being
@@ -32,12 +34,14 @@ pub enum CreateOutcome {
     },
 }
 
-/// The outcome of the operations that create a document the broker names in the `Location` of a 201: Create
-/// Subscription (NGSI-LD clause 6.10.3.1), Create Context Source Registration Subscription (clause 6.12.3.1),
-/// Register Context Source (clause 6.8.3.1) and Add @context (clause 6.29.3.1). `I` is the identifier of the
-/// document: [`SubscriptionId`](crate::subscription::SubscriptionId),
-/// [`RegistrationId`](crate::registration::RegistrationId) or
-/// [`ContextId`](crate::model::ContextId).
+/// The outcome of a creation the broker answers with a `Location`.
+///
+/// The broker names the created document in the `Location` of a 201. The operations are Create Subscription (NGSI-LD
+/// clause 6.10.3.1), Create Context Source Registration Subscription (clause 6.12.3.1), Register Context Source (clause
+/// 6.8.3.1) and Add @context (clause 6.29.3.1).
+///
+/// `I` is the identifier of the document: [`SubscriptionId`](crate::subscription::SubscriptionId),
+/// [`RegistrationId`](crate::registration::RegistrationId) or [`ContextId`](crate::model::ContextId).
 ///
 /// As for [`CreateOutcome`], the location is an [`OptionalHeader`]: a broker that omits the required header, or
 /// sends one that is not a URI reference, still created the document.
@@ -94,7 +98,9 @@ impl<I: FromStr> ResourceCreated<I> {
     }
 }
 
-/// The outcome of Create or Update Temporal Evolution of an Entity (NGSI-LD clause 6.18.3.1).
+/// The outcome of Create or Update Temporal Evolution of an Entity.
+///
+/// NGSI-LD clause 6.18.3.1.
 ///
 /// The location is an [`OptionalHeader`] for the reason [`CreateOutcome`] gives: a broker that omits the required
 /// header, or sends one that is not a URI reference, still created the temporal evolution.
@@ -111,9 +117,10 @@ pub enum TemporalUpsertOutcome {
     Updated,
 }
 
-/// The outcome of an operation on whole entities: Delete, Replace and Merge Entity, Purge Entities, and Batch
-/// Entity Update, Delete and Merge (NGSI-LD clauses 6.4.3.3, 6.5.3.2 to 6.5.3.4, 6.16.3.1, 6.17.3.1 and
-/// 6.31.3.1).
+/// The outcome of an operation on whole entities.
+///
+/// The operations are Delete, Replace and Merge Entity, Purge Entities, and Batch Entity Update, Delete and Merge
+/// (NGSI-LD clauses 6.4.3.3, 6.5.3.2 to 6.5.3.4, 6.16.3.1, 6.17.3.1 and 6.31.3.1).
 ///
 /// The enum is exhaustive: its variants are the success statuses the operation's table in clause 6 lists.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]
@@ -125,7 +132,9 @@ pub enum BatchOutcome {
     Partial(BatchOperationResult),
 }
 
-/// The outcome of Batch Entity Creation (NGSI-LD clause 6.14.3.1).
+/// The outcome of Batch Entity Creation.
+///
+/// NGSI-LD clause 6.14.3.1.
 ///
 /// The broker lists ids in any order (Table 6.14.3.1-1), so they are kept as received, never matched to positions
 /// in the request.
@@ -139,7 +148,9 @@ pub enum BatchCreateOutcome {
     Partial(BatchOperationResult),
 }
 
-/// The outcome of Batch Entity Upsert (NGSI-LD clause 6.15.3.1).
+/// The outcome of Batch Entity Upsert.
+///
+/// NGSI-LD clause 6.15.3.1.
 ///
 /// The enum is exhaustive: its variants are the success statuses the operation's table in clause 6 lists.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]
@@ -153,8 +164,10 @@ pub enum UpsertOutcome {
     Partial(BatchOperationResult),
 }
 
-/// The outcome of an operation on attributes: Update and Append Attributes, Partial Attribute Update, Replace
-/// and Delete Attribute (NGSI-LD clauses 6.6.3 and 6.7.3).
+/// The outcome of an operation on attributes.
+///
+/// The operations are Update and Append Attributes, Partial Attribute Update, Replace and Delete Attribute (NGSI-LD
+/// clauses 6.6.3 and 6.7.3).
 ///
 /// The enum is exhaustive: its variants are the success statuses the operation's table in clause 6 lists.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]

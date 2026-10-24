@@ -8,8 +8,9 @@ use crate::{
     seal::Seal,
 };
 
-/// Why a document could not be re-contextualised; the [`DocumentError`] holding it names the member. A
-/// translation error is boxed, being much larger than the others.
+/// Why a document could not be re-contextualised.
+///
+/// The [`DocumentError`] holding it names the member. A translation error is boxed, being much larger than the others.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum NameMappingError {
@@ -34,8 +35,9 @@ pub enum NameMappingError {
     Selection(#[from] SelectableTypeError),
 }
 
-/// A document [`ActiveContext::recontextualize`] rewrites: every document of the crate and every query-language
-/// value a request carries, fragments included.
+/// A document [`ActiveContext::recontextualize`] rewrites.
+///
+/// It is every document of the crate and every query-language value a request carries, fragments included.
 ///
 /// The trait is sealed.
 pub trait Recontextualize: sealed::Sealed {}

@@ -41,14 +41,16 @@ pub trait Completeness: sealed::Sealed + Debug + Clone + Copy + PartialEq + Eq +
     fn from_read<T: Debug + Clone + PartialEq + Eq + Send + Sync>(seal: Seal, member: Option<T>) -> Option<Self::Member<T>>;
 }
 
-/// A document that holds its `id` and its `type`: every entity unless a projection removed them, and every
-/// fragment in a batch.
+/// A document that holds its `id` and its `type`.
+///
+/// Every entity does unless a projection removed them, and so does every fragment in a batch.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Complete;
 
-/// A document whose `id` and `type` are each present only if it carries them: an entity a projection may have
-/// reduced (`pick` without `id` or `type`, or `omit` with them; Table 6.4.3.2-1), or a fragment of one entity,
-/// whose request path names the entity (clause 5.4).
+/// A document whose `id` and `type` are each present only if it carries them.
+///
+/// It is an entity a projection may have reduced (`pick` without `id` or `type`, or `omit` with them; NGSI-LD Table
+/// 6.4.3.2-1), or a fragment of one entity, whose request path names the entity (clause 5.4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Projected;
 

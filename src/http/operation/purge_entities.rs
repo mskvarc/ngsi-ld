@@ -28,8 +28,10 @@ use http::{Method, Request, Response};
 
 pub(super) mod parameters;
 
-/// `DELETE /entities`: deletes every matching entity, or, with `drop` or `keep`, only some of their attributes
-/// (NGSI-LD clause 6.4.3.3).
+/// Deletes every matching entity, or only some of their attributes.
+///
+/// Its request is `DELETE /entities` (NGSI-LD clause 6.4.3.3). With `drop` or `keep`, it deletes only some of their
+/// attributes.
 ///
 /// Clause 6.4.3.3 requires a type, a `q` or a geoquery unless the operation is local, as Query Entities does; a
 /// scope query alone does not count (Table 6.4.3.3-1). The request is refused before it is sent otherwise. Every

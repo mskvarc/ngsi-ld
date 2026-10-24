@@ -16,7 +16,9 @@ use crate::{
 };
 use jstrict::{Object, Value as Json, object::Entry};
 
-/// A member of the `GeoQuery` object (Table 5.2.13-1).
+/// A member of the `GeoQuery` object.
+///
+/// NGSI-LD Table 5.2.13-1.
 ///
 /// The enum is `#[non_exhaustive]`: later versions of the specification may add members to the table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr)]
@@ -36,7 +38,9 @@ pub enum GeoQueryMember {
     Geoproperty,
 }
 
-/// Why JSON data is not a `GeoQuery` object (NGSI-LD clause 5.2.13); a reader reports it as a
+/// Why JSON data is not a `GeoQuery` object.
+///
+/// NGSI-LD clause 5.2.13 defines the object. A reader reports the error as a
 /// [`DocumentError<GeoQueryError>`](DocumentError), whose `path` names the member at fault.
 // `ParseError` carries no `Clone` or equality, so neither can the error that chains it.
 #[derive(Debug, thiserror::Error)]

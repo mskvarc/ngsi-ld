@@ -13,7 +13,9 @@ use crate::{
 
 pub(crate) mod received;
 
-/// A token of Tables 6.3.7-1 and 6.3.12-1, as written in `format` or `options`.
+/// A representation token, as written in `format` or `options`.
+///
+/// NGSI-LD Tables 6.3.7-1 and 6.3.12-1 define the tokens.
 ///
 /// The enum is exhaustive: the two tables close the set.
 ///
@@ -74,7 +76,9 @@ impl RepresentationFamily for Representation {
     }
 }
 
-/// The parameter, or parameters, that carry the representation (Tables 6.3.7-1 and 6.3.12-1).
+/// The parameter, or parameters, that carry the representation.
+///
+/// NGSI-LD Tables 6.3.7-1 and 6.3.12-1.
 ///
 /// The enum is exhaustive: the representation is in `format`, in `options`, or in both.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -102,7 +106,9 @@ pub enum NormalizedSpelling {
     Explicit,
 }
 
-/// How a request asking for the simplified representation of entities writes it (Table 6.3.7-1).
+/// How a request asking for the simplified representation of entities writes it.
+///
+/// NGSI-LD Table 6.3.7-1.
 ///
 /// The enum is exhaustive: Table 6.3.7-1 defines these two synonyms.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -114,9 +120,11 @@ pub enum SimplifiedSpelling {
     KeyValues,
 }
 
-/// How a request writes the representation it asks for (NGSI-LD clauses 6.3.7 and 6.3.12, Tables 6.3.7-1 and
-/// 6.3.12-1). The default writes the token in `format`, and nothing for normalized; `options=sysAttrs` (clause
-/// 6.3.11) is written after any keyword, as one comma separated list.
+/// How a request writes the representation it asks for.
+///
+/// The default writes the token in `format` (NGSI-LD clauses 6.3.7 and 6.3.12, Tables 6.3.7-1 and 6.3.12-1), and
+/// nothing for normalized; `options=sysAttrs` (clause 6.3.11) is written after any keyword, as one comma separated
+/// list.
 ///
 /// The representation itself is the request's format type, which decides how the answer is read; the spelling only
 /// decides how it is written. Every spelling asks for the same representation, and a context source may support

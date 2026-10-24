@@ -4,9 +4,11 @@
 use crate::model::{RawJson, geometry::GeometryMember};
 use indexmap::IndexMap;
 
-/// A member of other `GeoJSON` objects that RFC 7946 section 7.1 forbids on a geometry object: "`FeatureCollection` and
-/// Geometry objects, respectively, MUST NOT contain a "geometry" or "properties" member", and "Feature and Geometry
-/// objects, respectively, MUST NOT contain a "features" member".
+/// A member of other `GeoJSON` objects that a geometry object must not have.
+///
+/// RFC 7946 section 7.1 forbids it: "`FeatureCollection` and Geometry objects, respectively, MUST NOT contain a
+/// "geometry" or "properties" member", and "Feature and Geometry objects, respectively, MUST NOT contain a "features"
+/// member".
 ///
 /// The enum is exhaustive: section 7.1 closes the set.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::Display, strum::EnumString, strum::IntoStaticStr)]
@@ -72,10 +74,11 @@ fn validate_name(name: &str) -> Result<(), ForeignMemberNameError> {
 )]
 pub struct ForeignMemberName(String);
 
-/// The foreign members of a geometry object (RFC 7946 section 6.1), in document order. RFC 7946 defines no
-/// processing model for them, so each value is raw JSON, kept as written: a value that is an object makes every
-/// descendant member foreign too. Two sets of foreign members are equal when they hold the same members, whatever
-/// their order.
+/// The foreign members of a geometry object, in document order.
+///
+/// RFC 7946 section 6.1 defines them but no processing model for them, so each value is raw JSON, kept as written: a
+/// value that is an object makes every descendant member foreign too. Two sets of foreign members are equal when they
+/// hold the same members, whatever their order.
 ///
 /// ```
 /// use ngsi_ld::model::{

@@ -13,7 +13,9 @@ use urn_rs::Urn;
 
 pub(super) mod draft;
 
-/// The string is not a URI: it does not follow the grammar of IETF RFC 3986 (or RFC 3987 for non-ASCII input).
+/// The string is not a URI.
+///
+/// It does not follow the grammar of IETF RFC 3986 (or RFC 3987 for non-ASCII input).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 #[error("not a valid URI or IRI")]
 pub struct UriError;

@@ -26,9 +26,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// `GET /subscriptions` (NGSI-LD clause 6.10.3.2), or `GET /csourceSubscriptions` (clause 6.12.3.2) for the kind
-/// [`RegistrationSubscription`](crate::subscription::RegistrationSubscription): lists the subscriptions, one
-/// page at a time.
+/// Lists the subscriptions, one page at a time.
+///
+/// Its request is `GET /subscriptions` (NGSI-LD clause 6.10.3.2), or `GET /csourceSubscriptions` (clause 6.12.3.2) for
+/// the kind [`RegistrationSubscription`](crate::subscription::RegistrationSubscription).
 ///
 /// Tables 6.10.3.2-1 and 6.12.3.2-1 list `limit`; clause 4.12 makes both queries paginated operations, so they also
 /// take `offset` (Table 6.3.10-2) and `count` (Table 6.3.13-1), and clause 6.3.11 adds `options=sysAttrs`.

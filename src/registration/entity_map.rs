@@ -38,8 +38,10 @@ use jstrict::{Object, Value as Json, object::Entry};
 const ENTITY_MAP_TYPE: &str = "EntityMap";
 
 uri_identifier!(
-    /// The identifier of an entity map: a URI the broker generates (NGSI-LD Table 5.2.39-1), and the last path
-    /// segment of the map's resource, `/entityMaps/{entityMapId}` (Table 6.2-1).
+    /// The identifier of an entity map: a URI the broker generates.
+    ///
+    /// It is a URI (NGSI-LD Table 5.2.39-1), and the last path segment of the map's resource,
+    /// `/entityMaps/{entityMapId}` (Table 6.2-1).
     ///
     /// ```
     /// use iri_rs::iri;
@@ -52,7 +54,9 @@ uri_identifier!(
     EntityMapId
 );
 
-/// Where an entity of an entity map is held (NGSI-LD Table 5.2.39-2).
+/// Where an entity of an entity map is held.
+///
+/// NGSI-LD Table 5.2.39-2.
 ///
 /// Table 5.2.39-2 says the key `@none` refers to an entity held locally; a key names an entity, and what is local is
 /// the source holding it, so `@none` is read where the sources are listed, as [`EntitySource::Local`]. The enum is
@@ -84,8 +88,10 @@ impl EntitySource {
     }
 }
 
-/// An entity map (NGSI-LD clause 5.2.39): what Retrieve `EntityMap` answers, and the body of the answer of Create
-/// `EntityMap` for Query Entities and for Query Temporal Evolution.
+/// An entity map.
+///
+/// It is what Retrieve `EntityMap` answers, and the body of the answer of Create `EntityMap` for Query Entities and for
+/// Query Temporal Evolution (NGSI-LD clause 5.2.39).
 ///
 /// Only a broker writes one; it is read strictly, a member Tables 5.2.39-1 and 5.2.39-2 do not define failing the
 /// read. Clause 4.5.25 calls the expiry `expiredBy`, while Table 5.2.39-1 and the core context call it

@@ -15,8 +15,10 @@ pub enum ReceivedProtocolError {
     Version(#[source] TokenError),
 }
 
-/// The protocol a `Via` hop received the message in (RFC 9110 section 7.6.3): `[ protocol-name "/" ]
-/// protocol-version`, such as `1.1` or `HTTP/2`. The name is omitted when it is `HTTP`.
+/// The protocol a `Via` hop received the message in.
+///
+/// RFC 9110 section 7.6.3 writes it `[ protocol-name "/" ] protocol-version`, such as `1.1` or `HTTP/2`. The name is
+/// omitted when it is `HTTP`.
 ///
 /// ```
 /// use ngsi_ld::http::headers::ReceivedProtocol;

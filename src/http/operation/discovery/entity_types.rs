@@ -23,8 +23,10 @@ use crate::{
 use bytes::Bytes;
 use http::{Request, Response};
 
-/// `GET /types`: the entity types the broker holds instances of (NGSI-LD clause 6.25.3.1), as an
-/// [`EntityTypeList`].
+/// Lists the entity types the broker holds.
+///
+/// Its request is `GET /types` (NGSI-LD clause 6.25.3.1), answered with an [`EntityTypeList`] of the entity types the
+/// broker holds instances of.
 ///
 /// ```
 /// use ngsi_ld::http::{

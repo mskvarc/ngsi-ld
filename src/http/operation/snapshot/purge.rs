@@ -22,7 +22,9 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// Purges the snapshots a query selects (NGSI-LD clause 5.16.7): `DELETE /snapshots?q=...` (clause 6.36.3.2).
+/// Purges the snapshots a query selects.
+///
+/// NGSI-LD clause 5.16.7 defines the operation. Its request is `DELETE /snapshots?q=...` (clause 6.36.3.2).
 ///
 /// The query is mandatory (Table 6.36.3.2-1) and restricted to the members of the Snapshot data type (clause
 /// 5.16.7.4), which the broker checks. The broker answers 204, or 207 with the snapshots it could not delete.

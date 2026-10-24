@@ -10,8 +10,10 @@ use mediatype::{MediaType, names};
 /// `application/merge-patch+json` (IETF RFC 7396).
 const APPLICATION_MERGE_PATCH_JSON: MediaType<'static> = MediaType::from_parts(names::APPLICATION, names::MERGE_PATCH, Some(names::JSON), &[]);
 
-/// A `Content-Type` naming a media type an NGSI-LD body is sent as (NGSI-LD clause 6.3.4): one of the NGSI-LD media
-/// types, or `application/merge-patch+json`, which the clause admits for a PATCH body.
+/// A `Content-Type` naming a media type an NGSI-LD body is sent as.
+///
+/// It is one of the NGSI-LD media types, or `application/merge-patch+json`, which NGSI-LD clause 6.3.4 admits for a
+/// PATCH body.
 ///
 /// Separate from the `headers` crate's own `ContentType`, which is untyped over `mime`. Decoding tolerates
 /// parameters (`application/json; charset=utf-8`) and refuses media ranges and every other media type. Encoding
