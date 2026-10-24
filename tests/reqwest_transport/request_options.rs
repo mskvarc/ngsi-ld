@@ -33,7 +33,7 @@ async fn the_client_states_its_preference_and_the_locality_of_a_call() {
     let client = Client::builder()
         .base_url(Url::parse(&format!("{}/ngsi-ld/v1/", server.uri())).unwrap())
         .prefer(Prefer::builder().version(SpecVersion::new(1, 9)).build().unwrap())
-        .transport(ReqwestTransport::new(reqwest::Client::builder().build().unwrap()))
+        .transport(ReqwestTransport::with_default_client().unwrap())
         .build()
         .unwrap();
     let entity = vehicle();

@@ -1,7 +1,7 @@
 //! Fixes the entities a distributed query pages through with an entity map: creates the map, reads it back, queries
 //! the vehicles on it, extends its expiry and deletes it, then asks the broker who it is.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example entity_maps`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example entity_maps`.
 
 use anyhow::Context;
 use iri_rs::iri;
@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let fleet = [(iri!("urn:ngsi-ld:Vehicle:E9001"), 80), (iri!("urn:ngsi-ld:Vehicle:E9002"), 40)];

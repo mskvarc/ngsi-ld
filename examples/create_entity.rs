@@ -1,6 +1,6 @@
 //! Creates the vehicle of NGSI-LD Annex C.2.2, with every attribute kind it carries, reads it back and deletes it.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example create_entity`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example create_entity`.
 
 use anyhow::Context;
 use cefact_units::UnitCode;
@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let is_parked = Relationship::builder(EntityId::from(iri!("urn:ngsi-ld:OffStreetParking:Downtown1")))

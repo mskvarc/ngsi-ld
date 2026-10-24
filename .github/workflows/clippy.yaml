@@ -28,7 +28,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
-  # Default features are empty, so a warning that only a build without some feature shows reaches every caller.
+  # A caller can build with any subset of the features, so a warning that only a build without some feature shows
+  # reaches some caller.
   clippy-features:
     name: cargo clippy (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -50,6 +51,10 @@ jobs:
             features: linked-data
           - name: reqwest
             features: reqwest
+          - name: reqwest-rustls
+            features: reqwest-rustls
+          - name: reqwest-native-tls
+            features: reqwest-native-tls
     steps:
       - uses: actions/checkout@v7
       - name: Install pinned toolchain

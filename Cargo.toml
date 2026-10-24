@@ -40,12 +40,17 @@ urn-rs = { version = "0.9.2", features = ["serde"] }
 winnow = { version = "1.0.4", default-features = false, features = ["std", "parser"] }
 
 [features]
+default = ["reqwest", "reqwest-rustls", "reqwest-http2", "reqwest-system-proxy"]
 chrono = ["dep:chrono"]
 geo-types = ["dep:geo-types"]
 geojson = ["dep:geojson"]
 http = ["dep:bytes", "dep:headers", "dep:http", "dep:percent-encoding"]
 linked-data = ["dep:jsonld"]
 reqwest = ["http", "dep:reqwest"]
+reqwest-http2 = ["reqwest", "reqwest/http2"]
+reqwest-native-tls = ["reqwest", "reqwest/native-tls"]
+reqwest-rustls = ["reqwest", "reqwest/rustls"]
+reqwest-system-proxy = ["reqwest", "reqwest/system-proxy"]
 
 [dev-dependencies]
 anyhow = "1.0.104"

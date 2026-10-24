@@ -1,7 +1,7 @@
 //! Sends two invalid Create Entity requests through the deliberately unchecked path, an entity without `type` and
 //! a body that is not JSON, and prints the problem the broker answers each with.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example unchecked_rejections`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example unchecked_rejections`.
 
 use anyhow::Context;
 use bytes::Bytes;
@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let vehicle = Entity::builder()

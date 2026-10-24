@@ -1,7 +1,7 @@
 //! Keeps three instances of `speed`, told apart by `datasetId`, and removes one of them with Delete Attribute and
 //! its `datasetId` parameter.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example dataset_instances`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example dataset_instances`.
 
 use anyhow::Context;
 use iri_rs::iri;
@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let vehicle = Entity::builder()

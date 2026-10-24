@@ -3,7 +3,8 @@
 //!
 //! # Clients and transports
 //!
-//! [`Client`], [`Transport`], [`ReqwestTransport`], [`ReqwestError`], [`ClientError`], [`Answering`], [`OutcomeOnly`],
+//! [`Client`], [`Transport`], [`ReqwestTransport`], [`ReqwestError`], [`ReqwestBuildError`], [`ClientError`], [`Answering`],
+//! [`OutcomeOnly`],
 //! [`WithHead`], [`Answered`].
 //!
 //! # Resource handles
@@ -22,7 +23,7 @@
 #[cfg(feature = "linked-data")]
 pub use crate::client::context_loader::{ContextLoadError, ContextLoader, ContextSource, MediaTypeCheck};
 #[cfg(feature = "reqwest")]
-pub use crate::client::reqwest::{ReqwestError, ReqwestTransport};
+pub use crate::client::reqwest::{ReqwestBuildError, ReqwestError, ReqwestTransport};
 pub use crate::client::{
     answering::{Answered, Answering, OutcomeOnly, WithHead},
     api_client::Client,

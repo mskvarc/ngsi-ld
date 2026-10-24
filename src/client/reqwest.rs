@@ -10,17 +10,26 @@ use std::mem;
 #[error("the HTTP exchange failed")]
 pub struct ReqwestError(#[from] reqwest::Error);
 
+/// Why [`ReqwestTransport::with_default_client`] could not build its `reqwest::Client`: no TLS backend could be
+/// initialized, or the system's resolver configuration could not be read.
+#[derive(Debug, thiserror::Error)]
+#[error("the reqwest client could not be built")]
+pub struct ReqwestBuildError(#[source] reqwest::Error);
+
 /// Sends requests with a `reqwest::Client`.
 ///
-/// The crate enables no `reqwest` features: TLS, HTTP/2 and proxies are the caller's choice, through
-/// `reqwest`'s own features in the caller's manifest. The response keeps `reqwest`'s extensions, so what the caller
-/// enabled there stays readable from the response head: for instance the peer certificate, with
+/// [`with_default_client`](ReqwestTransport::with_default_client) builds a client with `reqwest`'s default settings;
+/// [`new`](ReqwestTransport::new) takes one the caller configured. The crate's `reqwest-rustls` or `reqwest-native-tls`
+/// feature picks the TLS backend, and `reqwest-http2` and `reqwest-system-proxy` turn on `reqwest`'s `http2` and
+/// `system-proxy`; the default features are `reqwest-rustls`, `reqwest-http2` and `reqwest-system-proxy`. Without a
+/// TLS backend, the transport can only reach `http` URLs. The response keeps `reqwest`'s extensions, so what the
+/// caller enabled there stays readable from the response head: for instance the peer certificate, with
 /// `reqwest::ClientBuilder::tls_info(true)`, as `reqwest::tls::TlsInfo`.
 ///
 /// ```
 /// use ngsi_ld::client::ReqwestTransport;
 ///
-/// let transport = ReqwestTransport::new(reqwest::Client::builder().build()?);
+/// let transport = ReqwestTransport::with_default_client()?;
 /// # let _ = transport;
 /// # Ok::<(), anyhow::Error>(())
 /// ```
@@ -35,6 +44,16 @@ impl ReqwestTransport {
     #[must_use]
     pub const fn new(client: reqwest::Client) -> ReqwestTransport {
         ReqwestTransport { client }
+    }
+
+    /// Uses a `reqwest::Client` with `reqwest`'s default settings.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ReqwestBuildError`] when the TLS backend cannot be initialized or the system's resolver
+    /// configuration cannot be read.
+    pub fn with_default_client() -> Result<ReqwestTransport, ReqwestBuildError> {
+        reqwest::Client::builder().build().map(ReqwestTransport::new).map_err(ReqwestBuildError)
     }
 }
 

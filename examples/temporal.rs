@@ -1,7 +1,7 @@
 //! Records the speed of a vehicle over time and reads it back normalized, as temporal values and as the maximum per
 //! period; queries vehicles within a time range, corrects one reading by its instance id and deletes the evolution.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example temporal`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example temporal`.
 
 use anyhow::Context;
 use iri_rs::iri;
@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:H1201"));

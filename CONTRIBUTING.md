@@ -49,7 +49,7 @@ rustup toolchain install 1.96.0 --profile minimal
 cargo install --locked taplo-cli cargo-deny cargo-machete
 ```
 
-No feature is on by default. The features are `chrono`, `geo-types`, `geojson`, `http`, `linked-data` and `reqwest`.
+The default features are `reqwest`, `reqwest-rustls`, `reqwest-http2` and `reqwest-system-proxy`. The others are `chrono`, `geo-types`, `geojson`, `http`, `linked-data` and `reqwest-native-tls`.
 
 ## Before You Open a Pull Request
 

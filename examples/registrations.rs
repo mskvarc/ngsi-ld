@@ -1,7 +1,7 @@
 //! Registers a context source of truck speeds under a subscription to the registrations of trucks, finds it again by
 //! entity type and attribute, describes it with a fragment, and deletes both.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example registrations`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example registrations`.
 
 use anyhow::Context;
 use ngsi_ld::{
@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     // Nobody listens on either endpoint: the example only manages the registration and the subscription.

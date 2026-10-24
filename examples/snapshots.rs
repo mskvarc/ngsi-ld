@@ -1,7 +1,7 @@
 //! Freezes vehicles in a snapshot, waits for it to settle, changes a vehicle and pages through the vehicles of the
 //! snapshot, which still hold the speed they had.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example snapshots`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example snapshots`.
 
 use anyhow::Context;
 use iri_rs::iri;
@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let fleet = [(iri!("urn:ngsi-ld:Vehicle:S1101"), 80), (iri!("urn:ngsi-ld:Vehicle:S1102"), 40)];

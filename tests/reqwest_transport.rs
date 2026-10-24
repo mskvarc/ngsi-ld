@@ -54,7 +54,7 @@ mod fixtures {
         Client::builder()
             .base_url(Url::parse(&format!("{base}/ngsi-ld/v1/")).unwrap())
             .context(IriRefBuf::new(CONTEXT).unwrap())
-            .transport(ReqwestTransport::new(reqwest::Client::builder().build().unwrap()))
+            .transport(ReqwestTransport::with_default_client().unwrap())
             .build()
             .unwrap()
     }

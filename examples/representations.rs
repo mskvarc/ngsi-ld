@@ -1,7 +1,7 @@
 //! Reads one entity back as normalized, concise and simplified JSON, using the `format` parameter of Retrieve
 //! Entity.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example representations`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example representations`.
 
 use anyhow::Context;
 use cefact_units::UnitCode;
@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let observed_at: DateTime = "2018-08-07T12:00:00Z".parse()?;

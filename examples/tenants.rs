@@ -1,7 +1,7 @@
 //! Keeps an entity in a tenant of its own: created with the `NGSILD-Tenant` header, missing from the default tenant,
 //! found in its own.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example tenants`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example tenants`.
 
 use anyhow::Context;
 use iri_rs::iri;
@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     let tenant: Tenant = "fleet".parse()?;

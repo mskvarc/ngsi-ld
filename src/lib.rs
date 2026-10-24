@@ -66,16 +66,21 @@
 //!
 //! # Features
 //!
-//! Default features are empty.
+//! The defaults give the client over `reqwest`, with TLS through rustls. With `default-features = false`, the crate is
+//! the data model and the query languages, with no HTTP client or async runtime.
 //!
-//! | Feature | Enables |
-//! |---|---|
-//! | `http` | The HTTP binding (`http`), for requests sent and requests received: one request type per operation, typed headers, the request pipeline, typed outcomes and problem details; and the `client` over any `Transport`. |
-//! | `reqwest` | `http`, and a `Transport` over `reqwest`. |
-//! | `linked-data` | `linked_data`: the `@context` applied as JSON-LD, with the core context bundled; with `http`, a JSON-LD context loader over the client's transport. |
-//! | `geo-types` | Conversions between the geometries of [`model::geometry`] and `geo-types`. |
-//! | `geojson` | Conversions between the geometries of [`model::geometry`] and the `geojson` crate. |
-//! | `chrono` | Conversions between the temporal values of [`model`] ([`DateTime`](model::DateTime), [`Date`](model::Date), [`Time`](model::Time)) and `chrono`. |
+//! | Feature | Default | Enables |
+//! |---|---|---|
+//! | `http` | yes | The HTTP binding and the client, with no transport |
+//! | `reqwest` | yes | A transport over `reqwest`, with no TLS |
+//! | `reqwest-rustls` | yes | TLS through rustls |
+//! | `reqwest-http2` | yes | HTTP/2 |
+//! | `reqwest-system-proxy` | yes | The system proxy settings |
+//! | `reqwest-native-tls` | no | TLS through the platform's native library |
+//! | `linked-data` | no | JSON-LD processing of the `@context` |
+//! | `chrono` | no | Conversions to and from `chrono` types |
+//! | `geo-types` | no | Conversions to and from `geo-types` geometries |
+//! | `geojson` | no | Conversions to and from `geojson` geometries |
 //!
 //! # Broker compatibility
 //!

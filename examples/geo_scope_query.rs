@@ -1,7 +1,7 @@
 //! Queries entities by place and by scope: a geoquery by distance and by containment, a scope query by subtree, by
 //! wildcard and by alternatives, and both together with a type selection and `q`, through GET and through POST.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example geo_scope_query`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example geo_scope_query`.
 
 use anyhow::Context;
 use iri_rs::iri;
@@ -44,7 +44,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
 
     // Puerta del Sol and the Retiro are about 1.3 km apart in Madrid.

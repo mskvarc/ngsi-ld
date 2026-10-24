@@ -41,7 +41,7 @@ pub(crate) fn client_preferring(prefer: Option<Prefer>) -> Client<ReqwestTranspo
     Client::builder()
         .base_url(Url::parse(&base_url).expect("NGSI_LD_TEST_BROKER_URL is a URL"))
         .maybe_prefer(prefer)
-        .transport(ReqwestTransport::new(reqwest::Client::builder().build().unwrap()))
+        .transport(ReqwestTransport::with_default_client().unwrap())
         .build()
         .unwrap()
 }

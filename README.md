@@ -40,7 +40,11 @@ The types follow the specification. Builders don't compile without their require
 
 ```toml
 [dependencies]
-ngsi-ld = { version = "0.1.0", features = ["reqwest"] }
+anyhow = "1.0.104"
+iri-rs = { version = "3.4.1", features = ["static"] }
+ngsi-ld = "0.1.0"
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }
+url = "2.5.8"
 ```
 
 Create an entity, then look for fast vehicles of other brands:
@@ -54,34 +58,52 @@ use ngsi_ld::{
 };
 use url::Url;
 
-let client = Client::builder()
-    .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
-    .transport(ReqwestTransport::new(reqwest::Client::new()))
-    .build()?;
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let client = Client::builder()
+        .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
+        .transport(ReqwestTransport::with_default_client()?)
+        .build()?;
 
-let vehicle = Entity::builder()
-    .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
-    .entity_type("Vehicle")
-    .property("brandName", "Mercedes")
-    .property("speed", 80)
-    .build()?;
-client.entities().create(&vehicle).send().await?;
+    let vehicle = Entity::builder()
+        .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
+        .entity_type("Vehicle")
+        .property("brandName", "Mercedes")
+        .property("speed", 80)
+        .build()?;
+    client.entities().create(&vehicle).send().await?;
 
-let page = client
-    .entities()
-    .query()
-    .entity_type("Vehicle")
-    .q(q::attr("speed").gt(50).and(q::attr("brandName").ne("Mercedes")))
-    .limit(20)
-    .send()
-    .await?;
+    let page = client
+        .entities()
+        .query()
+        .entity_type("Vehicle")
+        .q(q::attr("speed").gt(50).and(q::attr("brandName").ne("Mercedes")))
+        .limit(20)
+        .send()
+        .await?;
+    println!("{} fast vehicles of other brands", page.items().len());
+    Ok(())
+}
 ```
 
 More complete programs are in [examples](examples/), and the [live testing guide](docs/live-testing.md) shows how to run the ones that need a broker.
 
 ## Features
 
-Without features you get the data model and the query languages, and no HTTP client or async runtime. `http` adds the client, which runs over any transport, and `reqwest` provides one. `linked-data` processes the `@context` as JSON-LD. `chrono`, `geo-types` and `geojson` add conversions to those crates' types.
+The defaults give you the client over `reqwest`, with TLS through rustls. For native TLS, set `default-features = false` and enable `reqwest-native-tls`, plus `reqwest-http2` and `reqwest-system-proxy` if you want them. With no features at all you get the data model and the query languages, and no HTTP client or async runtime.
+
+| Feature | Default | Enables |
+|---|---|---|
+| `http` | yes | The HTTP binding and the client, with no transport |
+| `reqwest` | yes | A transport over `reqwest`, with no TLS |
+| `reqwest-rustls` | yes | TLS through rustls |
+| `reqwest-http2` | yes | HTTP/2 |
+| `reqwest-system-proxy` | yes | The system proxy settings |
+| `reqwest-native-tls` | no | TLS through the platform's native library |
+| `linked-data` | no | JSON-LD processing of the `@context` |
+| `chrono` | no | Conversions to and from `chrono` types |
+| `geo-types` | no | Conversions to and from `geo-types` geometries |
+| `geojson` | no | Conversions to and from `geojson` geometries |
 
 ## Broker Compatibility
 

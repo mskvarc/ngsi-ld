@@ -1,7 +1,7 @@
 //! Changes the attributes of an entity with Append Attributes (with and without `noOverwrite`), Update Attributes,
 //! Partial Attribute Update and Replace Attribute, reading the entity back after each.
 //!
-//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --features reqwest --example append_update_attributes`.
+//! Run it with `NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --example append_update_attributes`.
 
 use anyhow::Context;
 use cefact_units::UnitCode;
@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let client = Client::builder()
         .base_url(base_url)
-        .transport(ReqwestTransport::new(reqwest::Client::new()))
+        .transport(ReqwestTransport::with_default_client()?)
         .build()?;
     let entities = client.entities();
 
