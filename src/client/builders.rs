@@ -3,7 +3,8 @@
 //! [`AvailableAttributesListBuilder`], [`AvailableAttributesListDetailsBuilder`],
 //! [`AvailableAttributesRetrieveBuilder`], [`AvailableEntityTypesListBuilder`],
 //! [`AvailableEntityTypesListDetailsBuilder`], [`AvailableEntityTypesRetrieveBuilder`], [`ClientBuilder`],
-//! [`ClientContextLoaderBuilder`], [`ClientSourceIdentityBuilder`], [`EntitiesAppendAttributesBuilder`],
+#![cfg_attr(feature = "linked-data", doc = "[`ClientContextLoaderBuilder`],")]
+//! [`ClientSourceIdentityBuilder`], [`EntitiesAppendAttributesBuilder`],
 //! [`EntitiesBatchCreateBuilder`], [`EntitiesBatchDeleteBuilder`], [`EntitiesBatchMergeBuilder`],
 //! [`EntitiesBatchUpdateBuilder`], [`EntitiesBatchUpsertBuilder`], [`EntitiesCreateBuilder`],
 //! [`EntitiesDeleteAttributeBuilder`], [`EntitiesDeleteBuilder`], [`EntitiesMergeBuilder`],

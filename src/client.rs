@@ -5,8 +5,9 @@
 //!
 //! # Clients and transports
 //!
-//! [`Client`], [`Transport`], [`ReqwestTransport`], [`ReqwestError`], [`ReqwestBuildError`], [`ClientError`],
-//! [`Answering`], [`OutcomeOnly`], [`WithHead`], [`Answered`].
+//! [`Client`], [`Transport`],
+#![cfg_attr(feature = "reqwest", doc = "[`ReqwestTransport`], [`ReqwestError`], [`ReqwestBuildError`],")]
+//! [`ClientError`], [`Answering`], [`OutcomeOnly`], [`WithHead`], [`Answered`].
 //!
 //! # Resource handles
 //!
@@ -14,8 +15,8 @@
 //! [`StoredContexts`], [`EntityMaps`], [`Snapshots`], [`SnapshotView`], [`Pages`].
 //!
 //! # Contexts
-//!
-//! [`ContextLoader`], [`ContextSource`], [`MediaTypeCheck`], [`ContextLoadError`], [`ContextFileClientError`].
+#![cfg_attr(feature = "linked-data", doc = "[`ContextLoader`], [`ContextSource`], [`MediaTypeCheck`], [`ContextLoadError`],")]
+//! [`ContextFileClientError`].
 //!
 //! # Builders
 //!
