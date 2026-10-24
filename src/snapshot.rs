@@ -169,8 +169,10 @@ impl<D: SnapshotDirection> Snapshot<D> {
         self.context.as_ref()
     }
 
-    /// Writes the snapshot in canonical member order (see the crate's design document), with its `@context` last
-    /// when it has one.
+    /// Writes the snapshot with its members in the order `id`, `type`, `snapshotQueries`, `snapshotTemporalQueries`,
+    /// `snapshotLifetime`, `snapshotPriority`, `endpoint`, `receiverInfo`, then the members only a broker writes in the
+    /// order of Table 5.2.41-2 (`snapshotStatus`, `snapshotQueriesDetails`, `snapshotTemporalQueriesDetails`,
+    /// `createdAt`, `modifiedAt`, `expiresAt`, `lastUsedAt`), and its `@context` last when it has one.
     #[must_use]
     pub fn render(&self) -> RawJson {
         let mut object = snapshot_object(self);

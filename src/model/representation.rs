@@ -111,7 +111,7 @@ fn render_entity<D: WriteEntityDirection, C: Completeness>(entity: &Entity<D, C>
 }
 
 impl Entity<Input> {
-    /// Writes the entity in `representation`, in canonical member order (see the crate's design document): `id`,
+    /// Writes the entity in `representation`, with its members in the order `id`,
     /// `type`, `scope`, `expiresAt`, the attributes in their order, and the entity's own `@context` last when it
     /// has one. Simplified drops everything but the values (clause 4.5.4). A request body is written without the
     /// entity's `@context`, because the request pipeline delivers the endpoint's (clause 6.3.5).

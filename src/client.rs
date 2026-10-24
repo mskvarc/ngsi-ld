@@ -1,11 +1,10 @@
-//! The client: an [`Endpoint`](crate::http::Endpoint), which names the default tenant, and a [`Transport`], and resource handles whose operation
-//! builders finish with `send()`.
+//! The client: an [`Endpoint`](crate::http::Endpoint), which names the default tenant, a [`Transport`], and resource
+//! handles whose operation builders finish with `send()`.
 //!
 //! # Clients and transports
 //!
-//! [`Client`], [`Transport`], [`ReqwestTransport`], [`ReqwestError`], [`ReqwestBuildError`], [`ClientError`], [`Answering`],
-//! [`OutcomeOnly`],
-//! [`WithHead`], [`Answered`].
+//! [`Client`], [`Transport`], [`ReqwestTransport`], [`ReqwestError`], [`ReqwestBuildError`], [`ClientError`],
+//! [`Answering`], [`OutcomeOnly`], [`WithHead`], [`Answered`].
 //!
 //! # Resource handles
 //!

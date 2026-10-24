@@ -1,4 +1,4 @@
-//! Writing registration documents in canonical member order (see the crate's design document): a registration,
+//! Writing registration documents in the member order `CSourceRegistration::render` documents: a registration,
 //! its information, management information and time intervals, and the members a fragment shares with them.
 
 use crate::{

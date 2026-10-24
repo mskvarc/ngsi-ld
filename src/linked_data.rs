@@ -6,16 +6,16 @@
 //! may be the same IRI (clause 5.5.7). This module processes contexts and moves names and documents between
 //! them:
 //!
-//! - [`context_processor::ContextProcessor`] reads the bundled core context once and builds
-//!   [`active_context::ActiveContext`]s: processed `@context`s, with the core context always applied last, as
-//!   clauses 4.4 and C.9 require, and remote contexts loaded by a [`remote_context::RemoteContextLoader`];
-//! - [`name::LinkedName`] is a name an active context expands, compacts and translates;
-//! - [`document::LinkedDocument`] is a document that is expanded to JSON-LD and compacted back;
-//! - [`recontextualize::Recontextualize`] is a document whose every name, query-language members included, is
+//! - [`ContextProcessor`] reads the bundled core context once and builds [`ActiveContext`]s: processed `@context`s,
+//!   with the core context always applied last, as clauses 4.4 and C.9 require, and remote contexts loaded by a
+//!   [`RemoteContextLoader`];
+//! - [`LinkedName`] is a name an active context expands, compacts and translates;
+//! - [`LinkedDocument`] is a document that is expanded to JSON-LD and compacted back;
+//! - [`Recontextualize`] is a document whose every name, query-language members included, is
 //!   rewritten from one context into another.
 //!
 //! The core context is bundled with the crate, so processing it needs no network access. The JSON-LD processor's
-//! own types stay inside the module: its errors surface as [`json_ld_error::JsonLdError`].
+//! own types stay inside the module: its errors surface as [`JsonLdError`].
 //!
 //! ```
 //! use ngsi_ld::{

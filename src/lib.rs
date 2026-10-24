@@ -7,7 +7,7 @@
 //!
 //! # Quick start
 //!
-//! Without features, the crate is the data model and the query languages. An entity is built with its builder,
+//! With `default-features = false`, the crate is the data model and the query languages. An entity is built with its builder,
 //! which checks every rule the specification gives it, and rendered in the representation asked for:
 //!
 //! ```

@@ -1,7 +1,7 @@
 //! Golden tests: the project's v1.9.1 vehicle fixtures, the Annex C examples ETSI publishes (ETSI GS CIM 009
 //! v1.9.1) and the corrected copies of three of them read, written back, and converted between representations.
 //!
-//! A document in canonical form (see the design document) is written back exactly: the comparisons are of the
+//! A document in canonical form, its members in the order its `render` documents, is written back exactly: the comparisons are of the
 //! compact text, so they check the order of every member as well as its value.
 
 use crate::fixtures::{assert_canonical, elements, fixture, json};

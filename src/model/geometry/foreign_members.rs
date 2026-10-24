@@ -23,10 +23,13 @@ pub enum ForbiddenGeometryMember {
 }
 
 /// Why a name is not the name of a foreign member of a geometry object.
+///
+/// The enum is exhaustive: a name is refused because RFC 7946 defines it for a geometry or because section 7.1
+/// forbids it there.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 pub enum ForeignMemberNameError {
     /// The name is one RFC 7946 defines for a geometry object (sections 3.1 and 5).
-    #[error("`{member}` is a member RFC 7946 defines for a geometry, not a foreign one")]
+    #[error("`{member}` is a member GeoJSON defines for a geometry, not a foreign one")]
     Defined {
         /// The member.
         member: GeometryMember,

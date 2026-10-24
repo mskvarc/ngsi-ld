@@ -326,8 +326,11 @@ impl<D: SubscriptionDirection, K: SubscriptionKind> Subscription<D, K> {
         self.context.as_ref()
     }
 
-    /// Writes the subscription in canonical member order (see the crate's design document), with its `@context`
-    /// last when it has one.
+    /// Writes the subscription with its members in the order Annex C.4 writes them: `id`, `type`, `subscriptionName`,
+    /// `description`, `entities`, `watchedAttributes`, `notificationTrigger`, `timeInterval`, `throttling`, `q`, `geoQ`,
+    /// `scopeQ`, `temporalQ` or `csf`, `datasetId`, `lang`, `expandValues`, `jsonKeys`, `localOnly`, `splitEntities`,
+    /// `notification`, `isActive`, `expiresAt`, `jsonldContext`, `ngsildConformance`, `status`, `createdAt`,
+    /// `modifiedAt`, and its `@context` last when it has one.
     #[must_use]
     pub fn render(&self) -> RawJson {
         let mut object = subscription_object(self);

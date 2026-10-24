@@ -21,9 +21,8 @@
 //! # Entities
 //!
 //! [`Entity`], [`EntityDirection`], [`Completeness`], [`Complete`], [`Projected`], [`EntityFragment`], [`ScopeChange`],
-//! [`PendingChanges`], [`SimplifiedEntity`], [`SimplifiedValue`], [`SimplifiedFragment`], [`SimplifiedChange`],
-//! [`SimplifiedAttributeChange`], [`PendingSimplifiedChanges`], [`Feature`], [`FeatureCollection`], [`GeoJsonType`],
-//! [`IdDraft`], [`TypeDraft`], [`ScopeDraft`].
+//! [`SimplifiedEntity`], [`SimplifiedValue`], [`SimplifiedFragment`], [`SimplifiedChange`], [`SimplifiedAttributeChange`],
+//! [`Feature`], [`FeatureCollection`], [`GeoJsonType`], [`IdDraft`], [`TypeDraft`], [`ScopeDraft`].
 //!
 //! # Attributes
 //!
@@ -85,7 +84,8 @@
 //!
 //! # Builders
 //!
-//! The builders of these types are in [`builders`].
+//! The builders of these types are in [`builders`]. [`PendingChanges`] and [`PendingSimplifiedChanges`] are the changes
+//! a fragment builder collects before it finishes.
 
 pub use crate::model::{
     attribute::{

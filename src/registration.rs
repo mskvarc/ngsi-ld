@@ -350,8 +350,11 @@ impl<D: RegistrationDirection> CSourceRegistration<D> {
         self.context.as_ref()
     }
 
-    /// Writes the registration in canonical member order (see the crate's design document), with its `@context`
-    /// last when it has one.
+    /// Writes the registration with its members in the order Annex C.3 writes them: `id`, `type`, `registrationName`,
+    /// `description`, `information`, `endpoint`, `contextSourceInfo`, `contextSourceAlias`, `mode`, `operations`,
+    /// `management`, `tenant`, `scope`, `datasetId`, `location`, `observationSpace`, `operationSpace`,
+    /// `observationInterval`, `managementInterval`, `expiresAt`, `refreshRate`, `status`, `timesSent`, `timesFailed`,
+    /// `lastSuccess`, `lastFailure`, `createdAt`, `modifiedAt`, and its `@context` last when it has one.
     #[must_use]
     pub fn render(&self) -> RawJson {
         let mut object = registration_object(self);

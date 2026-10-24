@@ -1,4 +1,4 @@
-//! Writing subscription documents in canonical member order (see the crate's design document): a subscription,
+//! Writing subscription documents in the member order `Subscription::render` documents: a subscription,
 //! its notification parameters and endpoint, and the members a subscription fragment shares with them.
 
 use crate::{

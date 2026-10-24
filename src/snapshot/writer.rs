@@ -1,4 +1,4 @@
-//! Writing snapshot documents in canonical member order (see the crate's design document).
+//! Writing snapshot documents in the member order `Snapshot::render` documents.
 
 use crate::{
     seal::Seal,
