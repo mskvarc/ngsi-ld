@@ -41,10 +41,11 @@ Open an issue first for new functionality, a new public item, a new dependency o
 
 ## Setting Up
 
-The toolchain is pinned in `rust-toolchain.toml`, and `rustup` installs it on first use. Formatting needs nightly `rustfmt`, because `rustfmt.toml` uses unstable import options. The other checks need three tools.
+The toolchain is pinned in `rust-toolchain.toml`, and `rustup` installs it on first use. Formatting needs nightly `rustfmt`, because `rustfmt.toml` uses unstable import options. The MSRV check needs Rust 1.96.0, the `rust-version` in `Cargo.toml`. The other checks need three tools.
 
 ```sh
 rustup toolchain install nightly --profile minimal --component rustfmt
+rustup toolchain install 1.96.0 --profile minimal
 cargo install --locked taplo-cli cargo-deny cargo-machete
 ```
 
@@ -60,6 +61,7 @@ Each check below runs in CI and must pass with no warnings.
 | TOML format | `taplo fmt --check` |
 | Clippy | `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings` |
 | Clippy per feature | `cargo clippy --workspace --all-targets --no-default-features --features "<name>" --locked -- -D warnings`, once with no feature and once for each feature |
+| MSRV | `cargo +1.96.0 check --locked`, once with `--no-default-features` and once with `--all-features` |
 | Tests | `cargo test --workspace --all-features --locked` |
 | Rustdoc | `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features --locked` |
 | Licences, advisories, bans and sources | `cargo deny check` |

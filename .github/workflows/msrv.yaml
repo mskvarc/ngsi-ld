@@ -1,0 +1,29 @@
+name: msrv
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: msrv-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  msrv:
+    name: cargo check on the msrv
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Must match `rust-version` in Cargo.toml.
+      - name: Install the msrv toolchain
+        run: rustup toolchain install 1.96.0 --profile minimal
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo +1.96.0 check --no-default-features --locked
+      - run: cargo +1.96.0 check --all-features --locked

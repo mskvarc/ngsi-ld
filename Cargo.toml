@@ -2,7 +2,7 @@
 name = "ngsi-ld"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.99.0"
+rust-version = "1.96.0"
 license = "MIT OR Apache-2.0"
 authors = ["Matej Škvarč <matej.skvarc@senlab.io>"]
 

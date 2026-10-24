@@ -16,7 +16,7 @@
   <a href="https://crates.io/crates/ngsi-ld"><img alt="crates.io" src="https://img.shields.io/crates/v/ngsi-ld"></a>
   <a href="https://docs.rs/ngsi-ld"><img alt="docs.rs" src="https://img.shields.io/docsrs/ngsi-ld"></a>
   <a href="#licence"><img alt="licence: MIT OR Apache-2.0" src="https://img.shields.io/badge/licence-MIT%20OR%20Apache--2.0-blue"></a>
-  <img alt="msrv: 1.99" src="https://img.shields.io/badge/msrv-1.99-orange">
+  <img alt="msrv: 1.96" src="https://img.shields.io/badge/msrv-1.96-orange">
   <img alt="ngsi-ld v1.9.1" src="https://img.shields.io/badge/ngsi--ld-v1.9.1-8a2be2">
 </p>
 
