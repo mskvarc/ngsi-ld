@@ -4,11 +4,6 @@ on:
   push:
     branches: [master]
   pull_request:
-    paths:
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "deny.toml"
-      - ".github/workflows/deny.yaml"
   schedule:
     - cron: "17 6 * * 1"
   workflow_dispatch:
@@ -20,6 +15,8 @@ concurrency:
 permissions:
   contents: read
 
+# Unlike the other checks, this one also runs on Dependabot pull requests: an update can bring in a new licence or a
+# known vulnerability, and the check needs no build.
 jobs:
   deny:
     name: cargo deny

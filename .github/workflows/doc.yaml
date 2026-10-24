@@ -4,12 +4,6 @@ on:
   push:
     branches: [master]
   pull_request:
-    paths:
-      - "src/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - ".github/workflows/doc.yaml"
 
 concurrency:
   group: doc-${{ github.ref }}
@@ -21,9 +15,11 @@ permissions:
 env:
   RUSTDOCFLAGS: -D warnings
 
+# A Dependabot pull request runs the quick check in check.yaml instead.
 jobs:
   doc:
     name: cargo doc
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

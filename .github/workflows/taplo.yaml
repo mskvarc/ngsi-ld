@@ -20,9 +20,11 @@ concurrency:
 permissions:
   contents: read
 
+# A Dependabot pull request runs the quick check in check.yaml instead.
 jobs:
   taplo:
     name: taplo fmt --check
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       TAPLO_VERSION: "0.10.0"

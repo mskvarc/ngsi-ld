@@ -1,15 +1,9 @@
 name: msrv
 
-# On a pull request this runs only when the manifest or the lock file changes, as a dependency update is what usually
-# raises the msrv. Clippy's `incompatible_msrv` lint catches a newer standard library API in the code itself.
 on:
   push:
     branches: [master]
   pull_request:
-    paths:
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - ".github/workflows/msrv.yaml"
 
 concurrency:
   group: msrv-${{ github.ref }}
@@ -18,9 +12,11 @@ concurrency:
 permissions:
   contents: read
 
+# A Dependabot pull request runs the quick check in check.yaml instead.
 jobs:
   msrv:
     name: cargo check on the msrv
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

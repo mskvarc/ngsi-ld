@@ -1,0 +1,27 @@
+name: check
+
+# Dependabot opens a pull request for every update, so its pull requests only check that everything still compiles.
+# The full set of checks runs on master once the update is merged.
+on:
+  pull_request:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: cargo check
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install pinned toolchain
+        run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+      - run: cargo check --workspace --all-targets --all-features --locked

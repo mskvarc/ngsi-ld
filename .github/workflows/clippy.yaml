@@ -4,15 +4,6 @@ on:
   push:
     branches: [master]
   pull_request:
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "examples/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - "clippy.toml"
-      - ".github/workflows/clippy.yaml"
 
 concurrency:
   group: clippy-${{ github.ref }}
@@ -25,9 +16,11 @@ env:
   CARGO_PROFILE_DEV_DEBUG: line-tables-only
   CARGO_PROFILE_TEST_DEBUG: line-tables-only
 
+# A Dependabot pull request runs the quick check in check.yaml instead.
 jobs:
   clippy:
     name: cargo clippy
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -39,10 +32,10 @@ jobs:
       - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
   # A caller can build with any subset of the features, so a warning that only a build without some feature shows
-  # reaches some caller. Ten builds are too many for every pull request, so the matrix runs after a merge.
+  # reaches some caller.
   clippy-features:
     name: cargo clippy (${{ matrix.name }})
-    if: github.event_name == 'push'
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

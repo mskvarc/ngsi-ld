@@ -4,10 +4,6 @@ on:
   push:
     branches: [master]
   pull_request:
-    paths:
-      - "**/*.rs"
-      - "rustfmt.toml"
-      - ".github/workflows/fmt.yaml"
 
 concurrency:
   group: fmt-${{ github.ref }}
@@ -16,9 +12,11 @@ concurrency:
 permissions:
   contents: read
 
+# A Dependabot pull request runs the quick check in check.yaml instead.
 jobs:
   fmt:
     name: cargo +nightly fmt --check
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
