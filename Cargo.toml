@@ -1,10 +1,17 @@
 [package]
 name = "ngsi-ld"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
 rust-version = "1.96.0"
+description = "Typed, ergonomic NGSI-LD (ETSI GS CIM 009 v1.9.1): the data model, the query languages and a client for context brokers"
+documentation = "https://docs.rs/ngsi-ld"
+readme = "README.md"
+repository = "https://github.com/mskvarc/ngsi-ld"
 license = "MIT OR Apache-2.0"
+keywords = ["ngsi-ld", "fiware", "linked-data", "json-ld", "context-broker"]
+categories = ["api-bindings", "data-structures", "encoding", "parser-implementations", "web-programming::http-client"]
 authors = ["Matej Škvarč <matej.skvarc@senlab.io>"]
+exclude = [".github"]
 
 [package.metadata.docs.rs]
 all-features = true

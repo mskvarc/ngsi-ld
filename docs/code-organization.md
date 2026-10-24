@@ -63,4 +63,4 @@ None of these are used to soften a change:
 
 A shape the specification itself requires the crate to accept is a feature, not a compatibility path.
 
-Old code is deleted, not kept around. A breaking change before 1.0 is made directly and recorded in the changelog.
+Old code is deleted, not kept around. A breaking change waits for the next major version, where it is made directly and recorded in the changelog.
