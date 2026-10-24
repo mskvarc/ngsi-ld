@@ -25,6 +25,7 @@ use crate::{
         evolution::AggregatedAttribute,
     },
     query::type_selection::SelectableTypeError,
+    seal::Seal,
 };
 use indexmap::IndexMap;
 
@@ -79,7 +80,7 @@ pub trait MapNames: Sized {
 /// A document that carries an `@context` member, which re-contextualisation replaces.
 pub trait CarriesContext {
     /// Replaces the `@context`; a document with no `@context` member ignores it.
-    fn set_context(&mut self, context: Option<Context>);
+    fn set_context(&mut self, seal: Seal, context: Option<Context>);
 }
 
 /// Implements [`CarriesContext`] for a document type, so every document replaces its `@context` the same way.
@@ -92,7 +93,7 @@ macro_rules! carries_context {
     ($(#[$meta:meta])* impl $(<$($param:ident $(: $bound:path)?),+>)? for $document:ty => $field:ident) => {
         $(#[$meta])*
         impl$(<$($param $(: $bound)?),+>)? $crate::model::name::mapping::CarriesContext for $document {
-            fn set_context(&mut self, context: Option<$crate::model::Context>) {
+            fn set_context(&mut self, _: $crate::seal::Seal, context: Option<$crate::model::Context>) {
                 self.$field = context;
             }
         }
@@ -100,7 +101,7 @@ macro_rules! carries_context {
     ($(#[$meta:meta])* impl $(<$($param:ident $(: $bound:path)?),+>)? for $document:ty) => {
         $(#[$meta])*
         impl$(<$($param $(: $bound)?),+>)? $crate::model::name::mapping::CarriesContext for $document {
-            fn set_context(&mut self, _context: Option<$crate::model::Context>) {}
+            fn set_context(&mut self, _: $crate::seal::Seal, _context: Option<$crate::model::Context>) {}
         }
     };
 }

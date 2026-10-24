@@ -2,7 +2,7 @@
 //! Registration Subscription when the registrations matching it change, or periodically.
 
 #[cfg(feature = "linked-data")]
-use crate::model::name::mapping::{CarriesContext, MapNames, NameMapping};
+use crate::seal::Seal;
 use crate::{
     model::{
         Context,
@@ -10,6 +10,7 @@ use crate::{
         DocumentError,
         Output,
         RawJson,
+        name::mapping::{CarriesContext, MapNames, NameMapping},
         reader::{array, once, required, token, within},
     },
     registration::{CSourceRegistration, Problem, writer::registration_object},
@@ -228,7 +229,7 @@ impl MapNames for CSourceNotification {
 // Not `carries_context!`: the `@context` belongs to the notification the envelope wraps.
 #[cfg(feature = "linked-data")]
 impl CarriesContext for CSourceNotification {
-    fn set_context(&mut self, context: Option<Context>) {
-        self.notification.set_context(context);
+    fn set_context(&mut self, _: Seal, context: Option<Context>) {
+        self.notification.set_context(Seal::new(), context);
     }
 }

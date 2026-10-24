@@ -9,6 +9,7 @@ use crate::{
     },
     model::DocumentError,
     registration::{CSourceNotification, CSourceRegistration, Problem as RegistrationProblem, RegistrationDirection},
+    seal::Seal,
     subscription::ReadErrorKind,
 };
 use jstrict::Value as Json;
@@ -31,11 +32,11 @@ impl<D: RegistrationDirection> Sealed for CSourceRegistration<D> {
 
     const SHAPE: Shape = REGISTRATION;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }
@@ -45,11 +46,11 @@ impl Sealed for CSourceNotification {
 
     const SHAPE: Shape = Shape::Object(&[("data", Shape::Array(&REGISTRATION))]);
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json))
     }
 }

@@ -8,6 +8,7 @@ use crate::{
         reader::{once, within},
     },
     query::{q::Query, temporal_query::TemporalQuery},
+    seal::Seal,
     subscription::{
         Problem,
         ReadErrorKind,
@@ -25,6 +26,7 @@ use std::{error::Error, fmt::Debug, hash::Hash};
 pub(crate) mod sealed {
     use crate::{
         model::DocumentError,
+        seal::Seal,
         subscription::{EntitySubscription, Problem, ReadErrorKind, RegistrationSubscription, SubscriptionMember},
     };
     use jstrict::{Object, Value as Json};
@@ -44,23 +46,23 @@ pub(crate) mod sealed {
 
         /// Reads `member` into the block, or returns `json` when the block has no such member: the member of the
         /// other kind.
-        fn read<P: Error>(&mut self, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
+        fn read<P: Error>(&mut self, seal: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
 
         /// Writes the members the block holds, in canonical order.
-        fn write(&self, object: &mut Object);
+        fn write(&self, seal: Seal, object: &mut Object);
     }
 
     /// The changes a fragment makes to the members only one kind of subscription has.
     pub trait KindChanges: Default + Debug + Clone + PartialEq + Eq + Send + Sync {
         /// Deletes `member`, one of the members only a kind has, recording a member of the other kind and a member
         /// both set and deleted.
-        fn delete(&mut self, member: SubscriptionMember, problems: &mut Vec<Problem>);
+        fn delete(&mut self, seal: Seal, member: SubscriptionMember, problems: &mut Vec<Problem>);
 
         /// Whether the block deletes `member`.
-        fn deletes(&self, member: SubscriptionMember) -> bool;
+        fn deletes(&self, seal: Seal, member: SubscriptionMember) -> bool;
 
         /// Writes the changes the block holds, in canonical order.
-        fn write(&self, object: &mut Object);
+        fn write(&self, seal: Seal, object: &mut Object);
     }
 }
 
@@ -133,7 +135,7 @@ pub struct EntitySubscriptionMembers {
 impl sealed::KindMembers for EntitySubscriptionMembers {
     type Changes = EntitySubscriptionChanges;
 
-    fn read<P: Error>(&mut self, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+    fn read<P: Error>(&mut self, _: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
         if member != SubscriptionMember::Csf {
             return Ok(Some(json));
         }
@@ -142,7 +144,7 @@ impl sealed::KindMembers for EntitySubscriptionMembers {
         Ok(None)
     }
 
-    fn write(&self, object: &mut Object) {
+    fn write(&self, _: Seal, object: &mut Object) {
         push(object, SubscriptionMember::Csf.into(), self.csf.as_ref().map(printed));
     }
 }
@@ -156,7 +158,7 @@ pub struct EntitySubscriptionChanges {
 }
 
 impl sealed::KindChanges for EntitySubscriptionChanges {
-    fn delete(&mut self, member: SubscriptionMember, problems: &mut Vec<Problem>) {
+    fn delete(&mut self, _: Seal, member: SubscriptionMember, problems: &mut Vec<Problem>) {
         if member == SubscriptionMember::Csf {
             delete_member(&mut self.csf, SubscriptionField::from(member), problems);
         } else {
@@ -164,11 +166,11 @@ impl sealed::KindChanges for EntitySubscriptionChanges {
         }
     }
 
-    fn deletes(&self, member: SubscriptionMember) -> bool {
+    fn deletes(&self, _: Seal, member: SubscriptionMember) -> bool {
         member == SubscriptionMember::Csf && self.csf.as_ref().is_some_and(MemberChange::is_delete)
     }
 
-    fn write(&self, object: &mut Object) {
+    fn write(&self, _: Seal, object: &mut Object) {
         push_change(object, SubscriptionMember::Csf.into(), self.csf.as_ref(), |csf| Some(printed(csf)));
     }
 }
@@ -185,7 +187,7 @@ pub struct RegistrationSubscriptionMembers {
 impl sealed::KindMembers for RegistrationSubscriptionMembers {
     type Changes = RegistrationSubscriptionChanges;
 
-    fn read<P: Error>(&mut self, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+    fn read<P: Error>(&mut self, _: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
         if member != SubscriptionMember::TemporalQ {
             return Ok(Some(json));
         }
@@ -194,7 +196,7 @@ impl sealed::KindMembers for RegistrationSubscriptionMembers {
         Ok(None)
     }
 
-    fn write(&self, object: &mut Object) {
+    fn write(&self, _: Seal, object: &mut Object) {
         push(
             object,
             SubscriptionMember::TemporalQ.into(),
@@ -213,7 +215,7 @@ pub struct RegistrationSubscriptionChanges {
 }
 
 impl sealed::KindChanges for RegistrationSubscriptionChanges {
-    fn delete(&mut self, member: SubscriptionMember, problems: &mut Vec<Problem>) {
+    fn delete(&mut self, _: Seal, member: SubscriptionMember, problems: &mut Vec<Problem>) {
         if member == SubscriptionMember::TemporalQ {
             delete_member(&mut self.temporal_q, SubscriptionField::from(member), problems);
         } else {
@@ -221,11 +223,11 @@ impl sealed::KindChanges for RegistrationSubscriptionChanges {
         }
     }
 
-    fn deletes(&self, member: SubscriptionMember) -> bool {
+    fn deletes(&self, _: Seal, member: SubscriptionMember) -> bool {
         member == SubscriptionMember::TemporalQ && self.temporal_q.as_ref().is_some_and(MemberChange::is_delete)
     }
 
-    fn write(&self, object: &mut Object) {
+    fn write(&self, _: Seal, object: &mut Object) {
         push_change(object, SubscriptionMember::TemporalQ.into(), self.temporal_q.as_ref(), |query| {
             Some(query.to_json())
         });

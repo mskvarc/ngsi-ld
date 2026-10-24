@@ -14,6 +14,7 @@ use crate::{
         reader::{duration, object, once, required, string, unexpected, within},
     },
     query::temporal_query::{AggregationMethods, TemporalQuery},
+    seal::Seal,
     snapshot::{AggregationMember, QueryMember},
     subscription::{
         ReadErrorKind,
@@ -35,6 +36,7 @@ pub(crate) mod sealed {
     use crate::{
         model::DocumentError,
         query::temporal_query::TemporalQuery,
+        seal::Seal,
         snapshot::{AggregationParams, EntityQuery, QueryMember, TemporalEvolutionQuery},
         subscription::ReadErrorKind,
     };
@@ -62,16 +64,16 @@ pub(crate) mod sealed {
         type Pending: Default;
 
         /// Reads `member` into `pending` when the kind owns it, or gives the value back.
-        fn read<P: Error>(pending: &mut Self::Pending, member: QueryMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
+        fn read<P: Error>(seal: Seal, pending: &mut Self::Pending, member: QueryMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
 
         /// The members gathered, or `None` when a mandatory one is missing: the `temporalQ` of a temporal query.
-        fn complete(pending: Self::Pending) -> Option<Self>;
+        fn complete(seal: Seal, pending: Self::Pending) -> Option<Self>;
 
         /// `temporalQ`, when the kind has it.
-        fn temporal_q(&self) -> Option<&TemporalQuery>;
+        fn temporal_q(&self, seal: Seal) -> Option<&TemporalQuery>;
 
         /// `aggrParams`, when the kind has it and it is given.
-        fn aggregation(&self) -> Option<&AggregationParams>;
+        fn aggregation(&self, seal: Seal) -> Option<&AggregationParams>;
     }
 }
 
@@ -116,19 +118,19 @@ impl QueryKind for TemporalEvolutionQuery {
 impl sealed::KindMembers for () {
     type Pending = ();
 
-    fn read<P: Error>((): &mut (), _: QueryMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+    fn read<P: Error>(_: Seal, (): &mut (), _: QueryMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
         Ok(Some(json))
     }
 
-    fn complete((): ()) -> Option<Self> {
+    fn complete(_: Seal, (): ()) -> Option<Self> {
         Some(())
     }
 
-    fn temporal_q(&self) -> Option<&TemporalQuery> {
+    fn temporal_q(&self, _: Seal) -> Option<&TemporalQuery> {
         None
     }
 
-    fn aggregation(&self) -> Option<&AggregationParams> {
+    fn aggregation(&self, _: Seal) -> Option<&AggregationParams> {
         None
     }
 }
@@ -233,7 +235,12 @@ pub struct TemporalQueryMembers {
 impl sealed::KindMembers for TemporalQueryMembers {
     type Pending = sealed::PendingTemporalMembers;
 
-    fn read<P: Error>(pending: &mut sealed::PendingTemporalMembers, member: QueryMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+    fn read<P: Error>(
+        _: Seal,
+        pending: &mut sealed::PendingTemporalMembers,
+        member: QueryMember,
+        json: Json,
+    ) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
         let key = member.into();
         if member == QueryMember::TemporalQ {
             once(&mut pending.temporal_q, key, within(key, temporal_query(json))?)?;
@@ -245,18 +252,18 @@ impl sealed::KindMembers for TemporalQueryMembers {
         Ok(None)
     }
 
-    fn complete(pending: sealed::PendingTemporalMembers) -> Option<Self> {
+    fn complete(_: Seal, pending: sealed::PendingTemporalMembers) -> Option<Self> {
         Some(Self {
             temporal_q: pending.temporal_q?,
             aggr_params: pending.aggr_params,
         })
     }
 
-    fn temporal_q(&self) -> Option<&TemporalQuery> {
+    fn temporal_q(&self, _: Seal) -> Option<&TemporalQuery> {
         Some(&self.temporal_q)
     }
 
-    fn aggregation(&self) -> Option<&AggregationParams> {
+    fn aggregation(&self, _: Seal) -> Option<&AggregationParams> {
         self.aggr_params.as_ref()
     }
 }

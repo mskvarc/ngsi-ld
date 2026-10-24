@@ -7,6 +7,7 @@ use crate::{
         shape::{ARRAY, Shape},
     },
     model::{Completeness, DocumentError, Entity, FeatureCollection, Lossless, Output, SimplifiedEntity},
+    seal::Seal,
     subscription::{Notification, Problem, ReadErrorKind, Subscription, SubscriptionDirection, SubscriptionKind},
 };
 use jstrict::Value as Json;
@@ -37,11 +38,11 @@ impl<D: SubscriptionDirection, K: SubscriptionKind> Sealed for Subscription<D, K
 
     const SHAPE: Shape = SUBSCRIPTION;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }
@@ -51,11 +52,11 @@ impl<C: Completeness> Sealed for Notification<Vec<Entity<Output, C>>> {
 
     const SHAPE: Shape = ENTITY_NOTIFICATION;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json), Lossless::Normalized)
     }
 }
@@ -65,11 +66,11 @@ impl<C: Completeness> Sealed for Notification<Vec<SimplifiedEntity<C>>> {
 
     const SHAPE: Shape = ENTITY_NOTIFICATION;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json))
     }
 }
@@ -80,11 +81,11 @@ impl Sealed for Notification<FeatureCollection<Entity<Output>>> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json), Lossless::Normalized)
     }
 }
@@ -95,11 +96,11 @@ impl Sealed for Notification<FeatureCollection<SimplifiedEntity>> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json))
     }
 }

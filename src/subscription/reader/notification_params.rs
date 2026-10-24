@@ -10,6 +10,7 @@ use crate::{
         reader::{boolean, count, object, once, required, string, token, unexpected, url, within},
     },
     query::{Join, projection::Projection},
+    seal::Seal,
     subscription::{
         ChangeReporting,
         Endpoint,
@@ -77,7 +78,7 @@ pub(super) fn read_notification_params<D: SubscriptionDirection>(json: Json) -> 
             | NotificationMember::LastNotification
             | NotificationMember::LastFailure
             | NotificationMember::LastSuccess => {
-                if output.read(key, value)?.is_some() {
+                if output.read(Seal::new(), key, value)?.is_some() {
                     return Err(unexpected(key));
                 }
             }

@@ -10,6 +10,7 @@ use crate::{
         DocumentError,
         discovery::{AttributeDetails, AttributeInfo, AttributeList, EntityTypeDetails, EntityTypeInfo, EntityTypeList},
     },
+    seal::Seal,
 };
 use jstrict::Value as Json;
 
@@ -22,11 +23,11 @@ macro_rules! discovery_document {
 
                 const SHAPE: Shape = $shape;
 
-                fn write(&self) -> Json {
+                fn write(&self, _: Seal) -> Json {
                     self.render().into_json()
                 }
 
-                fn read(json: Json) -> Result<Self, Self::ReadError> {
+                fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
                     Self::from_json(json)
                 }
             }

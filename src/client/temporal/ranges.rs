@@ -9,6 +9,7 @@ use crate::{
     },
     model::{Completeness, Lossless, Output, Tenant, evolution::TemporalEntity},
     query::Locality,
+    seal::Seal,
 };
 
 impl<T: Transport, M: Answering> Temporal<'_, T, M> {
@@ -39,7 +40,7 @@ impl<T: Transport, M: Answering> Temporal<'_, T, M> {
     where
         for<'r> RetrieveTemporalEvolution<'r, Lossless, C>: LocalScopeOperation + Operation<Outcome = Retrieved<TemporalEntity<Output, C>>> + Sync,
     {
-        let (mut answer, mut last) = M::split(self.answer(locality, retrieve, tenant).await?);
+        let (mut answer, mut last) = M::split(Seal::new(), self.answer(locality, retrieve, tenant).await?);
         let mut rest = answer.coverage().following_query(retrieve.selection);
         // Each rest lies strictly inside the range before it (`Coverage::following_query`), so the walk narrows the
         // range and ends whatever ranges the broker answers with.
@@ -48,13 +49,13 @@ impl<T: Transport, M: Answering> Temporal<'_, T, M> {
                 selection: TemporalSelection::Query(&query),
                 ..retrieve
             };
-            let (later, capture) = M::split(self.answer(locality, next, tenant).await?);
+            let (later, capture) = M::split(Seal::new(), self.answer(locality, next, tenant).await?);
             let following = later.coverage().following_query(next.selection);
             answer = answer.followed_by(later, retrieve.selection);
             // The joined answer comes with the head of the last response, the one that completed the range.
             last = capture;
             rest = following;
         }
-        Ok(M::answer(answer, last))
+        Ok(M::answer(Seal::new(), answer, last))
     }
 }

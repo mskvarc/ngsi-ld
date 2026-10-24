@@ -18,6 +18,7 @@ pub(crate) mod sealed {
             reader::{count, date_time, once, required, token, within},
             representation::write::push_display,
         },
+        seal::Seal,
         subscription::{NotificationOutputMembers, ReadErrorKind, SubscriptionId, SubscriptionOutputMembers},
     };
     use jstrict::{Object, Value as Json};
@@ -32,28 +33,28 @@ pub(crate) mod sealed {
     /// The `id` of a direction, an identifier `I`: optional in a request, required in a response.
     pub trait IdMember<I>: Sized {
         /// The `id` a document held, or the error of its absence.
-        fn from_read<P: Error>(id: Option<I>) -> Result<Self, DocumentError<ReadErrorKind<P>>>;
+        fn from_read<P: Error>(seal: Seal, id: Option<I>) -> Result<Self, DocumentError<ReadErrorKind<P>>>;
 
         /// The `id`, when there is one.
-        fn get(&self) -> Option<&I>;
+        fn get(&self, seal: Seal) -> Option<&I>;
     }
 
     impl<I> IdMember<I> for Option<I> {
-        fn from_read<P: Error>(id: Option<I>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
+        fn from_read<P: Error>(_: Seal, id: Option<I>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
             Ok(id)
         }
 
-        fn get(&self) -> Option<&I> {
+        fn get(&self, _: Seal) -> Option<&I> {
             self.as_ref()
         }
     }
 
     impl IdMember<SubscriptionId> for SubscriptionId {
-        fn from_read<P: Error>(id: Option<SubscriptionId>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
+        fn from_read<P: Error>(_: Seal, id: Option<SubscriptionId>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
             required_id(id)
         }
 
-        fn get(&self) -> Option<&SubscriptionId> {
+        fn get(&self, _: Seal) -> Option<&SubscriptionId> {
             Some(self)
         }
     }
@@ -66,23 +67,23 @@ pub(crate) mod sealed {
     /// A block of members only a broker writes.
     pub trait OutputBlock: Default {
         /// Reads `member` into the block, or returns `json` when the block has no such member.
-        fn read<P: Error>(&mut self, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
+        fn read<P: Error>(&mut self, seal: Seal, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
 
         /// Writes the members the block holds, in canonical order.
-        fn write(&self, object: &mut Object);
+        fn write(&self, seal: Seal, object: &mut Object);
     }
 
     /// A request has no member only a broker writes.
     impl OutputBlock for () {
-        fn read<P: Error>(&mut self, _: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        fn read<P: Error>(&mut self, _: Seal, _: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
             Ok(Some(json))
         }
 
-        fn write(&self, _: &mut Object) {}
+        fn write(&self, _: Seal, _: &mut Object) {}
     }
 
     impl OutputBlock for SubscriptionOutputMembers {
-        fn read<P: Error>(&mut self, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        fn read<P: Error>(&mut self, _: Seal, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
             match member {
                 "status" => once(&mut self.status, member, within(member, token(json, "status"))?)?,
                 "createdAt" => once(&mut self.created_at, member, within(member, date_time(json, "createdAt"))?)?,
@@ -92,7 +93,7 @@ pub(crate) mod sealed {
             Ok(None)
         }
 
-        fn write(&self, object: &mut Object) {
+        fn write(&self, _: Seal, object: &mut Object) {
             if let Some(status) = self.status {
                 object.push("status".into(), Json::from(<&str>::from(status)));
             }
@@ -102,7 +103,7 @@ pub(crate) mod sealed {
     }
 
     impl OutputBlock for NotificationOutputMembers {
-        fn read<P: Error>(&mut self, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        fn read<P: Error>(&mut self, _: Seal, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
             match member {
                 "status" => once(&mut self.status, member, within(member, token(json, "status"))?)?,
                 "timesSent" => once(&mut self.times_sent, member, within(member, count(json, "timesSent"))?)?,
@@ -115,7 +116,7 @@ pub(crate) mod sealed {
             Ok(None)
         }
 
-        fn write(&self, object: &mut Object) {
+        fn write(&self, _: Seal, object: &mut Object) {
             if let Some(status) = self.status {
                 object.push("status".into(), Json::from(<&str>::from(status)));
             }

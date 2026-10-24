@@ -1,7 +1,7 @@
 //! The inputs a builder takes for a value it validates: the value itself, or text validated when the builder
 //! finishes, so every problem is reported together.
 
-use crate::model::MemberProblem;
+use crate::{model::MemberProblem, seal::Seal};
 
 /// A value given to a builder, or why the text given in its place is not one. The trait is sealed by its module,
 /// which no caller can name: only the drafts [`draft!`] generates implement it.
@@ -12,7 +12,7 @@ pub trait Draft {
     type Error;
 
     /// Returns the value, or why the text given is not one.
-    fn into_result(self) -> Result<Self::Value, Self::Error>;
+    fn into_result(self, seal: Seal) -> Result<Self::Value, Self::Error>;
 }
 
 /// Generates a draft, `pub struct $draft(Result<$value, $error>)`: a value given to a builder, or text parsed with
@@ -32,7 +32,7 @@ macro_rules! draft {
             type Error = $error;
             type Value = $value;
 
-            fn into_result(self) -> Result<$value, $error> {
+            fn into_result(self, _: $crate::seal::Seal) -> Result<$value, $error> {
                 self.0
             }
         }
@@ -66,7 +66,7 @@ pub(crate) fn resolve_drafts<D: Draft, P>(drafts: impl IntoIterator<Item = D>, p
     drafts
         .into_iter()
         .enumerate()
-        .filter_map(|(index, draft)| draft.into_result().map_err(|source| problems.push(invalid(index, source))).ok())
+        .filter_map(|(index, draft)| draft.into_result(Seal::new()).map_err(|source| problems.push(invalid(index, source))).ok())
         .collect()
 }
 

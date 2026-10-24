@@ -1,6 +1,9 @@
 //! URLs given to a builder: a [`Url`], or text validated when the builder finishes.
 
-use crate::model::{MemberProblem, draft::Draft};
+use crate::{
+    model::{MemberProblem, draft::Draft},
+    seal::Seal,
+};
 use url::Url;
 
 draft!(
@@ -22,7 +25,7 @@ draft!(
 impl UrlDraft {
     /// Returns the URL, or records why the text given for `member` is not one.
     pub(crate) fn resolve<M, P: From<MemberProblem<M>>>(self, member: M, problems: &mut Vec<P>) -> Option<Url> {
-        self.into_result()
+        self.into_result(Seal::new())
             .map_err(|source| problems.push(P::from(MemberProblem::InvalidUrl { member, source })))
             .ok()
     }

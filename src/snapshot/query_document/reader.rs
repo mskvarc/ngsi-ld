@@ -8,6 +8,7 @@ use crate::{
         reader::{boolean, duration, identifier, object, once, required, token, unexpected, within},
     },
     query::{EntityMapReturn, EntitySplitting, Join, ordering::EntityOrdering},
+    seal::Seal,
     snapshot::{Problem, QueryDocument, QueryKind, QueryMember, query_document::kind::sealed::KindMembers},
     subscription::{
         DocumentType,
@@ -100,7 +101,7 @@ pub(crate) fn read_query<K: QueryKind>(json: Json) -> Result<QueryDocument<K>, D
             }
             QueryMember::SplitEntities => once(&mut split_entities, key, within(key, boolean(&value, key)).map(EntitySplitting::from_flag)?)?,
             QueryMember::TemporalQ | QueryMember::AggrParams => {
-                if K::Members::read(&mut kind_members, member, value)?.is_some() {
+                if K::Members::read(Seal::new(), &mut kind_members, member, value)?.is_some() {
                     return Err(unexpected(key));
                 }
             }
@@ -112,7 +113,7 @@ pub(crate) fn read_query<K: QueryKind>(json: Json) -> Result<QueryDocument<K>, D
         q,
         geo_q,
         scope_q,
-        kind_members: K::Members::complete(kind_members).ok_or_else(|| {
+        kind_members: K::Members::complete(Seal::new(), kind_members).ok_or_else(|| {
             error(
                 MemberError::MissingMember {
                     member: QueryMember::TemporalQ.into(),

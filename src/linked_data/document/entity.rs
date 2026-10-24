@@ -19,6 +19,7 @@ use crate::{
         evolution::{AggregatedTemporalEntity, SimplifiedTemporalEntity, TemporalEntity},
         representation::{entity_object, read::read_entity},
     },
+    seal::Seal,
 };
 use jstrict::Value as Json;
 
@@ -27,11 +28,11 @@ impl Sealed for Entity<Input> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         Json::Object(entity_object(self, Lossless::Normalized))
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         read_entity(json, Lossless::Normalized)
     }
 }
@@ -41,11 +42,11 @@ impl<C: Completeness> Sealed for Entity<Output, C> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         Json::Object(entity_object(self, Lossless::Normalized))
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         read_entity(json, Lossless::Normalized)
     }
 }
@@ -56,11 +57,11 @@ impl Sealed for Attribute<Input> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse_input(&printed(&json), Lossless::Normalized)
     }
 }
@@ -71,11 +72,11 @@ impl Sealed for Attribute<Output> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json), Lossless::Normalized)
     }
 }
@@ -85,11 +86,11 @@ impl Sealed for SimplifiedEntity<Complete> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json))
     }
 }
@@ -99,11 +100,11 @@ impl Sealed for SimplifiedEntity<Projected> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse_projected(&printed(&json))
     }
 }
@@ -113,11 +114,11 @@ impl Sealed for Feature<Entity<Output>> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json), Lossless::Normalized)
     }
 }
@@ -127,11 +128,11 @@ impl Sealed for Feature<SimplifiedEntity> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json))
     }
 }
@@ -142,11 +143,11 @@ impl Sealed for FeatureCollection<Entity<Output>> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json), Lossless::Normalized)
     }
 }
@@ -156,11 +157,11 @@ impl Sealed for FeatureCollection<SimplifiedEntity> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json))
     }
 }
@@ -172,11 +173,11 @@ impl Sealed for TemporalEntity<Input> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json), Lossless::Normalized)
     }
 }
@@ -186,11 +187,11 @@ impl<C: Completeness> Sealed for TemporalEntity<Output, C> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render(Lossless::Normalized).into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json), Lossless::Normalized)
     }
 }
@@ -201,11 +202,11 @@ impl<C: Completeness> Sealed for AggregatedTemporalEntity<C> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }
@@ -216,11 +217,11 @@ impl<C: Completeness> Sealed for SimplifiedTemporalEntity<C> {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }

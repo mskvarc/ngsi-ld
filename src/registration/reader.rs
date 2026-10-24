@@ -48,6 +48,7 @@ use crate::{
         reader::information::information,
         rules,
     },
+    seal::Seal,
     subscription::{
         DocumentType,
         ReadErrorKind,
@@ -198,7 +199,7 @@ fn read_registration_object<D: RegistrationDirection>(object: Object) -> Result<
                 }
             } else if key == CONTEXT {
                 once(&mut registration_context, key, within(key, context(value))?)?;
-            } else if let Some(value) = output.read(key, value)? {
+            } else if let Some(value) = output.read(Seal::new(), key, value)? {
                 property(&mut properties, key, value)?;
             }
             continue;
@@ -226,7 +227,7 @@ fn read_registration_object<D: RegistrationDirection>(object: Object) -> Result<
     }
     required(typed, RegistrationMandatoryMember::Type.into())?;
     Ok(CSourceRegistration {
-        id: D::Id::from_read(id)?,
+        id: D::Id::from_read(Seal::new(), id)?,
         name,
         description,
         information: required(information_list, RegistrationMandatoryMember::Information.into())?,

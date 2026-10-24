@@ -8,6 +8,7 @@ use crate::{
         shape::{ARRAY, Shape},
     },
     model::DocumentError,
+    seal::Seal,
     snapshot::{Problem as SnapshotProblem, QueryDocument, QueryKind, Snapshot, SnapshotDirection, SnapshotNotification, query_document::reader::read_query},
     subscription::ReadErrorKind,
 };
@@ -38,11 +39,11 @@ impl<D: SnapshotDirection> Sealed for Snapshot<D> {
 
     const SHAPE: Shape = SNAPSHOT;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }
@@ -53,11 +54,11 @@ impl<K: QueryKind> Sealed for QueryDocument<K> {
 
     const SHAPE: Shape = QUERY;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         read_query(json)
     }
 }
@@ -67,11 +68,11 @@ impl Sealed for SnapshotNotification {
 
     const SHAPE: Shape = Shape::Object(&[("snapshotQueriesDetails", ARRAY), ("temporalSnapshotQueriesDetails", ARRAY)]);
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::parse(&printed(&json))
     }
 }

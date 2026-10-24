@@ -10,6 +10,7 @@ use crate::{
         geoquery::{GeoQuery, GeoQueryError},
         temporal_query::{TemporalQuery, TemporalQueryError},
     },
+    seal::Seal,
 };
 use jstrict::Value as Json;
 
@@ -18,11 +19,11 @@ impl Sealed for EntitySelector {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }
@@ -33,11 +34,11 @@ impl Sealed for GeoQuery {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }
@@ -47,11 +48,11 @@ impl Sealed for TemporalQuery {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }

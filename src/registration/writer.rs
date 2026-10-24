@@ -19,6 +19,7 @@ use crate::{
         TimeInterval,
         member::RegistrationMandatoryMember,
     },
+    seal::Seal,
     subscription::{
         DocumentType,
         direction::sealed::{IdMember, OutputBlock},
@@ -114,7 +115,7 @@ pub(crate) fn registration_object<D: RegistrationDirection>(registration: &CSour
     push(
         &mut object,
         RegistrationMandatoryMember::Id.into(),
-        registration.id.get().map(|id| Json::from(id.as_str())),
+        registration.id.get(Seal::new()).map(|id| Json::from(id.as_str())),
     );
     object.push(
         <&str>::from(RegistrationMandatoryMember::Type).into(),
@@ -208,7 +209,7 @@ pub(crate) fn registration_object<D: RegistrationDirection>(registration: &CSour
     for (name, value) in &registration.properties {
         object.push(name.as_ref().into(), value.to_json());
     }
-    registration.output.write(&mut object);
+    registration.output.write(Seal::new(), &mut object);
     object
 }
 

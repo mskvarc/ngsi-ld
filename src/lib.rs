@@ -92,6 +92,7 @@
 
 #[macro_use]
 mod flag_choice;
+mod seal;
 #[macro_use]
 mod uri_identifier;
 

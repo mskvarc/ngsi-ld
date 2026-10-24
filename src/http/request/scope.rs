@@ -1,7 +1,9 @@
 //! What a request is aimed at besides the operation's own parameters.
 //!
 //! The type is public in a module private to the crate: the sealed trait that builds requests takes it, and that
-//! trait is reachable from the public `Operation`, while no caller outside the crate can name or build a scope.
+//! trait is reachable from the public `Operation`, while no caller outside the crate can name or build a scope. A
+//! scope is therefore the key to that trait's methods, as a `Seal` is to the other sealed traits', and has no
+//! `Default` a caller could build one with.
 
 use crate::{model::Tenant, query::Locality, snapshot::SnapshotId};
 
@@ -9,7 +11,7 @@ use crate::{model::Tenant, query::Locality, snapshot::SnapshotId};
 /// the snapshot (`NGSILD-Snapshot`, clauses 5.5.15 and 6.3.22) and, for an operation whose own table does not list
 /// it, the `local` parameter of clause 6.3.18. The pipeline applies all three, so a wrapper of an operation widens
 /// the scope instead of changing the request the operation built.
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct RequestScope<'a> {
     /// The tenant, `None` for the default tenant.
     tenant: Option<&'a Tenant>,

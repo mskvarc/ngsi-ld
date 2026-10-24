@@ -5,6 +5,7 @@ use crate::{
     linked_data::{ActiveContext, TranslationError},
     model::{AttributeName, AttributesError, DocumentError, EntityTypeName, Term, VocabTerm, name::mapping::NameMapping},
     query::type_selection::SelectableTypeError,
+    seal::Seal,
 };
 
 /// Why a document could not be re-contextualised; the [`DocumentError`] holding it names the member. A
@@ -124,7 +125,7 @@ impl ActiveContext {
     pub fn recontextualize<D: Recontextualize>(&self, document: D, from: &Self) -> Result<D, DocumentError<NameMappingError>> {
         let mut document = document.map_names(&Translation { from, to: self })?;
         // Clone: the document owns its `@context`, while the active context keeps its own.
-        document.set_context(self.source().cloned());
+        document.set_context(Seal::new(), self.source().cloned());
         Ok(document)
     }
 }

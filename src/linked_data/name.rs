@@ -4,6 +4,7 @@
 use crate::{
     linked_data::ActiveContext,
     model::{AttributeName, EntityTypeName, NameError, Term, Uri, VocabTerm},
+    seal::Seal,
 };
 use iri_rs::{InvalidIri, IriBuf};
 use jsonld::{
@@ -92,7 +93,7 @@ pub enum TranslationError<N> {
 
 /// Names a JSON-LD processor reads through the `@context`.
 mod sealed {
-    use crate::model::NameError;
+    use crate::{model::NameError, seal::Seal};
 
     /// How JSON-LD reads a name: as a key of a node object, or as a value coerced through `@vocab`.
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -121,10 +122,10 @@ mod sealed {
         const PREFIXING: Prefixing;
 
         /// The name as written.
-        fn spelling(&self) -> &str;
+        fn spelling(&self, seal: Seal) -> &str;
 
         /// Reads a name from its compacted form.
-        fn from_spelling(spelling: &str) -> Result<Self, NameError>;
+        fn from_spelling(seal: Seal, spelling: &str) -> Result<Self, NameError>;
     }
 }
 
@@ -169,11 +170,11 @@ macro_rules! linked_name {
             const POSITION: NamePosition = $position;
             const PREFIXING: Prefixing = $prefixing;
 
-            fn spelling(&self) -> &str {
+            fn spelling(&self, _: Seal) -> &str {
                 self.as_ref()
             }
 
-            fn from_spelling(spelling: &str) -> Result<Self, NameError> {
+            fn from_spelling(_: Seal, spelling: &str) -> Result<Self, NameError> {
                 spelling.parse()
             }
         }
@@ -194,7 +195,7 @@ impl ActiveContext {
     ///
     /// Returns [`ExpansionError`] when the name expands to no IRI, to a blank node identifier or to a keyword.
     pub fn expand<N: LinkedName + Clone>(&self, name: &N) -> Result<Uri, ExpansionError<N>> {
-        let spelling = name.spelling();
+        let spelling = name.spelling(Seal::new());
         let expand = match N::POSITION {
             NamePosition::Key => expand_property_key,
             NamePosition::Value => expand_type_value,
@@ -227,7 +228,7 @@ impl ActiveContext {
         let compacted: Option<Arc<str>> = compact_iri(no_vocabulary(), self.processed(), &term, true, false, CompactionOptions::default())
             .map_err(|IriConfusedWithPrefix| CompactionError::ConfusedWithPrefix { iri: iri.clone() })?;
         let compacted = compacted.ok_or_else(|| CompactionError::NotExpressible { iri: iri.clone() })?;
-        N::from_spelling(&compacted).map_err(|source| match N::PREFIXING {
+        N::from_spelling(Seal::new(), &compacted).map_err(|source| match N::PREFIXING {
             Prefixing::Forbidden => CompactionError::NotExpressible { iri: iri.clone() },
             Prefixing::Allowed => CompactionError::Name { iri: iri.clone(), source },
         })

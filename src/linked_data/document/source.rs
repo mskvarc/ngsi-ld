@@ -4,6 +4,7 @@
 use crate::{
     linked_data::document::{sealed::Sealed, shape::Shape},
     model::{ContextMetadata, ContextSourceIdentity, DocumentError},
+    seal::Seal,
 };
 use jstrict::Value as Json;
 
@@ -12,11 +13,11 @@ impl Sealed for ContextSourceIdentity {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }
@@ -27,11 +28,11 @@ impl Sealed for ContextMetadata {
 
     const SHAPE: Shape = Shape::Kept;
 
-    fn write(&self) -> Json {
+    fn write(&self, _: Seal) -> Json {
         self.render().into_json()
     }
 
-    fn read(json: Json) -> Result<Self, Self::ReadError> {
+    fn read(_: Seal, json: Json) -> Result<Self, Self::ReadError> {
         Self::from_json(json)
     }
 }

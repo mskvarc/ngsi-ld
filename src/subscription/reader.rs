@@ -33,6 +33,7 @@ use crate::{
         },
     },
     query::{EntitySelector, EntitySplitting, Locality, ParseError, geoquery::GeoQuery, temporal_query::TemporalQuery},
+    seal::Seal,
     subscription::{
         Activation,
         DocumentType,
@@ -192,7 +193,7 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
                 }
             } else if key == CONTEXT {
                 once(&mut subscription_context, key, within(key, context(value))?)?;
-            } else if output.read(key, value)?.is_some() {
+            } else if output.read(Seal::new(), key, value)?.is_some() {
                 return Err(unexpected(key));
             }
             continue;
@@ -211,7 +212,7 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
             SubscriptionMember::ScopeQ => once(&mut scope_q, key, within(key, language(value, key))?)?,
             // A member of the other kind of subscription is not defined for this one.
             SubscriptionMember::TemporalQ | SubscriptionMember::Csf => {
-                if kind_members.read(member, value)?.is_some() {
+                if kind_members.read(Seal::new(), member, value)?.is_some() {
                     return Err(unexpected(key));
                 }
             }
@@ -229,7 +230,7 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
     }
     required(typed, SubscriptionMandatoryMember::Type.into())?;
     Ok(Subscription {
-        id: D::Id::from_read(id)?,
+        id: D::Id::from_read(Seal::new(), id)?,
         name,
         description,
         entities: entities.unwrap_or_default(),

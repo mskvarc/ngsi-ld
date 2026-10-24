@@ -12,6 +12,7 @@ use crate::{
         core_context::{CoreContextLoader, OfflineLoader},
     },
     model::{RawJson, keyword::CONTEXT},
+    seal::Seal,
 };
 use iri_rs::IriBuf;
 use jsonld::{
@@ -93,7 +94,7 @@ pub enum DocumentCompactionError<E> {
 
 /// The hooks every [`LinkedDocument`] provides.
 mod sealed {
-    use crate::{linked_data::document::shape::Shape, model::name::mapping::CarriesContext};
+    use crate::{linked_data::document::shape::Shape, model::name::mapping::CarriesContext, seal::Seal};
     use jstrict::Value as Json;
 
     /// How a document is written for expansion and read back after compaction; compaction then gives it the
@@ -106,14 +107,14 @@ mod sealed {
         const SHAPE: Shape;
 
         /// Writes the document in its canonical form, normalized for an entity.
-        fn write(&self) -> Json;
+        fn write(&self, seal: Seal) -> Json;
 
         /// Reads the document from a compacted JSON value without `@context`.
         ///
         /// # Errors
         ///
         /// Returns the reader's error when the value is not a valid document.
-        fn read(json: Json) -> Result<Self, Self::ReadError>;
+        fn read(seal: Seal, json: Json) -> Result<Self, Self::ReadError>;
     }
 }
 
@@ -156,7 +157,7 @@ impl ActiveContext {
         document: &D,
     ) -> impl Future<Output = Result<ExpandedDocument, DocumentExpansionError>> + Send + use<'a, D> {
         // The document is written before the expansion starts, so the future holds its JSON, not the document.
-        let json = without_context(document.write());
+        let json = without_context(document.write(Seal::new()));
         async move {
             let loader = CoreContextLoader::new(self.bundled(), &OfflineLoader);
             // Clone: the expansion algorithm takes its initial active context by value.
@@ -198,9 +199,9 @@ impl ActiveContext {
             return Err(DocumentCompactionError::NotAnObject);
         }
         D::SHAPE.restore(&mut json);
-        let mut compacted = D::read(json).map_err(DocumentCompactionError::Document)?;
+        let mut compacted = D::read(Seal::new(), json).map_err(DocumentCompactionError::Document)?;
         // Clone: the document owns its `@context`, while the active context keeps its own.
-        compacted.set_context(self.source().cloned());
+        compacted.set_context(Seal::new(), self.source().cloned());
         Ok(compacted)
     }
 }

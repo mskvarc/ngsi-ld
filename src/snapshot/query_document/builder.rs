@@ -27,6 +27,7 @@ use crate::{
         scope_query::ScopeQuery,
         temporal_query::TemporalQuery,
     },
+    seal::Seal,
     snapshot::{
         AggregationParams,
         EntityQuery,
@@ -99,7 +100,7 @@ impl<K: QueryKind> QueryDocument<K> {
         let attrs = resolve_required_names(field(QueryMember::Attrs), attrs, &mut problems);
         let expand_values = resolve_names(field(QueryMember::ExpandValues), expand_values, &mut problems);
         let json_keys = resolve_names(field(QueryMember::JsonKeys), json_keys, &mut problems);
-        let kind_members = K::Members::complete(kind_members);
+        let kind_members = K::Members::complete(Seal::new(), kind_members);
         if kind_members.is_none() {
             problems.push(Problem::from(MemberProblem::Missing {
                 member: field(QueryMember::TemporalQ),

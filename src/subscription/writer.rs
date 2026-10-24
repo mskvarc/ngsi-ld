@@ -4,6 +4,7 @@
 use crate::{
     model::{AttributeName, DatasetId, MemberChange, PositiveNumber, Representation},
     query::{EntitySelector, geoquery::GeoQuery, projection::Projection},
+    seal::Seal,
     subscription::{
         DocumentType,
         NotificationMember,
@@ -111,7 +112,7 @@ pub(crate) fn notification_params<D: SubscriptionDirection>(params: &Notificatio
         params.join_level.map(|level| Json::from(level.get())),
     );
     object.push(<&str>::from(NotificationMember::Endpoint).into(), params.endpoint.to_json());
-    params.output.write(&mut object);
+    params.output.write(Seal::new(), &mut object);
     Json::Object(object)
 }
 
@@ -122,7 +123,7 @@ pub(crate) fn subscription_object<D: SubscriptionDirection, K: SubscriptionKind>
     push(
         &mut object,
         SubscriptionMandatoryMember::Id.into(),
-        subscription.id.get().map(|id| Json::from(id.as_str())),
+        subscription.id.get(Seal::new()).map(|id| Json::from(id.as_str())),
     );
     object.push(
         <&str>::from(SubscriptionMandatoryMember::Type).into(),
@@ -158,7 +159,7 @@ pub(crate) fn subscription_object<D: SubscriptionDirection, K: SubscriptionKind>
     push(&mut object, SubscriptionMember::Q.into(), subscription.q.as_ref().map(printed));
     push(&mut object, SubscriptionMember::GeoQ.into(), subscription.geo_q.as_ref().map(geo_query));
     push(&mut object, SubscriptionMember::ScopeQ.into(), subscription.scope_q.as_ref().map(printed));
-    subscription.kind_members.write(&mut object);
+    subscription.kind_members.write(Seal::new(), &mut object);
     push(
         &mut object,
         SubscriptionMember::DatasetId.into(),
@@ -189,7 +190,7 @@ pub(crate) fn subscription_object<D: SubscriptionDirection, K: SubscriptionKind>
         SubscriptionMember::NgsildConformance.into(),
         subscription.conformance.as_ref().map(printed),
     );
-    subscription.output.write(&mut object);
+    subscription.output.write(Seal::new(), &mut object);
     object
 }
 
@@ -238,7 +239,7 @@ pub(crate) fn fragment_object<K: SubscriptionKind>(fragment: &SubscriptionFragme
     push_change(&mut object, SubscriptionMember::ScopeQ.into(), fragment.scope_q.as_ref(), |query| {
         Some(printed(query))
     });
-    fragment.kind_members.write(&mut object);
+    fragment.kind_members.write(Seal::new(), &mut object);
     // An empty `datasetId` is written, as the list of no dataset.
     push_change(&mut object, SubscriptionMember::DatasetId.into(), fragment.dataset_ids.as_ref(), |ids| {
         Some(dataset_id_array(ids))

@@ -8,6 +8,7 @@ use crate::{
         operation::{Operation, PageRequest},
     },
     model::Tenant,
+    seal::Seal,
     snapshot::SnapshotId,
 };
 use std::mem;
@@ -118,7 +119,7 @@ where
     pub async fn try_collect(mut self) -> Result<Vec<I>, ClientError<T::Error>> {
         let mut items = Vec::new();
         while let Some(page) = self.next().await {
-            items.extend(M::split(page?).0.into_items());
+            items.extend(M::split(Seal::new(), page?).0.into_items());
         }
         Ok(items)
     }

@@ -1,19 +1,22 @@
 //! The inputs the entity builder takes for `id`, `type` and `scope`: a validated value, or a string that is
 //! validated when the entity is built, so every problem is reported together.
 
-use crate::model::{
-    BuildProblem,
-    EntityId,
-    EntityTypeName,
-    NameError,
-    OneOrMany,
-    ProblemKind,
-    ReservedMember,
-    Scope,
-    ScopeError,
-    UriError,
-    build_problem::Recorded,
-    draft::Draft,
+use crate::{
+    model::{
+        BuildProblem,
+        EntityId,
+        EntityTypeName,
+        NameError,
+        OneOrMany,
+        ProblemKind,
+        ReservedMember,
+        Scope,
+        ScopeError,
+        UriError,
+        build_problem::Recorded,
+        draft::Draft,
+    },
+    seal::Seal,
 };
 use iri_rs::Iri;
 use std::str::FromStr;
@@ -58,7 +61,7 @@ draft!(
 impl IdDraft {
     /// Returns the id, or records why it is invalid.
     pub(crate) fn resolve(self, problems: &mut Vec<BuildProblem>) -> Option<EntityId> {
-        self.into_result()
+        self.into_result(Seal::new())
             .map_err(|source| problems.push(BuildProblem::top(ProblemKind::Identifier { source })))
             .ok()
     }

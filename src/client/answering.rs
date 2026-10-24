@@ -1,6 +1,6 @@
 //! What a call of a client returns: the outcome alone, or the outcome with the status and head of the response.
 
-use crate::http::ResponseHead;
+use crate::{http::ResponseHead, seal::Seal};
 use bytes::Bytes;
 use http::{Response, StatusCode};
 use std::fmt::Debug;
@@ -25,16 +25,16 @@ pub trait Answering: sealed::Sealed + Debug + Clone + Copy + Default + Send + Sy
 
     /// Keeps what the answer needs of `response` before the operation reads it.
     #[doc(hidden)]
-    fn capture(response: &Response<Bytes>) -> Self::Capture;
+    fn capture(seal: Seal, response: &Response<Bytes>) -> Self::Capture;
 
     /// The answer of a call whose operation succeeded with `outcome`.
     #[doc(hidden)]
-    fn answer<V>(outcome: V, capture: Self::Capture) -> Self::Answer<V>;
+    fn answer<V>(seal: Seal, outcome: V, capture: Self::Capture) -> Self::Answer<V>;
 
     /// Separates an answer into its outcome and what was kept of the response, for a call that joins the answers
     /// of several requests and answers with what was kept of the last one.
     #[doc(hidden)]
-    fn split<V>(answer: Self::Answer<V>) -> (V, Self::Capture);
+    fn split<V>(seal: Seal, answer: Self::Answer<V>) -> (V, Self::Capture);
 
     /// The outcome an answer holds.
     fn outcome<V>(answer: &Self::Answer<V>) -> &V;
@@ -90,13 +90,13 @@ impl Answering for OutcomeOnly {
     type Answer<V> = V;
     type Capture = ();
 
-    fn capture(_: &Response<Bytes>) {}
+    fn capture(_: Seal, _: &Response<Bytes>) {}
 
-    fn answer<V>(outcome: V, (): ()) -> V {
+    fn answer<V>(_: Seal, outcome: V, (): ()) -> V {
         outcome
     }
 
-    fn split<V>(answer: V) -> (V, ()) {
+    fn split<V>(_: Seal, answer: V) -> (V, ()) {
         (answer, ())
     }
 
@@ -109,15 +109,15 @@ impl Answering for WithHead {
     type Answer<V> = Answered<V>;
     type Capture = (StatusCode, ResponseHead);
 
-    fn capture(response: &Response<Bytes>) -> (StatusCode, ResponseHead) {
+    fn capture(_: Seal, response: &Response<Bytes>) -> (StatusCode, ResponseHead) {
         (response.status(), ResponseHead::of(response))
     }
 
-    fn answer<V>(outcome: V, (status, head): (StatusCode, ResponseHead)) -> Answered<V> {
+    fn answer<V>(_: Seal, outcome: V, (status, head): (StatusCode, ResponseHead)) -> Answered<V> {
         Answered::new(outcome, status, head)
     }
 
-    fn split<V>(answer: Answered<V>) -> (V, (StatusCode, ResponseHead)) {
+    fn split<V>(_: Seal, answer: Answered<V>) -> (V, (StatusCode, ResponseHead)) {
         (answer.outcome, (answer.status, answer.head))
     }
 

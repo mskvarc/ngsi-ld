@@ -5,6 +5,7 @@ use crate::{
     },
     model::{Entity, Input, Lossless, name::mapping::CarriesContext},
     registration::CSourceRegistration,
+    seal::Seal,
     subscription::Subscription,
 };
 use jstrict::{Print, Value as Json};
@@ -151,7 +152,7 @@ async fn the_properties_of_a_registration_expand_and_compact_as_attributes() {
     let compacted: CSourceRegistration<Input> = b.compact_document(&expanded).await.unwrap();
     let expected = r#"{"type":"ContextSourceRegistration","information":[{"propertyNames":["velocity"]}],"endpoint":"http://my.csource.org:1026/","velocity":55,"csourceProperty1":"aValue","https://example.org/brand":"Mercedes","details":{"note":"x"}}"#;
     let mut expected = CSourceRegistration::<Input>::parse(expected).unwrap();
-    expected.set_context(Some(inline(B)));
+    expected.set_context(Seal::new(), Some(inline(B)));
     assert_eq!(compacted, expected);
     let back: CSourceRegistration<Input> = a.compact_document(&expanded).await.unwrap();
     assert_eq!(back.properties().len(), 4);

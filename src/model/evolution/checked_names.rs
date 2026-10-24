@@ -2,15 +2,18 @@
 //! 4.5.19): each name valid and given once, and each name clause 5.2.4 reserves for geometries holding a
 //! `GeoProperty`'s evolution.
 
-use crate::model::{
-    AttributeKind,
-    AttributeName,
-    AttributeNameDraft,
-    AttributesError,
-    BuildProblem,
-    ProblemKind,
-    attribute::attributes::holds_geometries,
-    draft::Draft,
+use crate::{
+    model::{
+        AttributeKind,
+        AttributeName,
+        AttributeNameDraft,
+        AttributesError,
+        BuildProblem,
+        ProblemKind,
+        attribute::attributes::holds_geometries,
+        draft::Draft,
+    },
+    seal::Seal,
 };
 use indexmap::IndexMap;
 
@@ -24,7 +27,7 @@ pub(crate) fn checked_attributes<T>(
 ) -> IndexMap<AttributeName, T> {
     let mut checked = IndexMap::new();
     for (index, (name, attribute)) in attributes.into_iter().enumerate() {
-        let name = match name.into_result() {
+        let name = match name.into_result(Seal::new()) {
             Ok(name) => name,
             Err(source) => {
                 problems.push(BuildProblem::top(ProblemKind::AttributeName { index, source }));

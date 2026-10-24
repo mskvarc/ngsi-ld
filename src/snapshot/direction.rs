@@ -3,6 +3,7 @@
 
 use crate::{
     model::{DateTime, DocumentError, Input, Output},
+    seal::Seal,
     snapshot::{ExecutionResultDetails, SnapshotId, SnapshotStatus},
     subscription::{
         ReadErrorKind,
@@ -22,6 +23,7 @@ pub(crate) mod sealed {
             reader::{date_time, once, required, token, within},
             representation::write::push_display,
         },
+        seal::Seal,
         snapshot::{
             ExecutionResultDetails,
             SnapshotOutputMembers,
@@ -52,13 +54,13 @@ pub(crate) mod sealed {
         const QUERIES: QueryRequirement;
 
         /// Reads `member` into `pending` when it is one of these members, or gives the value back.
-        fn read<P: Error>(pending: &mut Self::Pending, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
+        fn read<P: Error>(seal: Seal, pending: &mut Self::Pending, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
 
         /// The members gathered, or the error naming the mandatory one missing.
-        fn complete<P: Error>(pending: Self::Pending) -> Result<Self, DocumentError<ReadErrorKind<P>>>;
+        fn complete<P: Error>(seal: Seal, pending: Self::Pending) -> Result<Self, DocumentError<ReadErrorKind<P>>>;
 
         /// Writes the members in the order of Table 5.2.41-2.
-        fn write(&self, object: &mut Object);
+        fn write(&self, seal: Seal, object: &mut Object);
     }
 
     impl OutputMembers for () {
@@ -66,15 +68,15 @@ pub(crate) mod sealed {
 
         const QUERIES: QueryRequirement = QueryRequirement::AtLeastOne;
 
-        fn read<P: Error>((): &mut (), _: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        fn read<P: Error>(_: Seal, (): &mut (), _: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
             Ok(Some(json))
         }
 
-        fn complete<P: Error>((): ()) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
+        fn complete<P: Error>(_: Seal, (): ()) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
             Ok(())
         }
 
-        fn write(&self, _: &mut Object) {}
+        fn write(&self, _: Seal, _: &mut Object) {}
     }
 
     /// The members of Table 5.2.41-2 gathered so far.
@@ -101,7 +103,7 @@ pub(crate) mod sealed {
 
         const QUERIES: QueryRequirement = QueryRequirement::Any;
 
-        fn read<P: Error>(pending: &mut PendingOutput, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        fn read<P: Error>(_: Seal, pending: &mut PendingOutput, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
             match member {
                 "snapshotStatus" => once(&mut pending.status, member, within(member, token(json, "snapshotStatus"))?)?,
                 "snapshotQueriesDetails" => once(&mut pending.queries_details, member, within(member, read_details_list(json))?)?,
@@ -115,7 +117,7 @@ pub(crate) mod sealed {
             Ok(None)
         }
 
-        fn complete<P: Error>(pending: PendingOutput) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
+        fn complete<P: Error>(_: Seal, pending: PendingOutput) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
             Ok(Self {
                 status: required(pending.status, "snapshotStatus")?,
                 queries_details: pending.queries_details.unwrap_or_default(),
@@ -127,7 +129,7 @@ pub(crate) mod sealed {
             })
         }
 
-        fn write(&self, object: &mut Object) {
+        fn write(&self, _: Seal, object: &mut Object) {
             object.push("snapshotStatus".into(), Json::from(self.status.to_string()));
             push_details_list(object, "snapshotQueriesDetails", &self.queries_details);
             push_details_list(object, "snapshotTemporalQueriesDetails", &self.temporal_queries_details);
@@ -163,11 +165,11 @@ impl SnapshotDirection for Output {
 }
 
 impl IdMember<SnapshotId> for SnapshotId {
-    fn from_read<P: Error>(id: Option<SnapshotId>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
+    fn from_read<P: Error>(_: Seal, id: Option<SnapshotId>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
         required_id(id)
     }
 
-    fn get(&self) -> Option<&SnapshotId> {
+    fn get(&self, _: Seal) -> Option<&SnapshotId> {
         Some(self)
     }
 }

@@ -11,6 +11,7 @@ use crate::{
         representation::write::push_display,
     },
     registration::{RegistrationId, RegistrationOutputMember},
+    seal::Seal,
     subscription::{
         ReadErrorKind,
         direction::sealed::{IdMember, OutputBlock, Sealed, required_id},
@@ -44,11 +45,11 @@ impl RegistrationDirection for Output {
 }
 
 impl IdMember<RegistrationId> for RegistrationId {
-    fn from_read<P: Error>(id: Option<RegistrationId>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
+    fn from_read<P: Error>(_: Seal, id: Option<RegistrationId>) -> Result<Self, DocumentError<ReadErrorKind<P>>> {
         required_id(id)
     }
 
-    fn get(&self) -> Option<&RegistrationId> {
+    fn get(&self, _: Seal) -> Option<&RegistrationId> {
         Some(self)
     }
 }
@@ -99,7 +100,7 @@ pub struct RegistrationOutputMembers {
 }
 
 impl OutputBlock for RegistrationOutputMembers {
-    fn read<P: Error>(&mut self, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+    fn read<P: Error>(&mut self, _: Seal, member: &str, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
         let Ok(output) = member.parse::<RegistrationOutputMember>() else {
             return Ok(Some(json));
         };
@@ -116,7 +117,7 @@ impl OutputBlock for RegistrationOutputMembers {
         Ok(None)
     }
 
-    fn write(&self, object: &mut Object) {
+    fn write(&self, _: Seal, object: &mut Object) {
         if let Some(status) = self.status {
             object.push(<&str>::from(RegistrationOutputMember::Status).into(), Json::from(<&str>::from(status)));
         }

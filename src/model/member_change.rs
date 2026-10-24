@@ -89,7 +89,7 @@ macro_rules! member_slots {
             pub fn deletes(&self, member: $member) -> bool {
                 match member {
                     $($member::$variant => $crate::model::member_change::deleted(self.$slot.as_ref()),)+
-                    $($member::$delegated)|+ => self.$part.deletes(member),
+                    $($member::$delegated)|+ => self.$part.deletes($crate::seal::Seal::new(), member),
                 }
             }
 
@@ -97,7 +97,7 @@ macro_rules! member_slots {
             fn delete(&mut self, member: $member, problems: &mut Vec<$problem>) {
                 match member {
                     $($member::$variant => $crate::model::member_change::delete_member(&mut self.$slot, <$field>::from(member), problems),)+
-                    $($member::$delegated)|+ => self.$part.delete(member, problems),
+                    $($member::$delegated)|+ => self.$part.delete($crate::seal::Seal::new(), member, problems),
                 }
             }
         }

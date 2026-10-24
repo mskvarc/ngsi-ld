@@ -1,6 +1,7 @@
 //! Writing snapshot documents in canonical member order (see the crate's design document).
 
 use crate::{
+    seal::Seal,
     snapshot::{QueryDocument, QueryKind, Snapshot, SnapshotDirection, direction::sealed::OutputMembers, query_document::writer::query_object},
     subscription::{DocumentType, direction::sealed::IdMember, writer::push},
 };
@@ -15,11 +16,11 @@ fn queries<K: QueryKind>(queries: Option<&[QueryDocument<K>]>) -> Option<Json> {
 /// settings, then the members only a broker writes.
 pub(crate) fn snapshot_object<D: SnapshotDirection>(snapshot: &Snapshot<D>) -> Object {
     let mut object = Object::new();
-    push(&mut object, "id", snapshot.id.get().map(|id| Json::from(id.as_str())));
+    push(&mut object, "id", snapshot.id.get(Seal::new()).map(|id| Json::from(id.as_str())));
     object.push("type".into(), Json::from(<&str>::from(DocumentType::Snapshot)));
     push(&mut object, "snapshotQueries", queries(snapshot.queries.as_deref()));
     push(&mut object, "snapshotTemporalQueries", queries(snapshot.temporal_queries.as_deref()));
     snapshot.settings.write(&mut object);
-    snapshot.output.write(&mut object);
+    snapshot.output.write(Seal::new(), &mut object);
     object
 }

@@ -8,6 +8,7 @@ use crate::{
         keyword::CONTEXT,
         reader::{context, identifier, object, once, required, unexpected, within},
     },
+    seal::Seal,
     snapshot::{
         EntityQuery,
         Problem,
@@ -47,7 +48,7 @@ pub(crate) fn read_snapshot<D: SnapshotDirection>(json: Json) -> Result<Snapshot
             CONTEXT => once(&mut snapshot_context, key, within(key, context(value))?)?,
             other => {
                 let rest = match settings.read(other, value)? {
-                    Some(value) => D::SnapshotOutput::read(&mut output, other, value)?,
+                    Some(value) => D::SnapshotOutput::read(Seal::new(), &mut output, other, value)?,
                     None => None,
                 };
                 if rest.is_some() {
@@ -58,11 +59,11 @@ pub(crate) fn read_snapshot<D: SnapshotDirection>(json: Json) -> Result<Snapshot
     }
     required(typed, "type")?;
     let snapshot = Snapshot {
-        id: D::Id::from_read(id)?,
+        id: D::Id::from_read(Seal::new(), id)?,
         queries,
         temporal_queries,
         settings,
-        output: D::SnapshotOutput::complete(output)?,
+        output: D::SnapshotOutput::complete(Seal::new(), output)?,
         context: snapshot_context,
     };
     BuildError::finish(creation_problems(&snapshot), ()).map_err(|source| error(ReadErrorKind::Invalid { source }))?;

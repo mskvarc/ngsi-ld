@@ -1,22 +1,25 @@
 //! Attributes a builder has been given, kept with their names as written until the builder finishes, and the
 //! two steps every builder takes to place one: reading the name, and adding the attribute under it.
 
-use crate::model::{
-    Attribute,
-    AttributeName,
-    AttributeNameDraft,
-    Attributes,
-    AttributesError,
-    BuildError,
-    BuildProblem,
-    Direction,
-    EntityDirection,
-    Input,
-    InstanceId,
-    Output,
-    ProblemKind,
-    draft::Draft,
-    evolution::TemporalAttributes,
+use crate::{
+    model::{
+        Attribute,
+        AttributeName,
+        AttributeNameDraft,
+        Attributes,
+        AttributesError,
+        BuildError,
+        BuildProblem,
+        Direction,
+        EntityDirection,
+        Input,
+        InstanceId,
+        Output,
+        ProblemKind,
+        draft::Draft,
+        evolution::TemporalAttributes,
+    },
+    seal::Seal,
 };
 
 /// Reads the name given to a builder for the attribute at `index`, counting from 0 in the order the builder was
@@ -26,7 +29,7 @@ use crate::model::{
 ///
 /// Returns [`ProblemKind::AttributeName`] when the name is not an attribute name.
 pub(crate) fn resolve_name(index: usize, name: AttributeNameDraft) -> Result<AttributeName, ProblemKind> {
-    name.into_result().map_err(|source| ProblemKind::AttributeName { index, source })
+    name.into_result(Seal::new()).map_err(|source| ProblemKind::AttributeName { index, source })
 }
 
 /// Adds a slot under `name`.

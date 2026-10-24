@@ -4,6 +4,7 @@
 use crate::{
     model::{AttributeName, NameError, draft::Draft},
     registration::{Problem, RegistrationMember, RegistrationOutputMember, member::RegistrationMandatoryMember},
+    seal::Seal,
 };
 use indexmap::IndexMap;
 use std::str::FromStr;
@@ -114,7 +115,7 @@ draft!(
 pub(crate) fn resolve<T>(drafts: Vec<(ContextSourcePropertyNameDraft, T)>, problems: &mut Vec<Problem>) -> IndexMap<ContextSourcePropertyName, T> {
     let mut properties = IndexMap::with_capacity(drafts.len());
     for (index, (name, value)) in drafts.into_iter().enumerate() {
-        match name.into_result() {
+        match name.into_result(Seal::new()) {
             Err(source) => problems.push(Problem::ContextSourceProperty { index, source }),
             Ok(name) if properties.contains_key(&name) => problems.push(Problem::DuplicateContextSourceProperty { name }),
             Ok(name) => {

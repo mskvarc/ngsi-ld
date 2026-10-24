@@ -32,6 +32,7 @@ use crate::{
         response::classify,
     },
     model::{Context, Tenant},
+    seal::Seal,
     snapshot::SnapshotId,
     subscription::{EntitySubscription, RegistrationSubscription},
 };
@@ -164,9 +165,9 @@ impl<T: Transport, M: Answering> Client<T, M> {
         let request = operation.scoped_request(&self.endpoint, scope).map_err(ClientError::Request)?;
         let context = ResponseContext::new(&request);
         let response = self.transport.send(request).await.map_err(ClientError::Transport)?;
-        let capture = M::capture(&response);
+        let capture = M::capture(Seal::new(), &response);
         let outcome = operation.decode(&context, response).map_err(ClientError::Response)?;
-        Ok(M::answer(outcome, capture))
+        Ok(M::answer(Seal::new(), outcome, capture))
     }
 
     /// Builds the request `operation` would send on the client's tenant, for breaking on purpose (see
