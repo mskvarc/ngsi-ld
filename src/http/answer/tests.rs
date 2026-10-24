@@ -48,11 +48,11 @@ fn vehicle() -> Entity<Input> {
 #[test]
 fn a_list_is_a_json_array_with_the_context_link_and_reads_back_as_a_page() {
     let vehicle = vehicle();
-    let mut response = answer::list([vehicle.render(Representation::Normalized)], &Link::core_context().unwrap());
+    let mut response = answer::list([vehicle.render(Representation::Normalized)], &Link::try_core_context().unwrap());
     response.headers_mut().typed_insert(NgsiLdResultsCount::new(1));
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.headers().typed_get::<ContentType>(), Some(ContentType::NgsiLd(NgsiLdMediaType::Json)));
-    assert_eq!(response.headers().typed_get::<Link>(), Some(Link::core_context().unwrap()));
+    assert_eq!(response.headers().typed_get::<Link>(), Some(Link::try_core_context().unwrap()));
     let vehicles: SelectorType = "Vehicle".parse().unwrap();
     let query = QueryEntities::builder().entity_type(&vehicles).format(Lossless::Normalized).build();
     let request = query.to_request(&endpoint()).unwrap();
@@ -66,13 +66,13 @@ fn a_list_is_a_json_array_with_the_context_link_and_reads_back_as_a_page() {
 
 #[test]
 fn an_empty_list_is_an_empty_json_array() {
-    let response = answer::list([], &Link::core_context().unwrap());
+    let response = answer::list([], &Link::try_core_context().unwrap());
     assert_eq!(response.body().as_ref(), b"[]");
 }
 
 #[test]
 fn a_document_carries_its_context_link() {
-    let response = answer::document(&vehicle().render(Representation::Concise), &Link::core_context().unwrap());
+    let response = answer::document(&vehicle().render(Representation::Concise), &Link::try_core_context().unwrap());
     assert_eq!(response.status(), StatusCode::OK);
     assert!(response.headers().typed_get::<Link>().is_some());
     assert_eq!(response.body().as_ref(), br#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":80}"#);

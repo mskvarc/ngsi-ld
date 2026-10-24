@@ -395,7 +395,7 @@ fn context_link(context: Option<&Context>) -> Result<Option<Link>, EndpointError
     context
         .and_then(Context::link_target)
         // The header owns its target, and the endpoint keeps the context it renders.
-        .map(|target| Link::json_ld_context(target.clone()))
+        .map(|target| Link::try_json_ld_context(target.clone()))
         .transpose()
         .map_err(EndpointError::Context)
 }
@@ -491,7 +491,7 @@ mod tests {
         let single = endpoint()
             .with_context(Context::from(IriRefBuf::new("https://example.org/a.jsonld").unwrap()))
             .unwrap();
-        let expected = Link::json_ld_context(IriRefBuf::new("https://example.org/a.jsonld").unwrap()).unwrap();
+        let expected = Link::try_json_ld_context(IriRefBuf::new("https://example.org/a.jsonld").unwrap()).unwrap();
         assert_eq!(single.context_link(), Some(&expected));
         let array = single
             .with_context(Context::from(vec![ContextEntry::from(IriRefBuf::new("https://example.org/a.jsonld").unwrap())]))
@@ -504,7 +504,7 @@ mod tests {
     fn a_single_relative_context_reference_travels_in_the_link_header() {
         for reference in ["/ngsi-ld/v1/jsonldContexts/fleet", "contexts/a.jsonld", "../b.jsonld"] {
             let endpoint = endpoint().with_context(Context::from(IriRefBuf::new(reference).unwrap())).unwrap();
-            let expected = Link::json_ld_context(IriRefBuf::new(reference).unwrap()).unwrap();
+            let expected = Link::try_json_ld_context(IriRefBuf::new(reference).unwrap()).unwrap();
             assert_eq!(endpoint.context_link(), Some(&expected));
         }
     }
@@ -616,7 +616,7 @@ mod tests {
             .build();
         let endpoint = endpoint().with_link(Link::try_new(profile).unwrap()).unwrap();
         assert!(endpoint.link().is_some());
-        let context = Link::json_ld_context(IriRefBuf::new("https://example.org/context.jsonld").unwrap()).unwrap();
+        let context = Link::try_json_ld_context(IriRefBuf::new("https://example.org/context.jsonld").unwrap()).unwrap();
         assert!(matches!(endpoint.with_link(context), Err(EndpointError::ContextLink)));
     }
 

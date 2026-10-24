@@ -90,13 +90,13 @@ fn wn_06_each_code_encodes_as_clause_6_3_17_writes_it() {
     );
     assert_eq!(NgsiLdWarnings::decode(&mut encoded(&warnings).iter()).ok(), Some(warnings));
     assert_eq!(
-        NgsiLdWarning::with_text(WarningCode::MiscellaneousWarning, "broker-1 \"took 5 s\"")
+        NgsiLdWarning::try_with_text(WarningCode::MiscellaneousWarning, "broker-1 \"took 5 s\"")
             .map(|warning| warning.text().to_owned())
             .ok(),
         Some("broker-1 \"took 5 s\"".to_owned())
     );
     assert!(matches!(
-        NgsiLdWarning::with_text(WarningCode::MiscellaneousWarning, "caf\u{e9}"),
+        NgsiLdWarning::try_with_text(WarningCode::MiscellaneousWarning, "caf\u{e9}"),
         Err(InvalidFieldValue::NonAscii { position: 7 })
     ));
 }

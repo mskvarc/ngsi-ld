@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     // geo-types is two-dimensional, so the altitude is dropped.
-    let entrance = Shape::Point(Position::with_altitude(13.3986, 52.5547, 34.0)?);
+    let entrance = Shape::Point(Position::try_with_altitude(13.3986, 52.5547, 34.0)?);
     println!(
         "{entrance} comes back from geo-types as {}",
         Shape::try_from(GeoTypesGeometry::from(&entrance))?

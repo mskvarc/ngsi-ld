@@ -61,7 +61,7 @@ use url::Url;
 async fn main() -> anyhow::Result<()> {
     let client = Client::builder()
         .base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?)
-        .transport(ReqwestTransport::with_default_client()?)
+        .transport(ReqwestTransport::try_default()?)
         .build()?;
 
     let vehicle = Entity::builder()

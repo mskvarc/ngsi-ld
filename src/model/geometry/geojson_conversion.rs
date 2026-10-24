@@ -27,7 +27,7 @@ impl TryFrom<&geojson::Position> for Position {
     fn try_from(position: &geojson::Position) -> Result<Self, Self::Error> {
         match *position.as_slice() {
             [longitude, latitude] => Self::try_new(longitude, latitude),
-            [longitude, latitude, altitude] => Self::with_altitude(longitude, latitude, altitude),
+            [longitude, latitude, altitude] => Self::try_with_altitude(longitude, latitude, altitude),
             _ => Err(GeometryError::InvalidPosition),
         }
     }
@@ -89,7 +89,7 @@ fn geojson_bbox(bbox: &BoundingBox) -> Bbox {
 fn bbox(bbox: &[f64]) -> Result<BoundingBox, GeometryError> {
     let (south_west, north_east) = match *bbox {
         [west, south, east, north] => (Position::try_new(west, south)?, Position::try_new(east, north)?),
-        [west, south, low, east, north, high] => (Position::with_altitude(west, south, low)?, Position::with_altitude(east, north, high)?),
+        [west, south, low, east, north, high] => (Position::try_with_altitude(west, south, low)?, Position::try_with_altitude(east, north, high)?),
         _ => return Err(GeometryError::InvalidBoundingBox),
     };
     BoundingBox::try_new(south_west, north_east)

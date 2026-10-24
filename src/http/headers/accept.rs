@@ -70,7 +70,7 @@ use std::iter;
 /// );
 ///
 /// let ranges = Accept::try_from_entries([
-///     Weighted::new(MediaRange::any_subtype_of(names::TEXT)?),
+///     Weighted::new(MediaRange::try_any_subtype_of(names::TEXT)?),
 ///     Weighted::new("application/xml".parse::<MediaRange>()?),
 ///     Weighted::new(MediaRange::any()).with_quality(Quality::try_from_thousandths(100)?),
 /// ])?;

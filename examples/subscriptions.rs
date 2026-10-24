@@ -17,10 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let base_url: Url = env::var("NGSI_LD_BROKER_URL")
         .context("set NGSI_LD_BROKER_URL to a broker's API root")?
         .parse()?;
-    let client = Client::builder()
-        .base_url(base_url)
-        .transport(ReqwestTransport::with_default_client()?)
-        .build()?;
+    let client = Client::builder().base_url(base_url).transport(ReqwestTransport::try_default()?).build()?;
 
     // Nobody listens on the endpoint: the example only manages the subscription.
     let endpoint = Endpoint::builder("http://notifications.example/vehicles").build()?;

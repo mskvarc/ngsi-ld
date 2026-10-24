@@ -16,7 +16,7 @@
 //! use ngsi_ld::{http::{answer, headers::{Link, NgsiLdResultsCount}}, model::{Entity, Representation}};
 //!
 //! let vehicle = Entity::builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").property("speed", 80).build()?;
-//! let mut response = answer::list([vehicle.render(Representation::Normalized)], &Link::core_context()?);
+//! let mut response = answer::list([vehicle.render(Representation::Normalized)], &Link::try_core_context()?);
 //! response.headers_mut().typed_insert(NgsiLdResultsCount::new(1));
 //! assert_eq!(response.status(), StatusCode::OK);
 //! assert_eq!(response.headers()[&header::CONTENT_TYPE], "application/json");

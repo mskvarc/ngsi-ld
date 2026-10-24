@@ -46,7 +46,7 @@ fn matching_vehicle(vehicle: &Entity<Input>, form: Lossless) -> anyhow::Result<R
         Lossless::Normalized => Representation::Normalized,
         Lossless::Concise => Representation::Concise,
     };
-    let mut response = answer::list([vehicle.render(representation)], &Link::core_context()?);
+    let mut response = answer::list([vehicle.render(representation)], &Link::try_core_context()?);
     response.headers_mut().typed_insert(NgsiLdResultsCount::new(1));
     Ok(response)
 }

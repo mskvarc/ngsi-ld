@@ -93,7 +93,7 @@ fn a_relative_context_reference_in_a_context_of_several_entries_cannot_be_given_
 
 #[test]
 fn a_single_relative_context_reference_is_sent_in_the_link_header_for_the_broker_to_resolve() {
-    let link = Link::json_ld_context(IriRefBuf::new("/ngsi-ld/v1/jsonldContexts/fleet").unwrap()).unwrap();
+    let link = Link::try_json_ld_context(IriRefBuf::new("/ngsi-ld/v1/jsonldContexts/fleet").unwrap()).unwrap();
     let endpoint = endpoint()
         .with_context(Context::from(IriRefBuf::new("/ngsi-ld/v1/jsonldContexts/fleet").unwrap()))
         .unwrap();

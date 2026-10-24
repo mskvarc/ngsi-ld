@@ -18,10 +18,7 @@ async fn main() -> anyhow::Result<()> {
     let base_url: Url = env::var("NGSI_LD_BROKER_URL")
         .context("set NGSI_LD_BROKER_URL to a broker's API root")?
         .parse()?;
-    let client = Client::builder()
-        .base_url(base_url)
-        .transport(ReqwestTransport::with_default_client()?)
-        .build()?;
+    let client = Client::builder().base_url(base_url).transport(ReqwestTransport::try_default()?).build()?;
 
     let observed_at: DateTime = "2018-08-07T12:00:00Z".parse()?;
     let vehicle = Entity::builder()

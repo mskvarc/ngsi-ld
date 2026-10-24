@@ -29,7 +29,7 @@ use std::{fmt, iter, str::FromStr};
 ///
 /// let context = IriRefBuf::new("https://example.org/context.jsonld")?;
 /// let mut headers = HeaderMap::new();
-/// headers.typed_insert(Link::json_ld_context(context)?);
+/// headers.typed_insert(Link::try_json_ld_context(context)?);
 /// assert_eq!(
 ///     headers[&header::LINK],
 ///     r#"<https://example.org/context.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json""#
@@ -88,7 +88,7 @@ impl Link {
     /// # Errors
     ///
     /// Returns [`LinkBuildError::Unencodable`] when the rendering cannot be carried in a header field.
-    pub fn json_ld_context(context: IriRefBuf) -> Result<Link, LinkBuildError> {
+    pub fn try_json_ld_context(context: IriRefBuf) -> Result<Link, LinkBuildError> {
         Link::try_new(LinkValue::json_ld_context(context))
     }
 
@@ -98,7 +98,7 @@ impl Link {
     /// ```
     /// use ngsi_ld::{http::headers::Link, model::CORE_CONTEXT};
     ///
-    /// let link = Link::core_context()?;
+    /// let link = Link::try_core_context()?;
     /// assert!(link.context_urls().eq([CORE_CONTEXT.as_str()]));
     /// # Ok::<(), anyhow::Error>(())
     /// ```
@@ -106,8 +106,8 @@ impl Link {
     /// # Errors
     ///
     /// Returns [`LinkBuildError::Unencodable`] when the rendering cannot be carried in a header field.
-    pub fn core_context() -> Result<Link, LinkBuildError> {
-        Link::json_ld_context(core_context_reference())
+    pub fn try_core_context() -> Result<Link, LinkBuildError> {
+        Link::try_json_ld_context(core_context_reference())
     }
 
     /// Renders a non-empty list of link-values.
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn the_core_context_link_names_the_core_context_as_a_json_ld_context() {
-        let link = Link::core_context().unwrap();
+        let link = Link::try_core_context().unwrap();
         let [value] = link.values() else { panic!("one link-value") };
         assert!(value.is_context_link());
         assert_eq!(value.target().as_str(), CORE_CONTEXT.as_str());
@@ -231,7 +231,7 @@ mod tests {
 
     #[test]
     fn the_json_ld_context_link_renders_exactly_as_clause_6_3_5_shows() {
-        let link = Link::json_ld_context(IriRefBuf::new("https://example.org/context.jsonld").unwrap()).unwrap();
+        let link = Link::try_json_ld_context(IriRefBuf::new("https://example.org/context.jsonld").unwrap()).unwrap();
         let expected = r#"<https://example.org/context.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json""#;
         let mut encoded = Vec::new();
         link.encode(&mut encoded);

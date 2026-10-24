@@ -11,7 +11,7 @@ pub(crate) const CONTEXT: &str = "https://example.org/context.jsonld";
 
 /// The `Link` naming the test context (clause 6.3.5).
 pub(crate) fn context_link() -> Link {
-    Link::json_ld_context(IriRefBuf::new(CONTEXT.to_owned()).unwrap()).unwrap()
+    Link::try_json_ld_context(IriRefBuf::new(CONTEXT.to_owned()).unwrap()).unwrap()
 }
 
 /// The link-value naming `context` with `profile` as its `profile` parameter (clause 6.3.21).

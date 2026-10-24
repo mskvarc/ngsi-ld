@@ -47,7 +47,7 @@ pub(crate) fn temporal_query(vehicle: &Entity<Input>) -> anyhow::Result<()> {
         .property("speed", Property::builder(85).observed_at("2024-05-01T10:05:00Z".parse::<DateTime>()?))
         .property("speed", Property::builder(95).observed_at("2024-05-01T10:10:00Z".parse::<DateTime>()?))
         .build()?;
-    let mut response = answer::list([evolution.render(Lossless::Normalized)], &Link::core_context()?);
+    let mut response = answer::list([evolution.render(Lossless::Normalized)], &Link::try_core_context()?);
     response.headers_mut().typed_insert(NgsiLdResultsCount::new(1));
     let operation = QueryTemporalEvolution::builder()
         .maybe_entity_type(body.entities().first().map(EntitySelector::selector_type))

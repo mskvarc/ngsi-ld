@@ -39,7 +39,7 @@ pub(crate) fn retrieval(vehicle: &Entity<Input>) -> anyhow::Result<()> {
         .spelling(received.spelling)
         .format(Lossless::Concise)
         .build();
-    let response = answer::document(&kept.render(Representation::Concise), &Link::core_context()?);
+    let response = answer::document(&kept.render(Representation::Concise), &Link::try_core_context()?);
     let retrieved = operation.decode(&ResponseContext::new(&request), response)?.into_body();
     println!("retrieval answered: {}", retrieved.render(Representation::Concise));
     Ok(())

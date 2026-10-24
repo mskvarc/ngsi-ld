@@ -60,7 +60,7 @@ pub enum DeliveryError {
 ///     .body(Bytes::from_static(br#"{"id":"urn:ngsi-ld:Notification:1","type":"Notification","subscriptionId":"urn:ngsi-ld:Subscription:1","notifiedAt":"2024-05-01T10:00:00Z","data":[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":80}}]}"#))?;
 /// let headers = request.headers_mut();
 /// headers.typed_insert(ContentType::NgsiLd(NgsiLdMediaType::Json));
-/// headers.typed_insert(Link::json_ld_context(IriRefBuf::new("https://example.org/context.jsonld")?)?);
+/// headers.typed_insert(Link::try_json_ld_context(IriRefBuf::new("https://example.org/context.jsonld")?)?);
 /// headers.typed_insert(NgsiLdTenant::try_new("t1".parse()?)?);
 /// let delivery = NotificationDelivery::read(request)?;
 /// assert_eq!(delivery.media_type(), NgsiLdMediaType::Json);

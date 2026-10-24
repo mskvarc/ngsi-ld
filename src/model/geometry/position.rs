@@ -55,7 +55,7 @@ impl Position {
     /// # Errors
     ///
     /// As [`Position::try_new`].
-    pub fn with_altitude(longitude: f64, latitude: f64, altitude: f64) -> Result<Self, GeometryError> {
+    pub fn try_with_altitude(longitude: f64, latitude: f64, altitude: f64) -> Result<Self, GeometryError> {
         Self::in_range(coordinate(longitude)?, coordinate(latitude)?, Some(coordinate(altitude)?))
     }
 

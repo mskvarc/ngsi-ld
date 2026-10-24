@@ -102,7 +102,7 @@ impl NgsiLdWarning {
     /// # Errors
     ///
     /// Returns [`InvalidFieldValue`] when the text cannot be carried in a header field.
-    pub fn with_text(code: WarningCode, text: &str) -> Result<NgsiLdWarning, InvalidFieldValue> {
+    pub fn try_with_text(code: WarningCode, text: &str) -> Result<NgsiLdWarning, InvalidFieldValue> {
         let text = text.trim_matches([' ', '\t']);
         let encoded = if text.is_empty() {
             encode_text(&code.to_string())?
@@ -135,7 +135,7 @@ impl NgsiLdWarning {
         if !(text.is_empty() || text.starts_with([' ', '\t'])) {
             return None;
         }
-        NgsiLdWarning::with_text(code.parse().ok()?, text).ok()
+        NgsiLdWarning::try_with_text(code.parse().ok()?, text).ok()
     }
 }
 

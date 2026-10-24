@@ -322,7 +322,7 @@ fn a_bounding_box_must_not_have_its_south_north_of_its_north() {
 
 #[test]
 fn a_bounding_box_built_in_code_is_checked() {
-    let three = Position::with_altitude(0.0, 0.0, 0.0).unwrap();
+    let three = Position::try_with_altitude(0.0, 0.0, 0.0).unwrap();
     assert_eq!(BoundingBox::try_new(point(0.0, 0.0), three), Err(GeometryError::BoundingBoxCorners));
     assert_eq!(
         BoundingBox::try_new(point(0.0, 1.0), point(1.0, 0.0)),
@@ -331,7 +331,11 @@ fn a_bounding_box_built_in_code_is_checked() {
             north: Number::from(0)
         })
     );
-    let three_dimensional = BoundingBox::try_new(Position::with_altitude(0.0, 0.0, 0.0).unwrap(), Position::with_altitude(1.0, 1.0, 1.0).unwrap()).unwrap();
+    let three_dimensional = BoundingBox::try_new(
+        Position::try_with_altitude(0.0, 0.0, 0.0).unwrap(),
+        Position::try_with_altitude(1.0, 1.0, 1.0).unwrap(),
+    )
+    .unwrap();
     assert_eq!(
         Geometry::from(Shape::Point(point(0.0, 0.0))).with_bbox(three_dimensional),
         Err(GeometryError::BoundingBoxDimension {

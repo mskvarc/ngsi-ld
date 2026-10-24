@@ -18,10 +18,7 @@ async fn main() -> anyhow::Result<()> {
     let base_url: Url = env::var("NGSI_LD_BROKER_URL")
         .context("set NGSI_LD_BROKER_URL to a broker's API root")?
         .parse()?;
-    let client = Client::builder()
-        .base_url(base_url)
-        .transport(ReqwestTransport::with_default_client()?)
-        .build()?;
+    let client = Client::builder().base_url(base_url).transport(ReqwestTransport::try_default()?).build()?;
 
     let is_parked = Relationship::builder(EntityId::from(iri!("urn:ngsi-ld:OffStreetParking:Downtown1")))
         .object_type("OffStreetParking".parse::<EntityTypeName>()?)

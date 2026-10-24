@@ -102,12 +102,12 @@ async fn main() -> anyhow::Result<()> {
         .property("brandName", "Mercedes")
         .property("speed", 80)
         .build()?;
-    let link = Link::core_context()?;
+    let link = Link::try_core_context()?;
 
     let stand_in = StandIn {
         location: Location::try_new(IriRefBuf::new(VEHICLE.to_owned())?)?,
         vehicle: vehicle.render(Representation::Normalized),
-        link: Link::core_context()?,
+        link: Link::try_core_context()?,
         received: Mutex::default(),
     };
     let client = Client::builder().base_url(Url::parse(ROOT)?).transport(&stand_in).build()?;

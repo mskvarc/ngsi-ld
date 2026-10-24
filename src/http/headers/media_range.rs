@@ -37,7 +37,7 @@ pub enum MediaRangeError {
 ///
 /// assert_eq!(MediaRange::any().to_string(), "*/*");
 /// assert_eq!(
-///     MediaRange::any_subtype_of(names::TEXT)?.to_string(),
+///     MediaRange::try_any_subtype_of(names::TEXT)?.to_string(),
 ///     "text/*"
 /// );
 /// assert_eq!(
@@ -68,7 +68,7 @@ impl MediaRange {
     /// # Errors
     ///
     /// Returns [`MediaRangeError::Wildcard`] when `ty` holds a `*` and is not `*` itself; `*` gives `*/*`.
-    pub fn any_subtype_of(ty: Name<'_>) -> Result<MediaRange, MediaRangeError> {
+    pub fn try_any_subtype_of(ty: Name<'_>) -> Result<MediaRange, MediaRangeError> {
         MediaRange::try_from(MediaType::new(ty, names::_STAR))
     }
 
@@ -189,12 +189,12 @@ mod tests {
     fn the_constructors_build_the_wildcard_ranges() {
         assert_eq!(MediaRange::any().to_string(), "*/*");
         assert_eq!(
-            MediaRange::any_subtype_of(names::APPLICATION).map(|range| range.to_string()),
+            MediaRange::try_any_subtype_of(names::APPLICATION).map(|range| range.to_string()),
             Ok("application/*".to_owned())
         );
-        assert_eq!(MediaRange::any_subtype_of(names::_STAR), Ok(MediaRange::any()));
+        assert_eq!(MediaRange::try_any_subtype_of(names::_STAR), Ok(MediaRange::any()));
         let starred = Name::new("te*t").unwrap();
-        assert_eq!(MediaRange::any_subtype_of(starred), Err(MediaRangeError::Wildcard));
+        assert_eq!(MediaRange::try_any_subtype_of(starred), Err(MediaRangeError::Wildcard));
     }
 
     #[test]
