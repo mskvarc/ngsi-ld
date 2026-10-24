@@ -1,1 +1,99 @@
-//! Typed, ergonomic NGSI-LD (ETSI GS CIM 009) data model and API client.
+//! Typed, ergonomic NGSI-LD for Rust.
+//!
+//! The crate models the NGSI-LD API defined by ETSI GS CIM 009 v1.9.1: the documents a client sends and receives
+//! ([`model`], the subscriptions and notifications of [`subscription`], the context source registrations of
+//! [`registration`], and the snapshots of [`snapshot`]), the query languages it writes ([`query`]), and the operations
+//! it calls on a context broker.
+//!
+//! # Quick start
+//!
+//! Without features, the crate is the data model and the query languages. An entity is built with its builder,
+//! which checks every rule the specification gives it, and rendered in the representation asked for:
+//!
+//! ```
+//! use iri_rs::iri;
+//! use ngsi_ld::model::{Entity, Representation};
+//!
+//! let vehicle = Entity::builder()
+//!     .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
+//!     .entity_type("Vehicle")
+//!     .property("speed", 80)
+//!     .build()?;
+//! assert_eq!(
+//!     vehicle.render(Representation::Normalized).to_string(),
+//!     r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":80}}"#
+//! );
+//! # Ok::<(), anyhow::Error>(())
+//! ```
+//!
+//! With the `http` feature, a `Client` sends the operations of the API over any `Transport`; the `reqwest` feature
+//! provides one. Here the transport is a stand-in that answers every request as a broker answers a created entity:
+//!
+//! ```
+//! # #[cfg(feature = "http")]
+//! # mod offline {
+//! #     use bytes::Bytes;
+//! #     use http::{HeaderValue, Request, Response, StatusCode, header::LOCATION};
+//! #     use std::convert::Infallible;
+//! #     pub struct Offline;
+//! #     impl ngsi_ld::client::Transport for Offline {
+//! #         type Error = Infallible;
+//! #         async fn send(&self, _: Request<Bytes>) -> Result<Response<Bytes>, Infallible> {
+//! #             let mut response = Response::new(Bytes::new());
+//! #             *response.status_mut() = StatusCode::CREATED;
+//! #             response.headers_mut().insert(LOCATION, HeaderValue::from_static("/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567"));
+//! #             Ok(response)
+//! #         }
+//! #     }
+//! # }
+//! # #[cfg(not(feature = "http"))]
+//! # fn main() {}
+//! # #[cfg(feature = "http")]
+//! # #[tokio::main(flavor = "current_thread")]
+//! # async fn main() -> anyhow::Result<()> {
+//! # use offline::Offline;
+//! use iri_rs::iri;
+//! use ngsi_ld::{client::Client, http::CreateOutcome, model::Entity};
+//! use url::Url;
+//!
+//! let client = Client::builder().base_url(Url::parse("http://localhost:9090/ngsi-ld/v1/")?).transport(Offline).build()?;
+//! let vehicle = Entity::builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").property("speed", 80).build()?;
+//! let outcome = client.entities().create(&vehicle).send().await?;
+//! assert!(matches!(outcome, CreateOutcome::Created { .. }));
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! # Features
+//!
+//! Default features are empty.
+//!
+//! | Feature | Enables |
+//! |---|---|
+//! | `http` | The HTTP binding (`http`), for requests sent and requests received: one request type per operation, typed headers, the request pipeline, typed outcomes and problem details; and the `client` over any `Transport`. |
+//! | `reqwest` | `http`, and a `Transport` over `reqwest`. |
+//! | `linked-data` | `linked_data`: the `@context` applied as JSON-LD, with the core context bundled; with `http`, a JSON-LD context loader over the client's transport. |
+//! | `geo-types` | Conversions between the geometries of [`model::geometry`] and `geo-types`. |
+//! | `geojson` | Conversions between the geometries of [`model::geometry`] and the `geojson` crate. |
+//! | `chrono` | Conversions between the temporal values of [`model`] ([`DateTime`](model::DateTime), [`Date`](model::Date), [`Time`](model::Time)) and `chrono`. |
+
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
+#[macro_use]
+mod flag_choice;
+#[macro_use]
+mod uri_identifier;
+
+#[cfg(feature = "http")]
+pub mod client;
+pub mod context_file;
+#[cfg(feature = "http")]
+pub mod http;
+#[cfg(feature = "linked-data")]
+pub mod linked_data;
+#[macro_use]
+pub mod model;
+pub mod query;
+pub mod registration;
+pub mod snapshot;
+pub mod subscription;

@@ -38,6 +38,18 @@ jobs:
         include:
           - name: no features
             features: ""
+          - name: chrono
+            features: chrono
+          - name: geo-types
+            features: geo-types
+          - name: geojson
+            features: geojson
+          - name: http
+            features: http
+          - name: linked-data
+            features: linked-data
+          - name: reqwest
+            features: reqwest
     steps:
       - uses: actions/checkout@v7
       - name: Install pinned toolchain
