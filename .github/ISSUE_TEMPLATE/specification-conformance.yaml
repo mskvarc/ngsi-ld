@@ -1,4 +1,4 @@
-name: Specification conformance
+name: Specification Conformance
 description: Report a place where the crate does not follow ETSI GS CIM 009 v1.9.1.
 labels: ["bug", "specification"]
 body:

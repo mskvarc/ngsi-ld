@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Check the [documentation](https://docs.rs/ngsi-ld) and the examples in the repository first. If something is broken, use the Bug report form instead.
+        Check the [documentation](https://docs.rs/ngsi-ld) and the examples in the repository first. If something is broken, use the Bug Report form instead.
   - type: textarea
     id: goal
     attributes:

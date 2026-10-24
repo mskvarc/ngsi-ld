@@ -1,6 +1,6 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Report a security vulnerability
+  - name: Report a Security Vulnerability
     url: https://github.com/mskvarc/ngsi-ld/security/policy
     about: Never open a public issue for a vulnerability. Report it privately, as the security policy describes.
   - name: Discussions
