@@ -50,17 +50,20 @@ use crate::{
 use bon::bon;
 
 /// Generates the Query Temporal Evolution method for one representation and one completeness.
+///
+/// `$name => $builder` names the method's builder where bon's default, `Temporal` and the method name, would
+/// collide with a builder of another namespace.
 macro_rules! query_method {
     (
         $(#[doc = $doc:literal])*
-        $name:ident, $item:ty,
+        $name:ident $(=> $builder:ident)?, $item:ty,
         $format:ident => $format_value:expr, [$($format_parameter:tt)*],
         completeness => $completeness:expr
     ) => {
         #[bon]
         impl<T: Transport, M: Answering> Temporal<'_, T, M> {
             $(#[doc = $doc])*
-            #[builder(derive(Debug), finish_fn(name = send, doc {
+            #[builder($(builder_type = $builder,)? derive(Debug), finish_fn(name = send, doc {
                 /// Sends the request and reads the response.
                 ///
                 /// # Errors
@@ -156,7 +159,7 @@ query_method!(
     /// keep `id` and `type` ([`query_projected`] reads an answer without them); `send()` refuses the request otherwise.
     ///
     /// [`query_projected`]: Temporal::query_projected
-    query, TemporalEntity<Output>,
+    query => QueryTemporalBuilder, TemporalEntity<Output>,
     format => form, [#[builder(default)] form: Lossless,],
     completeness => Complete
 );
