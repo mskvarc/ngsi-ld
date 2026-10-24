@@ -7,7 +7,7 @@
 //!
 //! [`Client`], [`Transport`],
 #![cfg_attr(feature = "reqwest", doc = "[`ReqwestTransport`], [`ReqwestError`], [`ReqwestBuildError`],")]
-//! [`ClientError`], [`Answering`], [`OutcomeOnly`], [`WithHead`], [`Answered`].
+//! [`ClientError`], [`Answering`], [`OutcomeOnly`], [`WithHead`], [`Answered`], [`WithResponse`], [`Received`].
 //!
 //! # Resource handles
 //!
@@ -27,7 +27,7 @@ pub use crate::client::context_loader::{ContextLoadError, ContextLoader, Context
 #[cfg(feature = "reqwest")]
 pub use crate::client::reqwest::{ReqwestBuildError, ReqwestError, ReqwestTransport};
 pub use crate::client::{
-    answering::{Answered, Answering, OutcomeOnly, WithHead},
+    answering::{Answered, Answering, OutcomeOnly, Received, WithHead, WithResponse},
     api_client::Client,
     attributes::AvailableAttributes,
     context_file::ContextFileClientError,

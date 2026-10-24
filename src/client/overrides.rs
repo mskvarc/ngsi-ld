@@ -1,7 +1,7 @@
 //! Clients derived from another, which state something else on every request.
 
 use crate::{
-    client::{Answering, Client, Transport, WithHead},
+    client::{Answering, Client, Transport, WithHead, WithResponse},
     http::{
         ContextDelivery,
         Endpoint,
@@ -173,6 +173,19 @@ impl<T: Transport + Clone, M: Answering> Client<T, M> {
             // The derived client owns its transport; a transport clone shares what the transport pools.
             transport: self.transport.clone(),
             answering: WithHead,
+        }
+    }
+
+    /// A client whose calls answer the outcome together with the status, head and body of the response
+    /// ([`Received`](crate::client::Received)), for checking the representation a broker wrote, byte for byte.
+    #[must_use]
+    pub fn with_responses(&self) -> Client<T, WithResponse> {
+        Client {
+            // The derived client owns its endpoint, and this client keeps its own.
+            endpoint: self.endpoint.clone(),
+            // The derived client owns its transport; a transport clone shares what the transport pools.
+            transport: self.transport.clone(),
+            answering: WithResponse,
         }
     }
 

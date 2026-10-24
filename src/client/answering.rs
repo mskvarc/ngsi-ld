@@ -1,4 +1,5 @@
-//! What a call of a client returns: the outcome alone, or the outcome with the status and head of the response.
+//! What a call of a client returns: the outcome alone, the outcome with the status and head of the response, or the
+//! outcome with the whole response.
 
 use crate::{http::ResponseHead, seal::Seal};
 use bytes::Bytes;
@@ -7,7 +8,7 @@ use std::fmt::Debug;
 
 /// The private supertrait that keeps `Answering` implemented by this crate alone.
 mod sealed {
-    /// Seals [`Answering`](super::Answering): the two modes are the crate's.
+    /// Seals [`Answering`](super::Answering): the three modes are the crate's.
     pub trait Sealed {}
 }
 
@@ -15,9 +16,10 @@ mod sealed {
 ///
 /// [`OutcomeOnly`], the default, answers with the typed outcome alone. [`WithHead`], from
 /// [`Client::with_heads`](crate::client::Client::with_heads), answers with the outcome, the status and the head of the
-/// response in an [`Answered`].
+/// response in an [`Answered`]. [`WithResponse`], from [`Client::with_responses`](crate::client::Client::with_responses),
+/// answers with the outcome, the status, the head and the body of the response in a [`Received`].
 ///
-/// The trait is sealed: the two modes are the only ones.
+/// The trait is sealed: the three modes are the only ones.
 pub trait Answering: sealed::Sealed + Debug + Clone + Copy + Default + Send + Sync + 'static {
     /// What a call answers when the operation succeeds with `V`.
     type Answer<V>;
@@ -87,8 +89,58 @@ impl<V> Answered<V> {
     }
 }
 
+/// Calls answer with the typed outcome and the whole response it was read from: status, head and body.
+///
+/// It serves a caller that checks the representation itself (member order, the spelling of a value, the bytes of a
+/// body the typed outcome reads leniently) rather than only what the typed outcome holds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct WithResponse;
+
+/// The typed outcome of a call, with the status, the head and the body of its response.
+///
+/// ```
+/// use bytes::Bytes;
+/// use http::StatusCode;
+/// use ngsi_ld::{client::Received, http::ResponseHead};
+///
+/// let received = Received::new(
+///     7_u8,
+///     StatusCode::OK,
+///     ResponseHead::default(),
+///     Bytes::from_static(b"7"),
+/// );
+/// assert_eq!(received.body, Bytes::from_static(b"7"));
+/// assert_eq!(received.into_outcome(), 7);
+/// ```
+#[derive(Debug, Clone)]
+pub struct Received<V> {
+    /// The typed outcome.
+    pub outcome: V,
+    /// The status of the response.
+    pub status: StatusCode,
+    /// The rest of the head of the response: version, headers and the transport's extensions.
+    pub head: ResponseHead,
+    /// The body of the response, byte for byte as the transport received it; empty when the response had none.
+    pub body: Bytes,
+}
+
+impl<V> Received<V> {
+    /// The outcome `outcome`, received with `status`, `head` and `body`.
+    #[must_use]
+    pub const fn new(outcome: V, status: StatusCode, head: ResponseHead, body: Bytes) -> Received<V> {
+        Received { outcome, status, head, body }
+    }
+
+    /// Takes the outcome.
+    #[must_use]
+    pub fn into_outcome(self) -> V {
+        self.outcome
+    }
+}
+
 impl sealed::Sealed for OutcomeOnly {}
 impl sealed::Sealed for WithHead {}
+impl sealed::Sealed for WithResponse {}
 
 impl Answering for OutcomeOnly {
     type Answer<V> = V;
@@ -126,6 +178,28 @@ impl Answering for WithHead {
     }
 
     fn outcome<V>(answer: &Answered<V>) -> &V {
+        &answer.outcome
+    }
+}
+
+impl Answering for WithResponse {
+    type Answer<V> = Received<V>;
+    type Capture = (StatusCode, ResponseHead, Bytes);
+
+    fn capture(_: Seal, response: &Response<Bytes>) -> (StatusCode, ResponseHead, Bytes) {
+        // The operation takes the response to read it; a `Bytes` clone shares the buffer, it copies no byte.
+        (response.status(), ResponseHead::of(response), response.body().clone())
+    }
+
+    fn answer<V>(_: Seal, outcome: V, (status, head, body): (StatusCode, ResponseHead, Bytes)) -> Received<V> {
+        Received::new(outcome, status, head, body)
+    }
+
+    fn split<V>(_: Seal, answer: Received<V>) -> (V, (StatusCode, ResponseHead, Bytes)) {
+        (answer.outcome, (answer.status, answer.head, answer.body))
+    }
+
+    fn outcome<V>(answer: &Received<V>) -> &V {
         &answer.outcome
     }
 }

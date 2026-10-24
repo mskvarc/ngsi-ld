@@ -137,7 +137,8 @@ impl<T: Transport, M: Answering> Client<T, M> {
 
     /// Sends any operation on the client's tenant: builds its request, sends it, and reads the response. A client
     /// from [`with_tenant`](Client::with_tenant) sends on another tenant. The answer is the outcome, or, for a client
-    /// from [`with_heads`](Client::with_heads), the outcome with the status and head of the response.
+    /// from [`with_heads`](Client::with_heads), the outcome with the status and head of the response, and for a client
+    /// from [`with_responses`](Client::with_responses), the outcome with the status, head and body of the response.
     ///
     /// # Errors
     ///

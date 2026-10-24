@@ -63,7 +63,8 @@ impl<A> Cursor<A> {
 /// A failed request ends the walk: [`next`](Self::next) returns that error once and `None` afterwards.
 ///
 /// A client from [`Client::with_heads`] walks the pages in [`Answered`](crate::client::Answered) form:
-/// every page comes with the status and head of its response.
+/// every page comes with the status and head of its response. A client from [`Client::with_responses`] walks them in
+/// [`Received`](crate::client::Received) form, every page with the body of its response as well.
 #[derive(Debug)]
 pub struct Pages<'c, T, I, M: Answering = OutcomeOnly> {
     /// The client the following pages are requested through.

@@ -295,6 +295,77 @@ async fn a_client_with_heads_walks_pages_with_the_head_of_each() {
 }
 
 #[tokio::test]
+async fn a_client_with_responses_answers_every_call_with_the_body_byte_for_byte() {
+    // The spacing, the member order and the six-digit fraction are what a typed outcome does not keep.
+    const RETRIEVED: &str = r#"{ "type": "Vehicle", "id": "urn:ngsi-ld:Vehicle:A4567", "speed": { "type": "Property", "value": 80, "observedAt": "2026-10-24T10:00:00.250000Z" } }"#;
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_raw(RETRIEVED, "application/json")
+                .insert_header(&header::ETAG, "\"v1\""),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .respond_with(ResponseTemplate::new(201).insert_header(&header::LOCATION, "/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567"))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri()).with_responses();
+    let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"));
+
+    let retrieved = client.entities().retrieve(&id).send().await.unwrap();
+    assert_eq!(retrieved.status, StatusCode::OK);
+    assert_eq!(retrieved.outcome.body().id.as_str(), "urn:ngsi-ld:Vehicle:A4567");
+    assert!(retrieved.head.typed::<ETag>().is_valid());
+    assert_eq!(retrieved.body, RETRIEVED.as_bytes());
+
+    let vehicle = vehicle();
+    let created = client.entities().create(&vehicle).send().await.unwrap();
+    assert_eq!(created.status, StatusCode::CREATED);
+    assert!(created.outcome.is_created());
+    assert!(created.body.is_empty());
+}
+
+#[tokio::test]
+async fn a_client_with_responses_walks_pages_with_the_body_of_each() {
+    const FIRST: &str = r#"[{"type":"Vehicle","id":"urn:ngsi-ld:Vehicle:A4567"}]"#;
+    const SECOND: &str = r#"[ {"type":"Vehicle","id":"urn:ngsi-ld:Vehicle:B9211"} ]"#;
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(query_param("offset", "1"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(SECOND, "application/json"))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(query_param("type", "Vehicle"))
+        .and(query_param("limit", "1"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(FIRST, "application/json").insert_header(
+            &header::LINK,
+            &link_field([link_value("/ngsi-ld/v1/entities?type=Vehicle&limit=1&offset=1", RelationType::Next)]),
+        ))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri()).with_responses();
+    let first = client.entities().query().entity_type("Vehicle").limit(1).send().await.unwrap();
+    let mut pages = client.pages(first);
+    let one = pages.next().await.unwrap().unwrap();
+    assert_eq!(one.body, FIRST.as_bytes());
+    let two = pages.next().await.unwrap().unwrap();
+    assert_eq!(two.outcome.items().len(), 1);
+    assert_eq!(two.body, SECOND.as_bytes());
+    assert!(pages.next().await.is_none());
+}
+
+#[tokio::test]
 async fn a_derived_client_sends_a_profile_beside_and_inside_the_context_link() {
     let server = MockServer::start().await;
     Mock::given(method("DELETE"))
