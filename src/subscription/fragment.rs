@@ -46,9 +46,8 @@ pub(super) mod builder;
 ///
 /// It is written with `"type": "Subscription"` and without `id`: the binding names the subscription, whose `id`
 /// cannot change (Table 5.2.12-1). A replaced `notification` replaces the whole member. A request body is read by
-/// [`SubscriptionFragment::parse`]. `K` is the kind of subscription it changes, as for [`Subscription`]: the builder
-/// of [`SubscriptionFragment::builder`] sets `csf`, the one of [`SubscriptionFragment::registration_builder`]
-/// `temporalQ`.
+/// [`SubscriptionFragment::parse`]. `K` is the kind of subscription it changes, as for [`Subscription`]: only the
+/// builder of [`SubscriptionFragment::registration_builder`] sets or deletes `temporalQ`.
 ///
 /// [`Subscription`]: crate::subscription::Subscription
 ///
@@ -94,8 +93,10 @@ pub struct SubscriptionFragment<K: SubscriptionKind = EntitySubscription> {
     pub(crate) geo_q: Option<MemberChange<GeoQuery>>,
     /// `scopeQ`.
     pub(crate) scope_q: Option<MemberChange<ScopeQuery>>,
-    /// The changes to the members only kind `K` has: `csf` or `temporalQ`.
+    /// The changes to the members only kind `K` has: `temporalQ`.
     pub(crate) kind_members: <K::Members as KindMembers>::Changes,
+    /// `csf`.
+    pub(crate) csf: Option<MemberChange<Query>>,
     /// `datasetId`.
     pub(crate) dataset_ids: Option<MemberChange<Vec<DatasetId>>>,
     /// `lang`.
@@ -135,12 +136,6 @@ impl SubscriptionFragment {
     pub fn builder() -> SubscriptionFragmentBuilder<EntitySubscription> {
         Self::kind_builder()
     }
-
-    /// Returns the change to the context source filter (`csf`), which only an entity subscription has.
-    #[must_use]
-    pub fn csf(&self) -> Option<MemberChange<&Query>> {
-        self.kind_members.csf.as_ref().map(MemberChange::as_ref)
-    }
 }
 
 impl SubscriptionFragment<RegistrationSubscription> {
@@ -166,7 +161,7 @@ impl SubscriptionFragment<RegistrationSubscription> {
     /// # Errors
     ///
     /// `build()` returns [`BuildError`](crate::model::BuildError) as [`SubscriptionFragment::builder`]
-    /// does, with a deleted `csf` instead of a deleted `temporalQ`.
+    /// does, except that `temporalQ` may be deleted.
     pub fn registration_builder() -> SubscriptionFragmentBuilder<RegistrationSubscription> {
         Self::kind_builder()
     }
@@ -197,6 +192,7 @@ member_slots!(
     Q => q,
     GeoQ => geo_q,
     ScopeQ => scope_q,
+    Csf => csf,
     DatasetId => dataset_ids,
     Lang => lang,
     ExpandValues => expand_values,
@@ -207,7 +203,7 @@ member_slots!(
     ExpiresAt => expires_at,
     JsonldContext => jsonld_context,
     NgsildConformance => conformance;
-    delegate: TemporalQ | Csf => kind_members;
+    delegate: TemporalQ => kind_members;
 );
 
 impl<K: SubscriptionKind> SubscriptionFragment<K> {
@@ -298,6 +294,12 @@ impl<K: SubscriptionKind> SubscriptionFragment<K> {
     #[must_use]
     pub fn scope_q(&self) -> Option<MemberChange<&ScopeQuery>> {
         self.scope_q.as_ref().map(MemberChange::as_ref)
+    }
+
+    /// Returns the change to the context source filter (`csf`).
+    #[must_use]
+    pub fn csf(&self) -> Option<MemberChange<&Query>> {
+        self.csf.as_ref().map(MemberChange::as_ref)
     }
 
     /// Returns the change to the dataset ids of the attribute instances notified (`datasetId`).

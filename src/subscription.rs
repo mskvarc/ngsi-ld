@@ -182,8 +182,10 @@ pub struct Subscription<D: SubscriptionDirection, K: SubscriptionKind = EntitySu
     pub(crate) geo_q: Option<GeoQuery>,
     /// `scopeQ`.
     pub(crate) scope_q: Option<ScopeQuery>,
-    /// The members only kind `K` has: `csf` or `temporalQ`.
+    /// The members only kind `K` has: `temporalQ`.
     pub(crate) kind_members: K::Members,
+    /// `csf`.
+    pub(crate) csf: Option<Query>,
     /// `datasetId`; an empty array is kept, as no rule of Table 5.2.12-1 refuses it.
     pub(crate) dataset_ids: Option<Vec<DatasetId>>,
     /// `lang`.
@@ -274,6 +276,14 @@ impl<D: SubscriptionDirection, K: SubscriptionKind> Subscription<D, K> {
         self.scope_q.as_ref()
     }
 
+    /// Returns the context source filter the registrations used for the subscription must meet (`csf`, Table
+    /// 5.2.12-1). A Context Source Registration Subscription matches it against the properties of the registrations
+    /// (clause 5.11.2.4).
+    #[must_use]
+    pub const fn csf(&self) -> Option<&Query> {
+        self.csf.as_ref()
+    }
+
     /// Returns the dataset ids of the attribute instances notified (`datasetId`).
     #[must_use]
     pub fn dataset_ids(&self) -> Option<&[DatasetId]> {
@@ -348,7 +358,7 @@ impl<D: SubscriptionDirection, K: SubscriptionKind> Subscription<D, K> {
 
     /// Writes the subscription with its members in the order Annex C.4 writes them: `id`, `type`, `subscriptionName`,
     /// `description`, `entities`, `watchedAttributes`, `notificationTrigger`, `timeInterval`, `throttling`, `q`,
-    /// `geoQ`, `scopeQ`, `temporalQ` or `csf`, `datasetId`, `lang`, `expandValues`, `jsonKeys`, `localOnly`,
+    /// `geoQ`, `scopeQ`, `temporalQ`, `csf`, `datasetId`, `lang`, `expandValues`, `jsonKeys`, `localOnly`,
     /// `splitEntities`, `notification`, `isActive`, `expiresAt`, `jsonldContext`, `ngsildConformance`, `status`,
     /// `createdAt`, `modifiedAt`, and its `@context` last when it has one.
     #[must_use]
@@ -382,14 +392,6 @@ impl<D: SubscriptionDirection, K: SubscriptionKind> Subscription<D, K> {
     #[cfg(feature = "http")]
     pub(crate) fn to_object(&self) -> jstrict::Object {
         subscription_object(self)
-    }
-}
-
-impl<D: SubscriptionDirection> Subscription<D, EntitySubscription> {
-    /// Returns the context source filter the registrations used for the subscription must meet (`csf`).
-    #[must_use]
-    pub const fn csf(&self) -> Option<&Query> {
-        self.kind_members.csf.as_ref()
     }
 }
 
@@ -440,6 +442,7 @@ impl<K: SubscriptionKind> Subscription<Output, K> {
             geo_q: self.geo_q,
             scope_q: self.scope_q,
             kind_members: self.kind_members,
+            csf: self.csf,
             dataset_ids: self.dataset_ids,
             lang: self.lang,
             expand_values: self.expand_values,

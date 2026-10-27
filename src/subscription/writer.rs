@@ -168,6 +168,7 @@ pub(crate) fn subscription_object<D: SubscriptionDirection, K: SubscriptionKind>
     push(&mut object, SubscriptionMember::GeoQ.into(), subscription.geo_q.as_ref().map(geo_query));
     push(&mut object, SubscriptionMember::ScopeQ.into(), subscription.scope_q.as_ref().map(printed));
     subscription.kind_members.write(Seal::new(), &mut object);
+    push(&mut object, SubscriptionMember::Csf.into(), subscription.csf.as_ref().map(printed));
     push(
         &mut object,
         SubscriptionMember::DatasetId.into(),
@@ -248,6 +249,7 @@ pub(crate) fn fragment_object<K: SubscriptionKind>(fragment: &SubscriptionFragme
         Some(printed(query))
     });
     fragment.kind_members.write(Seal::new(), &mut object);
+    push_change(&mut object, SubscriptionMember::Csf.into(), fragment.csf.as_ref(), |query| Some(printed(query)));
     // An empty `datasetId` is written, as the list of no dataset.
     push_change(&mut object, SubscriptionMember::DatasetId.into(), fragment.dataset_ids.as_ref(), |ids| {
         Some(dataset_id_array(ids))

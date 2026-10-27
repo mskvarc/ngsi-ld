@@ -10,11 +10,9 @@ use headers::Header;
 use http::{Method, Request, header};
 use ngsi_ld::{
     http::{
-        BodyError,
         ContextDelivery,
         Page,
         ResponseContext,
-        ResponseError,
         headers::{NgsiLdResultsCount, NgsiLdTenant, RelationType},
         operation::{
             CreateSubscription,
@@ -27,9 +25,9 @@ use ngsi_ld::{
             UpdateSubscription,
         },
     },
-    model::{Input, MemberError, Output, Tenant},
+    model::{Input, Output, Tenant},
     query::temporal_query::TemporalQuery,
-    subscription::{Activation, ReadErrorKind, RegistrationSubscription, Subscription, SubscriptionFragment, SubscriptionId},
+    subscription::{Activation, RegistrationSubscription, Subscription, SubscriptionFragment, SubscriptionId},
 };
 use pretty_assertions::assert_eq;
 use std::str;
@@ -186,17 +184,9 @@ fn create_and_retrieve_read_a_registration_subscription() {
     assert_eq!(retrieved.id(), &target);
     assert_eq!(retrieved.temporal_q(), Some(&TemporalQuery::after("2024-05-01T10:00:00Z".parse().unwrap())));
     let with_csf = RETRIEVED.replacen(r#""status":"active""#, r#""csf":"mode==\"inclusive\"","status":"active""#, 1);
-    let error = retrieve.decode(&context(), response(200, &[], &with_csf)).unwrap_err();
-    let ResponseError::Body { source, .. } = error else {
-        panic!("expected a body error, got {error:?}")
-    };
-    let BodyError::Subscription(error) = *source else {
-        panic!("expected a subscription error, got {source:?}")
-    };
-    assert!(
-        matches!(&error.kind, ReadErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "csf"),
-        "{error:?}"
-    );
+    let filtered = retrieve.decode(&context(), response(200, &[], &with_csf)).unwrap();
+    assert_eq!(filtered.csf().map(ToString::to_string).as_deref(), Some(r#"mode=="inclusive""#));
+    assert_eq!(filtered.temporal_q(), retrieved.temporal_q());
 }
 
 #[test]

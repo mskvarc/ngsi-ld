@@ -29,7 +29,6 @@ use crate::{
     },
     subscription::{
         Activation,
-        EntitySubscription,
         NotificationParams,
         NotificationTrigger,
         NotificationTriggers,
@@ -74,6 +73,7 @@ impl<K: SubscriptionKind> SubscriptionFragment<K> {
         q: Option<Query>,
         geo_q: Option<GeoQuery>,
         scope_q: Option<ScopeQuery>,
+        csf: Option<Query>,
         #[builder(with = |ids: impl IntoIterator<Item = DatasetId>| ids.into_iter().collect())] dataset_ids: Option<Vec<DatasetId>>,
         lang: Option<LanguageFilter>,
         #[builder(with = |names: impl IntoIterator<Item = impl Into<AttributeNameDraft>>| names.into_iter().map(Into::into).collect())] expand_values: Option<
@@ -122,6 +122,7 @@ impl<K: SubscriptionKind> SubscriptionFragment<K> {
             geo_q: geo_q.map(MemberChange::Set),
             scope_q: scope_q.map(MemberChange::Set),
             kind_members,
+            csf: csf.map(MemberChange::Set),
             dataset_ids: dataset_ids.map(MemberChange::Set),
             lang: lang.map(MemberChange::Set),
             expand_values: expand_values.map(MemberChange::Set),
@@ -140,14 +141,6 @@ impl<K: SubscriptionKind> SubscriptionFragment<K> {
         }
         fragment.check_pairs(&mut problems);
         BuildError::finish(problems, fragment)
-    }
-}
-
-impl<S: subscription_fragment_builder::State> SubscriptionFragmentBuilder<EntitySubscription, S> {
-    /// Replaces the context source filter (`csf`), which only an entity subscription has.
-    pub fn csf(mut self, csf: Query) -> Self {
-        self.kind_members.csf = Some(MemberChange::Set(csf));
-        self
     }
 }
 

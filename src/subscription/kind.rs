@@ -7,15 +7,15 @@ use crate::{
         member_change::{delete_member, read_change},
         reader::{once, within},
     },
-    query::{q::Query, temporal_query::TemporalQuery},
+    query::temporal_query::TemporalQuery,
     seal::Seal,
     subscription::{
         Problem,
         ReadErrorKind,
         SubscriptionField,
         SubscriptionMember,
-        reader::{language, temporal_query},
-        writer::{printed, push, push_change},
+        reader::temporal_query,
+        writer::{push, push_change},
     },
 };
 use jstrict::{Object, Value as Json};
@@ -76,12 +76,14 @@ pub(crate) mod sealed {
 ///
 /// A context information subscription ([`EntitySubscription`], clause 5.8) notifies about entities; a Context
 /// Source Registration Subscription ([`RegistrationSubscription`], clause 5.11) notifies about the registrations
-/// of context sources that can provide them. Table 5.2.12-1 gives each kind one member the other lacks: `csf`
-/// filters the registrations "to be used for Entity Subscriptions", and `temporalQ` is "to be used only in
-/// Context Registration Subscriptions". The kind is a type parameter of
+/// of context sources that can provide them. Table 5.2.12-1 gives the Context Source Registration Subscription one
+/// member the other lacks: `temporalQ` is "to be used only in Context Registration Subscriptions". `csf` is a member
+/// of both kinds: clause 5.11.2.4 has a Context Source Registration Subscription match the context source filter
+/// against the properties of the registrations, and Table 5.2.12-1 says it filters the registrations to be used for
+/// Entity Subscriptions. The kind is a type parameter of
 /// [`Subscription`](crate::subscription::Subscription) and
-/// [`SubscriptionFragment`](crate::subscription::SubscriptionFragment), so a member of the other kind
-/// has no setter and no getter.
+/// [`SubscriptionFragment`](crate::subscription::SubscriptionFragment), so `temporalQ` has no setter and no getter on
+/// an entity subscription.
 ///
 /// The trait is sealed; its associated type decides the members only that kind has. Both kinds are `Send` and
 /// `Sync`, so a subscription of either kind can be sent from any task.
@@ -92,7 +94,7 @@ pub trait SubscriptionKind: sealed::Sealed + Debug + Clone + Copy + PartialEq + 
 
 /// A context information subscription: its notifications carry entities.
 ///
-/// NGSI-LD clause 5.8 defines it. It alone has `csf`.
+/// NGSI-LD clause 5.8 defines it. It has every member of Table 5.2.12-1 but `temporalQ`.
 ///
 /// ```
 /// use ngsi_ld::{
@@ -113,7 +115,8 @@ impl SubscriptionKind for EntitySubscription {
 
 /// A Context Source Registration Subscription.
 ///
-/// NGSI-LD clause 5.11 defines it. Its notifications carry context source registrations. It alone has `temporalQ`.
+/// NGSI-LD clause 5.11 defines it. Its notifications carry context source registrations. It alone has `temporalQ`,
+/// and it has `csf` as an entity subscription does.
 ///
 /// ```
 /// use ngsi_ld::{
@@ -133,68 +136,42 @@ impl SubscriptionKind for RegistrationSubscription {
     type Members = RegistrationSubscriptionMembers;
 }
 
-/// The member only an entity subscription has: `csf`.
+/// The members only an entity subscription has: none.
 ///
-/// `csf` is the context source filter the registrations used for it must meet (NGSI-LD Table 5.2.12-1). Read it through
-/// [`Subscription::csf`](crate::subscription::Subscription::csf).
+/// Table 5.2.12-1 defines no member that a context information subscription has and a Context Source Registration
+/// Subscription lacks, so the block holds nothing; the kind is still a type parameter so that `temporalQ` has a setter
+/// and a getter on a registration subscription only.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct EntitySubscriptionMembers {
-    /// `csf`.
-    pub(crate) csf: Option<Query>,
-}
+pub struct EntitySubscriptionMembers(());
 
 impl sealed::KindMembers for EntitySubscriptionMembers {
     type Changes = EntitySubscriptionChanges;
 
-    fn read<P: Error>(&mut self, _: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
-        if member != SubscriptionMember::Csf {
-            return Ok(Some(json));
-        }
-        let key = member.into();
-        once(&mut self.csf, key, within(key, language(json, key))?)?;
-        Ok(None)
+    fn read<P: Error>(&mut self, _: Seal, _: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        Ok(Some(json))
     }
 
-    fn write(&self, _: Seal, object: &mut Object) {
-        push(object, SubscriptionMember::Csf.into(), self.csf.as_ref().map(printed));
-    }
+    fn write(&self, _: Seal, _: &mut Object) {}
 }
 
-/// The change a fragment of an entity subscription makes to `csf`.
-///
-/// NGSI-LD Table 5.2.12-1 defines `csf`. Read the change through
-/// [`SubscriptionFragment::csf`](crate::subscription::SubscriptionFragment::csf).
+/// The changes a fragment of an entity subscription makes to the members only an entity subscription has: none.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct EntitySubscriptionChanges {
-    /// `csf`.
-    pub(crate) csf: Option<MemberChange<Query>>,
-}
+pub struct EntitySubscriptionChanges(());
 
 impl sealed::KindChanges for EntitySubscriptionChanges {
     fn delete(&mut self, _: Seal, member: SubscriptionMember, problems: &mut Vec<Problem>) {
-        if member == SubscriptionMember::Csf {
-            delete_member(&mut self.csf, SubscriptionField::from(member), problems);
-        } else {
-            problems.push(Problem::MemberOfOtherKind { member });
-        }
+        problems.push(Problem::MemberOfOtherKind { member });
     }
 
-    fn deletes(&self, _: Seal, member: SubscriptionMember) -> bool {
-        member == SubscriptionMember::Csf && self.csf.as_ref().is_some_and(MemberChange::is_delete)
+    fn deletes(&self, _: Seal, _: SubscriptionMember) -> bool {
+        false
     }
 
-    fn read<P: Error>(&mut self, _: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
-        if member != SubscriptionMember::Csf {
-            return Ok(Some(json));
-        }
-        let key = member.into();
-        once(&mut self.csf, key, within(key, read_change(json, |json| language(json, key)))?)?;
-        Ok(None)
+    fn read<P: Error>(&mut self, _: Seal, _: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        Ok(Some(json))
     }
 
-    fn write(&self, _: Seal, object: &mut Object) {
-        push_change(object, SubscriptionMember::Csf.into(), self.csf.as_ref(), |csf| Some(printed(csf)));
-    }
+    fn write(&self, _: Seal, _: &mut Object) {}
 }
 
 /// The member only a Context Source Registration Subscription has: `temporalQ`.

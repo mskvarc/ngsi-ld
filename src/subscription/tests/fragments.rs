@@ -174,10 +174,6 @@ fn a_fragment_body_refuses_what_a_subscription_cannot_hold() {
     assert!(unexpected(r#"{"status":"active"}"#, "status"));
     assert!(unexpected(r#"{"createdAt":"2024-05-01T10:00:00Z"}"#, "createdAt"));
     assert!(matches!(
-        SubscriptionFragment::<RegistrationSubscription>::parse(r#"{"csf":"owner"}"#).unwrap_err().kind,
-        ReadErrorKind::Member(MemberError::UnexpectedMember { ref member }) if member == "csf"
-    ));
-    assert!(matches!(
         refused(r#"{"type":"ContextSourceRegistration"}"#).kind,
         ReadErrorKind::WrongType { .. }
     ));
@@ -206,9 +202,6 @@ fn every_member_a_fragment_deletes_is_reported_as_deleted() {
         if member == SubscriptionMember::TemporalQ {
             assert_eq!(problems(entity), [Problem::MemberOfOtherKind { member }]);
             assert!(registration.unwrap().deletes(member));
-        } else if member == SubscriptionMember::Csf {
-            assert!(entity.unwrap().deletes(member));
-            assert_eq!(problems(registration), [Problem::MemberOfOtherKind { member }]);
         } else {
             assert!(entity.unwrap().deletes(member), "{member}");
             assert!(registration.unwrap().deletes(member), "{member}");
@@ -240,6 +233,8 @@ fn sf_02_each_kind_reads_back_its_own_member() {
     let entity = SubscriptionFragment::builder().csf(csf.clone()).build().unwrap();
     assert_eq!(entity.csf(), Some(MemberChange::Set(&csf)));
     assert_eq!(entity.render().to_string(), r#"{"type":"Subscription","csf":"p==1"}"#);
+    let registration_csf = SubscriptionFragment::registration_builder().csf(csf.clone()).build().unwrap();
+    assert_eq!(registration_csf.csf(), Some(MemberChange::Set(&csf)));
     let temporal = temporal_query::between("2018-08-01T12:00:00Z".parse().unwrap(), "2018-08-01T13:00:00Z".parse().unwrap())
         .build()
         .unwrap();

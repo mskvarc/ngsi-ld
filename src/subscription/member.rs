@@ -6,8 +6,8 @@
 /// NGSI-LD Table 5.2.12-1 defines the members; they are ordered as the canonical form writes them.
 ///
 /// `id` and `type` cannot be changed, and `notification` can be replaced but not removed, so none of them is a
-/// variant. `temporalQ` belongs to a Context Source Registration Subscription only and `csf` to an entity
-/// subscription only (Table 5.2.12-1); a fragment of the other kind refuses to delete them.
+/// variant. `temporalQ` belongs to a Context Source Registration Subscription only (Table 5.2.12-1), so a fragment of an
+/// entity subscription refuses to delete it.
 ///
 /// ```
 /// use ngsi_ld::subscription::SubscriptionMember;

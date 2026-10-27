@@ -35,6 +35,7 @@ where
             q: member(self.q, SubscriptionMember::Q.into(), mapping)?,
             geo_q: member(self.geo_q, SubscriptionMember::GeoQ.into(), mapping)?,
             kind_members: self.kind_members.map_names(mapping)?,
+            csf: member(self.csf, SubscriptionMember::Csf.into(), mapping)?,
             expand_values: member(self.expand_values, SubscriptionMember::ExpandValues.into(), mapping)?,
             json_keys: member(self.json_keys, SubscriptionMember::JsonKeys.into(), mapping)?,
             notification: member(self.notification, SubscriptionMandatoryMember::Notification.into(), mapping)?,
@@ -54,6 +55,7 @@ where
             q: member(self.q, SubscriptionMember::Q.into(), mapping)?,
             geo_q: member(self.geo_q, SubscriptionMember::GeoQ.into(), mapping)?,
             kind_members: self.kind_members.map_names(mapping)?,
+            csf: member(self.csf, SubscriptionMember::Csf.into(), mapping)?,
             expand_values: member(self.expand_values, SubscriptionMember::ExpandValues.into(), mapping)?,
             json_keys: member(self.json_keys, SubscriptionMember::JsonKeys.into(), mapping)?,
             notification: member(self.notification, SubscriptionMandatoryMember::Notification.into(), mapping)?,
@@ -74,19 +76,17 @@ impl<D: SubscriptionDirection> MapNames for NotificationParams<D> {
     }
 }
 
+/// An entity subscription has no member of its own to name anything.
 impl MapNames for EntitySubscriptionMembers {
-    fn map_names<M: NameMapping>(self, mapping: &M) -> Result<Self, DocumentError<M::Error>> {
-        Ok(Self {
-            csf: member(self.csf, SubscriptionMember::Csf.into(), mapping)?,
-        })
+    fn map_names<M: NameMapping>(self, _mapping: &M) -> Result<Self, DocumentError<M::Error>> {
+        Ok(self)
     }
 }
 
+/// An entity subscription has no member of its own to name anything.
 impl MapNames for EntitySubscriptionChanges {
-    fn map_names<M: NameMapping>(self, mapping: &M) -> Result<Self, DocumentError<M::Error>> {
-        Ok(Self {
-            csf: member(self.csf, SubscriptionMember::Csf.into(), mapping)?,
-        })
+    fn map_names<M: NameMapping>(self, _mapping: &M) -> Result<Self, DocumentError<M::Error>> {
+        Ok(self)
     }
 }
 

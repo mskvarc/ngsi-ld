@@ -66,8 +66,8 @@ pub enum Problem {
     /// `showChanges` is true with the simplified format (Table 5.2.14.1-1).
     #[error("previous values cannot be shown in the simplified format")]
     ShowChangesWithSimplified,
-    /// A fragment deletes a member the other kind of subscription has: `csf` from a Context Source Registration
-    /// Subscription, or `temporalQ` from an entity subscription (Table 5.2.12-1).
+    /// A fragment of an entity subscription deletes `temporalQ`, which only a Context Source Registration Subscription
+    /// has (Table 5.2.12-1).
     #[error("`{member}` is not a member of this kind of subscription")]
     MemberOfOtherKind {
         /// The member.

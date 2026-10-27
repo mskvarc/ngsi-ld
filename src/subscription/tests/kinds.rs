@@ -1,7 +1,7 @@
 //! The two kinds of subscription, and the member only each kind has.
 
 use crate::{
-    model::{DateTime, DocumentError, Input, MemberError, Output},
+    model::{DateTime, DocumentError, Input, MemberChange, MemberError, Output},
     query::temporal_query::{self, TemporalQuery},
     subscription::{
         Problem as SubscriptionProblem,
@@ -102,33 +102,61 @@ fn the_context_source_filter_of_an_entity_subscription_is_written_after_the_scop
 }
 
 #[test]
-fn a_reader_refuses_the_member_of_the_other_kind() {
+fn the_context_source_filter_of_a_registration_subscription_is_written_after_its_temporal_query() {
+    let subscription = Subscription::registration_builder()
+        .entities([vehicles()])
+        .scope_q("/Madrid/#".parse().unwrap())
+        .temporal_q(between())
+        .csf("owner".parse().unwrap())
+        .notification(notification())
+        .build()
+        .unwrap();
+    let text = subscription.render().to_string();
+    assert!(
+        text.contains(&format!(r#""scopeQ":"/Madrid/#",{TEMPORAL_Q},"csf":"owner","notification""#)),
+        "{text}"
+    );
+    assert_eq!(registration_round_trip::<Input>(&text), subscription);
+    assert_eq!(subscription.csf().map(ToString::to_string).as_deref(), Some("owner"));
+    let retrieved = text.replacen('{', r#"{"id":"urn:ngsi-ld:Subscription:mySubscription","#, 1);
+    let read = registration_round_trip::<Output>(&retrieved);
+    assert_eq!(read.into_input().csf().map(ToString::to_string).as_deref(), Some("owner"));
+    let alone = registration_round_trip::<Input>(&registration_text(r#""csf":"owner""#));
+    assert_eq!((alone.csf().map(ToString::to_string), alone.temporal_q()), (Some("owner".to_owned()), None));
+}
+
+#[test]
+fn a_registration_subscription_fragment_sets_or_deletes_the_context_source_filter() {
+    let set = SubscriptionFragment::registration_builder().csf("owner".parse().unwrap()).build().unwrap();
+    assert_eq!(set.render().to_string(), r#"{"type":"Subscription","csf":"owner"}"#);
+    assert_eq!(
+        set.csf().map(|change| change.map(ToString::to_string)),
+        Some(MemberChange::Set("owner".to_owned()))
+    );
+    let deleted = SubscriptionFragment::registration_builder().delete(SubscriptionMember::Csf).build().unwrap();
+    assert_eq!(deleted.render().to_string(), r#"{"type":"Subscription","csf":"urn:ngsi-ld:null"}"#);
+    assert_eq!(
+        SubscriptionFragment::<RegistrationSubscription>::parse(r#"{"csf":"owner"}"#).unwrap(),
+        SubscriptionFragment::registration_builder().csf("owner".parse().unwrap()).build().unwrap()
+    );
+}
+
+#[test]
+fn a_reader_refuses_the_temporal_query_of_an_entity_subscription() {
     let error = Subscription::<Input>::parse(&registration_text(&TEMPORAL_Q.replace("\\\"", "\""))).unwrap_err();
     assert!(
         matches!(error.kind, ReadErrorKind::Member(MemberError::UnexpectedMember { ref member }) if member == "temporalQ"),
         "{error}"
     );
-    let error = registration_read_error(&registration_text(r#""csf":"owner""#));
-    assert!(
-        matches!(error.kind, ReadErrorKind::Member(MemberError::UnexpectedMember { ref member }) if member == "csf"),
-        "{error}"
-    );
 }
 
 #[test]
-fn a_fragment_refuses_to_delete_the_member_of_the_other_kind() {
+fn a_fragment_of_an_entity_subscription_refuses_to_delete_the_temporal_query() {
     let entity = SubscriptionFragment::builder().delete(SubscriptionMember::TemporalQ).build();
     assert_eq!(
         problems(entity),
         [Problem::MemberOfOtherKind {
             member: SubscriptionMember::TemporalQ
-        }]
-    );
-    let registration = SubscriptionFragment::registration_builder().delete(SubscriptionMember::Csf).build();
-    assert_eq!(
-        problems(registration),
-        [Problem::MemberOfOtherKind {
-            member: SubscriptionMember::Csf
         }]
     );
 }

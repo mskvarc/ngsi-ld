@@ -73,6 +73,7 @@ impl<K: SubscriptionKind> Subscription<Input, K> {
         q: Option<Query>,
         geo_q: Option<GeoQuery>,
         scope_q: Option<ScopeQuery>,
+        csf: Option<Query>,
         #[builder(with = |ids: impl IntoIterator<Item = DatasetId>| ids.into_iter().collect())] dataset_ids: Option<Vec<DatasetId>>,
         lang: Option<LanguageFilter>,
         #[builder(default, with = |names: impl IntoIterator<Item = impl Into<AttributeNameDraft>>| names.into_iter().map(Into::into).collect())]
@@ -112,6 +113,7 @@ impl<K: SubscriptionKind> Subscription<Input, K> {
             geo_q,
             scope_q,
             kind_members,
+            csf,
             dataset_ids,
             lang,
             expand_values: resolve_names(field(SubscriptionMember::ExpandValues), expand_values, &mut problems),
@@ -175,21 +177,6 @@ impl Subscription<Input, RegistrationSubscription> {
     /// `build()` returns [`BuildError`] as [`Subscription::builder`] does.
     pub fn registration_builder() -> SubscriptionBuilder<RegistrationSubscription> {
         Self::kind_builder()
-    }
-}
-
-impl<S: subscription_builder::State> SubscriptionBuilder<EntitySubscription, S> {
-    /// Sets the context source filter the registrations used for the subscription must meet (`csf`, Table
-    /// 5.2.12-1), which only an entity subscription has.
-    pub fn csf(mut self, csf: Query) -> Self {
-        self.kind_members.csf = Some(csf);
-        self
-    }
-
-    /// Sets `csf` when there is one.
-    pub fn maybe_csf(mut self, csf: Option<Query>) -> Self {
-        self.kind_members.csf = csf;
-        self
     }
 }
 

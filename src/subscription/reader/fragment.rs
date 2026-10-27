@@ -36,6 +36,7 @@ use crate::{
             notification_params::read_notification_params,
             notification_triggers,
             positive,
+            refuse_unread,
             selectors,
         },
     },
@@ -102,12 +103,8 @@ fn read_optional<K: SubscriptionKind>(
         SubscriptionMember::GeoQ => once(&mut fragment.geo_q, key, within(key, read_change(value, geo_query))?),
         SubscriptionMember::ScopeQ => once(&mut fragment.scope_q, key, within(key, read_change(value, |value| language(value, key)))?),
         // A member of the other kind of subscription is not defined for this one.
-        SubscriptionMember::TemporalQ | SubscriptionMember::Csf => {
-            if fragment.kind_members.read(Seal::new(), member, value)?.is_some() {
-                return Err(unexpected(key));
-            }
-            Ok(())
-        }
+        SubscriptionMember::TemporalQ => refuse_unread(fragment.kind_members.read(Seal::new(), member, value)?, key),
+        SubscriptionMember::Csf => once(&mut fragment.csf, key, within(key, read_change(value, |value| language(value, key)))?),
         SubscriptionMember::DatasetId => once(
             &mut fragment.dataset_ids,
             key,

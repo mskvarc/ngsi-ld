@@ -169,6 +169,7 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
     let mut geo_q = None;
     let mut scope_q = None;
     let mut kind_members = K::Members::default();
+    let mut csf = None;
     let mut dataset_ids = None;
     let mut lang = None;
     let mut expand_values = None;
@@ -211,12 +212,8 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
             SubscriptionMember::Q => once(&mut q, key, within(key, language(value, key))?)?,
             SubscriptionMember::GeoQ => once(&mut geo_q, key, within(key, geo_query(value))?)?,
             SubscriptionMember::ScopeQ => once(&mut scope_q, key, within(key, language(value, key))?)?,
-            // A member of the other kind of subscription is not defined for this one.
-            SubscriptionMember::TemporalQ | SubscriptionMember::Csf => {
-                if kind_members.read(Seal::new(), member, value)?.is_some() {
-                    return Err(unexpected(key));
-                }
-            }
+            SubscriptionMember::TemporalQ => refuse_unread(kind_members.read(Seal::new(), member, value)?, key)?,
+            SubscriptionMember::Csf => once(&mut csf, key, within(key, language(value, key))?)?,
             SubscriptionMember::DatasetId => once(&mut dataset_ids, key, within(key, dataset_id_list(value, key))?)?,
             SubscriptionMember::Lang => once(&mut lang, key, within(key, language(value, key))?)?,
             SubscriptionMember::ExpandValues => once(&mut expand_values, key, within(key, comma_separated_names(value, key))?)?,
@@ -243,6 +240,7 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
         geo_q,
         scope_q,
         kind_members,
+        csf,
         dataset_ids,
         lang,
         expand_values: expand_values.unwrap_or_default(),
@@ -257,6 +255,12 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
         output,
         context: subscription_context,
     })
+}
+
+/// Refuses `key`, a member of the other kind of subscription, when the member block of this kind handed its value
+/// back unread (Table 5.2.12-1).
+pub(crate) fn refuse_unread(unread: Option<Json>, key: &str) -> Result<(), DocumentError<ReadErrorKind<Problem>>> {
+    unread.map_or(Ok(()), |_| Err(unexpected(key)))
 }
 
 /// Reads `entities`, written as the member `member`: a non-empty array of entity selectors (clause 5.2.33).
