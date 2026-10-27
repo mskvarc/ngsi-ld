@@ -110,7 +110,7 @@ impl RetrieveEntityParameters {
         let representation = read_representation::<Representation>(&received)?;
         Ok(RetrieveEntityParameters {
             entity_type: received.parsed(QueryParameter::Type, ParameterError::syntax)?,
-            attrs: received.list(QueryParameter::Attrs, ParameterError::name)?,
+            attrs: received.names(QueryParameter::Attrs, ParameterError::name)?,
             pick: received.parsed(QueryParameter::Pick, ParameterError::syntax)?,
             omit: received.parsed(QueryParameter::Omit, ParameterError::syntax)?,
             dataset_ids: received.list(QueryParameter::DatasetId, ParameterError::uri)?,

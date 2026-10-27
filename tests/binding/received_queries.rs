@@ -21,10 +21,12 @@ use ngsi_ld::{
             InlineJoin,
             Operation,
             ParameterError,
+            PurgeEntitiesParameters,
             QueryEntities,
             QueryEntitiesParameters,
             QueryEntitiesPostParameters,
             QueryMethod,
+            QueryTemporalEvolutionParameters,
             RepresentationSpelling,
             RepresentationToken,
             ResultsCount,
@@ -246,6 +248,67 @@ fn every_retrieve_entity_parameter_reads_back_as_the_value_sent() {
     assert_eq!(received.spelling, RepresentationSpelling::default().in_options());
     assert_eq!(received.system_attributes, SystemAttributes::Include);
     assert_eq!(received.locality, Locality::Unspecified);
+}
+
+/// The names of a list as text.
+fn texts<T: ToString>(items: &[T]) -> Vec<String> {
+    items.iter().map(ToString::to_string).collect()
+}
+
+#[test]
+fn a_list_of_names_or_tokens_reads_the_same_with_a_literal_or_an_encoded_comma() {
+    // A client that form-encodes its query writes the separator as `%2C`; no name or token holds a comma, so both
+    // spellings are the same list.
+    let literal =
+        QueryEntitiesParameters::parse("type=Car&attrs=speed,brandName&expandValues=status,mode&jsonKeys=tickets,permit&options=keyValues,sysAttrs").unwrap();
+    let encoded =
+        QueryEntitiesParameters::parse("type=Car&attrs=speed%2CbrandName&expandValues=status%2Cmode&jsonKeys=tickets%2Cpermit&options=keyValues%2CsysAttrs")
+            .unwrap();
+    assert_eq!(texts(&encoded.selection.attrs), ["speed", "brandName"]);
+    assert_eq!(texts(&encoded.selection.expand_values), ["status", "mode"]);
+    assert_eq!(texts(&encoded.selection.json_keys), ["tickets", "permit"]);
+    assert_eq!(encoded.representation, Representation::Simplified);
+    assert_eq!(encoded.system_attributes, SystemAttributes::Include);
+    assert_eq!(texts(&encoded.selection.attrs), texts(&literal.selection.attrs));
+    assert_eq!(texts(&encoded.selection.expand_values), texts(&literal.selection.expand_values));
+    assert_eq!(texts(&encoded.selection.json_keys), texts(&literal.selection.json_keys));
+    assert_eq!(encoded.representation, literal.representation);
+    assert_eq!(encoded.system_attributes, literal.system_attributes);
+    let retrieve = RetrieveEntityParameters::parse("attrs=name%2Cowner&join=flat").unwrap();
+    assert_eq!(texts(&retrieve.attrs), ["name", "owner"]);
+    let purge = PurgeEntitiesParameters::parse("type=Car&drop=speed%2Cmode").unwrap();
+    assert_eq!(texts(&purge.drop), ["speed", "mode"]);
+    let temporal = QueryTemporalEvolutionParameters::parse("attrs=speed%2Cmode&timerel=after&timeAt=2000-01-01T00:00:00Z").unwrap();
+    assert_eq!(texts(&temporal.selection.attrs), ["speed", "mode"]);
+}
+
+#[test]
+fn the_names_of_a_list_are_each_checked_once_the_list_is_split() {
+    // The scope has an evolution of its own, so a temporal query may name it; a temporal property such as createdAt is
+    // not an Attribute name (clause 4.5).
+    let scope = QueryTemporalEvolutionParameters::parse("attrs=speed%2Cscope&timerel=after&timeAt=2000-01-01T00:00:00Z").unwrap();
+    assert_eq!(texts(&scope.selection.attrs), ["speed", "scope"]);
+    for query in [
+        "attrs=speed%2CcreatedAt&timerel=after&timeAt=2000-01-01T00:00:00Z",
+        "attrs=speed,createdAt&timerel=after&timeAt=2000-01-01T00:00:00Z",
+    ] {
+        assert!(matches!(
+            QueryTemporalEvolutionParameters::parse(query),
+            Err(ParameterError::Name {
+                parameter: QueryParameter::Attrs,
+                ..
+            })
+        ));
+    }
+}
+
+#[test]
+fn a_list_of_uris_is_split_at_its_literal_commas_only() {
+    // A URI may hold a comma, so an encoded comma is part of an id and a literal one separates two.
+    let literal = QueryEntitiesParameters::parse("id=urn:ngsi-ld:Car:1,urn:ngsi-ld:Car:2").unwrap();
+    assert_eq!(literal.selection.ids.len(), 2);
+    let encoded = QueryEntitiesParameters::parse("id=urn:ngsi-ld:Car:1%2Curn:ngsi-ld:Car:2").unwrap();
+    assert_eq!(encoded.selection.ids.len(), 1);
 }
 
 /// The error a query string of Query Entities is refused with.

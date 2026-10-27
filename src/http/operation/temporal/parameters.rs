@@ -217,7 +217,7 @@ impl RetrieveTemporalEvolutionParameters {
         let representation = read_representation::<TemporalRepresentation>(&received)?;
         Ok(RetrieveTemporalEvolutionParameters {
             selection: TemporalSelectionParameters::read(&received)?,
-            attrs: received.list(QueryParameter::Attrs, ParameterError::name)?,
+            attrs: received.names(QueryParameter::Attrs, ParameterError::name)?,
             pick: received.parsed(QueryParameter::Pick, ParameterError::syntax)?,
             omit: received.parsed(QueryParameter::Omit, ParameterError::syntax)?,
             dataset_ids: received.list(QueryParameter::DatasetId, ParameterError::uri)?,

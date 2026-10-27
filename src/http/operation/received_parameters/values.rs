@@ -1,6 +1,7 @@
 //! Reading the values of the parameters of a received query string: each value is percent-decoded (IETF RFC 3986
-//! section 2.1) and read with the grammar of its parameter, a comma separated list split at its literal commas
-//! before its items are decoded.
+//! section 2.1) and read with the grammar of its parameter. A comma separated list of URIs is split at its literal
+//! commas before its items are decoded, since a URI may hold an encoded comma; a list of names or tokens is split
+//! after the decoding, since no name or token holds a comma and clients differ in whether they encode the separator.
 
 use crate::{
     http::{
@@ -47,7 +48,8 @@ impl<'a> ReceivedQuery<'a> {
     }
 
     /// The items of the comma separated list `parameter`, empty when it is not given: the raw value is split at its
-    /// literal commas, then each item is decoded and read with `FromStr`.
+    /// literal commas, then each item is decoded and read with `FromStr`. For items that may hold a comma, such as
+    /// URIs; a list of names is read with [`ReceivedQuery::names`].
     ///
     /// # Errors
     ///
@@ -62,6 +64,28 @@ impl<'a> ReceivedQuery<'a> {
             |raw| {
                 raw.split(',')
                     .map(|item| decode(item, parameter)?.parse::<T>().map_err(|source| error(parameter, source)))
+                    .collect()
+            },
+        )
+    }
+
+    /// The items of the comma separated list of names `parameter`, empty when it is not given: the value is decoded,
+    /// then split at its commas, so `a,b` and `a%2Cb` are the same list. No name holds a comma, so the separator is
+    /// unambiguous in either spelling.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ParameterError::Encoding`], or what `error` makes of the first parse failure.
+    pub(crate) fn names<T: FromStr>(
+        &self,
+        parameter: QueryParameter,
+        error: impl Fn(QueryParameter, T::Err) -> ParameterError,
+    ) -> Result<Vec<T>, ParameterError> {
+        self.text(parameter)?.map_or_else(
+            || Ok(Vec::new()),
+            |text| {
+                text.split(',')
+                    .map(|item| item.parse::<T>().map_err(|source| error(parameter, source)))
                     .collect()
             },
         )
@@ -89,22 +113,22 @@ impl<'a> ReceivedQuery<'a> {
         Ok(self.flag(QueryParameter::Local)?.map_or(Locality::Unspecified, Locality::from_flag))
     }
 
-    /// The tokens of the comma separated list `parameter`, empty when it is not given.
+    /// The tokens of the comma separated list `parameter`, empty when it is not given: the value is decoded, then
+    /// split at its commas, as for [`ReceivedQuery::names`].
     ///
     /// # Errors
     ///
     /// Returns [`ParameterError::Encoding`], or [`ParameterError::UnknownToken`] naming the first item that is not
     /// a token of `T`.
     pub(crate) fn tokens<T: FromStr>(&self, parameter: QueryParameter) -> Result<Vec<T>, ParameterError> {
-        self.raw(parameter).map_or_else(
+        self.text(parameter)?.map_or_else(
             || Ok(Vec::new()),
-            |raw| {
-                raw.split(',')
+            |text| {
+                text.split(',')
                     .map(|item| {
-                        let item = decode(item, parameter)?;
                         item.parse::<T>().map_err(|_| ParameterError::UnknownToken {
                             parameter,
-                            token: item.into_owned(),
+                            token: item.to_owned(),
                         })
                     })
                     .collect()

@@ -104,8 +104,8 @@ impl PurgeEntitiesParameters {
             geometry_property: received.parsed(QueryParameter::GeometryProperty, ParameterError::name)?,
             scope_q: received.parsed(QueryParameter::ScopeQ, ParameterError::syntax)?,
             csf: received.parsed(QueryParameter::Csf, ParameterError::syntax)?,
-            drop: received.list(QueryParameter::Drop, ParameterError::name)?,
-            keep: received.list(QueryParameter::Keep, ParameterError::name)?,
+            drop: received.names(QueryParameter::Drop, ParameterError::name)?,
+            keep: received.names(QueryParameter::Keep, ParameterError::name)?,
             locality: received.locality()?,
         })
     }
