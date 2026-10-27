@@ -106,7 +106,9 @@ impl FromStr for StoredContextKind {
 /// 5.13.3.5).
 ///
 /// Clause 5.13.3.5 closes the member set ("a list of resulting JSON objects containing the following fields") and
-/// gives implementations `extraInfo` for anything else, so a reader refuses any other member. The set of kinds is
+/// gives implementations `extraInfo` for anything else, so a reader refuses any other member. An optional member
+/// (`expiresAt`, `lastUsage`, `numberOfHits`) that holds the JSON null is read as one that is left out, and is not
+/// written back. The set of kinds is
 /// open (clause 5.13.3.3), so an unknown `kind` is read into [`StoredContextKind::Other`].
 ///
 /// ```
@@ -212,9 +214,9 @@ impl ContextMetadata {
                 "localId" => once(&mut local_id, key, within(key, identifier(value, "localId"))?)?,
                 "kind" => once(&mut kind, key, within(key, token(value, "kind"))?)?,
                 "createdAt" => once(&mut created_at, key, within(key, date_time(value, "createdAt"))?)?,
-                "expiresAt" => once(&mut expires_at, key, within(key, date_time(value, "expiresAt"))?)?,
-                "lastUsage" => once(&mut last_usage, key, within(key, date_time(value, "lastUsage"))?)?,
-                "numberOfHits" => once(&mut number_of_hits, key, within(key, count(value, "numberOfHits"))?)?,
+                "expiresAt" => once(&mut expires_at, key, within(key, unless_null(value, |json| date_time(json, "expiresAt")))?)?,
+                "lastUsage" => once(&mut last_usage, key, within(key, unless_null(value, |json| date_time(json, "lastUsage")))?)?,
+                "numberOfHits" => once(&mut number_of_hits, key, within(key, unless_null(value, |json| count(json, "numberOfHits")))?)?,
                 "extraInfo" => once(&mut extra_info, key, RawJson::from_json(value))?,
                 other => return Err(unexpected(other)),
             }
@@ -224,12 +226,19 @@ impl ContextMetadata {
             local_id: required(local_id, "localId")?,
             kind: required(kind, "kind")?,
             created_at: required(created_at, "createdAt")?,
-            expires_at,
-            last_usage,
-            number_of_hits,
+            expires_at: expires_at.flatten(),
+            last_usage: last_usage.flatten(),
+            number_of_hits: number_of_hits.flatten(),
             extra_info,
         })
     }
+}
+
+/// Reads `value` with `read`, or reads nothing when it is the JSON null. Clause 5.13.3.5 marks `expiresAt`,
+/// `lastUsage` and `numberOfHits` optional and says nothing of null, so a member that holds null is one that holds no
+/// value, as when it is left out.
+fn unless_null<T>(value: Json, read: impl FnOnce(Json) -> Result<T, DocumentError>) -> Result<Option<T>, DocumentError> {
+    if matches!(value, Json::Null) { Ok(None) } else { read(value).map(Some) }
 }
 
 /// A JSON-LD local context document.

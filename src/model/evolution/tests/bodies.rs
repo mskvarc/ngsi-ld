@@ -6,6 +6,7 @@ use crate::model::{
     DocumentErrorKind,
     Input,
     Lossless,
+    MemberError,
     NullMember,
     Output,
     Property,
@@ -111,6 +112,53 @@ fn a_simplified_temporal_input_reads_back_as_it_is_written() {
     assert_eq!(read.render().to_string(), text);
     let with_context = text.replacen('{', r#"{"@context":"https://example.org/context.jsonld","#, 1);
     assert!(SimplifiedTemporalInput::parse(&with_context).unwrap().as_entity().context.is_some());
+}
+
+#[test]
+fn a_simplified_temporal_input_reads_each_of_the_eight_families_of_clause_4_5_9() {
+    let text = concat!(
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+        r#""name":{"type":"Property","values":[["Joe Bloggs","2022-08-09T18:25:02Z"],["Bill Smith","2022-08-10T18:25:02Z"]]},"#,
+        r#""location":{"type":"GeoProperty","values":[[{"type":"Point","coordinates":[13.5,52.5]},"2022-08-09T18:25:02Z"]]},"#,
+        r#""says":{"type":"LanguageProperty","languageMaps":[[{"languageMap":{"en":"yes","fr":"oui"}},"2022-08-09T18:25:02Z"]]},"#,
+        r#""period":{"type":"ListProperty","valueLists":[[["First","Second"],"2022-08-09T18:25:02Z"]]},"#,
+        r#""parkingTickets":{"type":"JsonProperty","jsons":[[{"json":[{"id":"a","value":"b"}]},"2022-08-09T18:25:02Z"]]},"#,
+        r#""gender":{"type":"VocabProperty","vocabs":[[{"vocab":"Male"},"2022-08-09T18:25:02Z"]]},"#,
+        r#""spouse":{"type":"Relationship","objects":[["urn:ngsi-ld:Person:1","2022-08-09T18:25:02Z"],[["urn:ngsi-ld:Person:1","urn:ngsi-ld:Person:2"],"2022-08-10T18:25:02Z"]]},"#,
+        r#""membersPresent":{"type":"ListRelationship","objectLists":[[["urn:ngsi-ld:Person:1","urn:ngsi-ld:Person:2"],"2022-08-09T18:25:02Z"]]}}"#
+    );
+    let read = SimplifiedTemporalInput::parse(text).unwrap();
+    assert_eq!(read.as_entity().attributes.len(), 8);
+    assert_eq!(read.render().to_string(), text);
+}
+
+#[test]
+fn a_simplified_temporal_member_holds_its_type_and_its_data_points_only() {
+    let head = r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#;
+    for member in [
+        r#""n":{"type":"Property","datasetId":"urn:ngsi-ld:Dataset:a","values":[[1,"2022-08-09T18:25:02Z"]]}"#,
+        r#""o":{"type":"Relationship","datasetId":"urn:ngsi-ld:Dataset:a","objects":[["urn:ngsi-ld:Person:1","2022-08-09T18:25:02Z"]]}"#,
+        r#""s":{"type":"LanguageProperty","datasetId":"urn:ngsi-ld:Dataset:a","languageMaps":[[{"languageMap":{"en":"yes"}},"2022-08-09T18:25:02Z"]]}"#,
+        r#""p":{"type":"ListProperty","datasetId":"urn:ngsi-ld:Dataset:a","valueLists":[[["First"],"2022-08-09T18:25:02Z"]]}"#,
+        r#""j":{"type":"JsonProperty","datasetId":"urn:ngsi-ld:Dataset:a","jsons":[[{"json":{"a":1}},"2022-08-09T18:25:02Z"]]}"#,
+        r#""g":{"type":"VocabProperty","datasetId":"urn:ngsi-ld:Dataset:a","vocabs":[[{"vocab":"Male"},"2022-08-09T18:25:02Z"]]}"#,
+        r#""m":{"type":"ListRelationship","datasetId":"urn:ngsi-ld:Dataset:a","objectLists":[[["urn:ngsi-ld:Person:1"],"2022-08-09T18:25:02Z"]]}"#,
+        r#""n":{"type":"Property","unitCode":"KMH","values":[[1,"2022-08-09T18:25:02Z"]]}"#,
+    ] {
+        let error = SimplifiedTemporalInput::parse(&format!("{head}{member}}}")).unwrap_err();
+        assert!(
+            matches!(error.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { .. })),
+            "{member}: {error:?}"
+        );
+    }
+}
+
+#[test]
+fn the_attributes_added_to_an_evolution_are_not_in_the_simplified_representation() {
+    let simplified = r#"{"pairs":{"type":"JsonProperty","jsons":[[{"json":[{"code":"p"}]},"2022-08-09T18:25:02Z"]]}}"#;
+    for form in [Lossless::Normalized, Lossless::Concise] {
+        assert!(TemporalAttributes::<Input>::parse(simplified, form).is_err(), "{form:?}");
+    }
 }
 
 #[test]

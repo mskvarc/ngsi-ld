@@ -81,6 +81,22 @@ fn the_metadata_of_a_hosted_context_needs_no_optional_member() {
 }
 
 #[test]
+fn an_optional_member_holding_null_is_read_as_left_out() {
+    let open = HOSTED.strip_suffix('}').unwrap();
+    let with_null = format!(r#"{open},"expiresAt":null,"lastUsage":null,"numberOfHits":null}}"#);
+    let metadata = ContextMetadata::parse(&with_null).unwrap();
+    assert_eq!(metadata, ContextMetadata::parse(HOSTED).unwrap());
+    assert_eq!(metadata.render().to_string(), HOSTED);
+    let twice = format!(r#"{open},"expiresAt":null,"expiresAt":null}}"#);
+    assert!(matches!(
+        kind(ContextMetadata::parse(&twice).unwrap_err()),
+        DocumentErrorKind::Member(MemberError::DuplicateMember { .. })
+    ));
+    let created = HOSTED.replace(r#""createdAt":"2024-05-01T10:00:00Z""#, r#""createdAt":null"#);
+    assert!(ContextMetadata::parse(&created).is_err());
+}
+
+#[test]
 fn metadata_out_of_shape_is_refused_at_its_member() {
     let error = ContextMetadata::parse(&HOSTED.replace("\"kind\":\"Hosted\"", "\"kind\":\"\"")).unwrap_err();
     assert!(matches!(error.kind, DocumentErrorKind::Member(MemberError::InvalidToken { member: "kind", found: ref token }) if token.is_empty()));

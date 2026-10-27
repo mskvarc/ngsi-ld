@@ -60,6 +60,22 @@ fn a_temporal_query_carries_its_aggregation() {
 }
 
 #[test]
+fn a_temporal_query_orders_by_id_under_a_collation_and_needs_order_by_to_be_an_array() {
+    let text = concat!(
+        r#"{"type":"Query","entities":[{"type":"Vehicle"}],"temporalQ":{"timerel":"after","timeAt":"2020-01-01T00:00:00Z"},"#,
+        r#""ordering":{"orderBy":["id;desc"],"collation":"und-u-kn-true"}}"#
+    );
+    let query = QueryDocument::<TemporalEvolutionQuery>::parse(text).unwrap();
+    assert_eq!(query.render().to_string(), text);
+    assert_eq!(
+        query.ordering().and_then(|ordering| ordering.collation()).map(ToString::to_string).as_deref(),
+        Some("und-u-kn-true")
+    );
+    let bare = QueryDocument::<TemporalEvolutionQuery>::parse(&text.replace(r#"["id;desc"]"#, r#""id;desc""#)).unwrap_err();
+    assert_eq!(bare.path.to_string(), "ordering.orderBy");
+}
+
+#[test]
 fn a_query_builder_refuses_only_what_the_tables_forbid() {
     let problems = |build: Result<QueryDocument<EntityQuery>, BuildError<Problem>>| build.unwrap_err().problems().to_vec();
     let levelled = QueryDocument::<EntityQuery>::builder().join_level(2).build().unwrap();
