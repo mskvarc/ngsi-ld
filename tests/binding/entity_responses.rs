@@ -168,6 +168,35 @@ fn a_page_has_its_items_and_links_resolved_against_the_request_url() {
 }
 
 #[test]
+fn a_page_link_carrying_an_opaque_continuation_is_requested_exactly_as_the_broker_wrote_it() {
+    // Clause 5.5.9.1 lets the pointers to the neighbouring pages be completely opaque, so a link may carry a parameter
+    // the specification does not define.
+    let entity_type: SelectorType = "Vehicle".parse().unwrap();
+    let query = query_vehicles(Some(&entity_type), None, Simplified);
+    let request = query.to_request(&endpoint()).unwrap();
+    let link = link_field([
+        link_value(
+            "/ngsi-ld/v1/entities?type=Vehicle&format=simplified&cursor=Zm9v.YmFy&limit=2",
+            RelationType::Next,
+        ),
+        link_value("/ngsi-ld/v1/entities?type=Vehicle&format=simplified&cursor=YmFy&limit=2", RelationType::Prev),
+    ]);
+    let page = query
+        .decode(&ResponseContext::new(&request), response(200, &[(&header::LINK, &link)], "[]"))
+        .unwrap();
+    let next = page.next_page().unwrap().to_request(&endpoint()).unwrap();
+    assert_eq!(
+        next.uri().to_string(),
+        "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&format=simplified&cursor=Zm9v.YmFy&limit=2"
+    );
+    let prev = page.prev_page().unwrap().to_request(&endpoint()).unwrap();
+    assert_eq!(
+        prev.uri().to_string(),
+        "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&format=simplified&cursor=YmFy&limit=2"
+    );
+}
+
+#[test]
 fn the_results_count_header_is_the_total() {
     let entity_type: SelectorType = "Vehicle".parse().unwrap();
     let query = query_vehicles(Some(&entity_type), None, Lossless::Normalized);

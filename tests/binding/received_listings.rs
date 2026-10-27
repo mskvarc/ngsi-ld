@@ -296,6 +296,27 @@ fn the_discovery_requests_read_back_their_details_and_locality() {
 }
 
 #[test]
+fn a_continuation_parameter_the_specification_does_not_define_is_refused_by_every_reader_of_a_query() {
+    // Clause 5.5.9.2 names `limit` and `offset` only; a broker's opaque continuation is its own parameter.
+    assert!(matches!(
+        refused(QueryEntitiesParameters::parse, "type=Vehicle&cursor=Zm9v"),
+        ParameterError::Unknown { .. }
+    ));
+    assert!(matches!(
+        refused(QueryTemporalEvolutionParameters::parse, "type=Vehicle&cursor=Zm9v"),
+        ParameterError::Unknown { .. }
+    ));
+    assert!(matches!(
+        refused(QueryRegistrationsParameters::parse, "cursor=Zm9v"),
+        ParameterError::Unknown { .. }
+    ));
+    assert!(matches!(
+        refused(QuerySubscriptionsParameters::parse, "cursor=Zm9v"),
+        ParameterError::Unknown { .. }
+    ));
+}
+
+#[test]
 fn the_discovery_requests_refuse_what_their_tables_do_not_define() {
     assert!(matches!(refused(DiscoveryParameters::parse, "limit=1"), ParameterError::Unknown { .. }));
     assert!(matches!(
