@@ -10,7 +10,7 @@
 //! # Normalized and concise
 //!
 //! [`TemporalEntity`], [`TemporalAttributes`], [`Evolution`], [`TemporalAttributeName`],
-//! [`TemporalAttributeNameDraft`], [`ScopeInstance`], [`ScopeValue`].
+//! [`TemporalAttributeNameDraft`], [`ScopeInstance`], [`ScopeValue`], [`InstanceSpelling`].
 //!
 //! # Simplified
 //!
@@ -35,6 +35,7 @@ pub use crate::model::evolution::{
         input::SimplifiedTemporalInput,
         values::{TemporalValue, TemporalValues},
     },
+    spelling::InstanceSpelling,
     temporal_entity::TemporalEntity,
 };
 
@@ -49,6 +50,7 @@ mod output;
 pub(crate) mod read;
 mod scope;
 mod simplified;
+mod spelling;
 mod temporal_entity;
 pub(crate) mod write;
 

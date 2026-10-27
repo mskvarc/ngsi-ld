@@ -20,7 +20,7 @@ use crate::{
     model::{
         Input,
         Lossless,
-        evolution::{SimplifiedTemporalInput, TemporalEntity, write::temporal_entity_object},
+        evolution::{InstanceSpelling, SimplifiedTemporalInput, TemporalEntity, write::temporal_entity_object},
     },
 };
 use bytes::Bytes;
@@ -71,6 +71,9 @@ pub struct CreateOrUpdateTemporalEvolution<'a> {
     /// The representation the body is written in.
     #[builder(default)]
     pub form: Lossless,
+    /// How an evolution of one instance is written: an array, or the single object clauses 4.5.7 and 4.5.8 allow.
+    #[builder(default)]
+    pub spelling: InstanceSpelling,
 }
 
 impl Sealed for CreateOrUpdateTemporalEvolution<'_> {}
@@ -86,7 +89,7 @@ impl Operation for CreateOrUpdateTemporalEvolution<'_> {
 impl BuildsRequest for CreateOrUpdateTemporalEvolution<'_> {
     fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
         RequestParts::resource(Method::POST, ResourcePath::temporal_entities(), QueryString::default())
-            .with_body(temporal_entity_object(self.entity, self.form))
+            .with_body(temporal_entity_object(self.entity, self.form, self.spelling))
             .into_request(endpoint, scope)
     }
 }

@@ -46,7 +46,7 @@ use ngsi_ld::{
         Projected,
         Property,
         Tenant,
-        evolution::{TemporalAttributes, TemporalEntity},
+        evolution::{InstanceSpelling, TemporalAttributes, TemporalEntity},
         geometry::{Position, Shape},
     },
     query::{
@@ -137,6 +137,38 @@ fn a_concise_evolution_under_ld_json_body_carries_the_context_last() {
             r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"},"#,
             r#"{"value":80,"observedAt":"2018-08-01T12:05:00Z"}],"@context":"https://example.org/context.jsonld"}"#
         )
+    );
+}
+
+#[test]
+fn create_or_update_writes_an_evolution_of_one_instance_as_an_object_when_asked() {
+    let entity = TemporalEntity::<Input>::builder()
+        .id(b())
+        .entity_type("Vehicle")
+        .property("speed", Property::builder(120).observed_at(time(T1)))
+        .build()
+        .unwrap();
+    let single = request(
+        &CreateOrUpdateTemporalEvolution::builder()
+            .entity(&entity)
+            .form(Lossless::Concise)
+            .spelling(InstanceSpelling::SingleWhenOne)
+            .build(),
+    );
+    assert_eq!(single.method(), Method::POST);
+    assert_eq!(single.uri().path(), "/ngsi-ld/v1/temporal/entities");
+    assert_eq!(single.uri().query(), None);
+    assert_eq!(header_value(&single, &header::CONTENT_TYPE), Some("application/json"));
+    assert_eq!(link_of(&single), Some(context_link()));
+    assert_eq!(header_value(&single, &header::CONTENT_LENGTH), Some(single.body().len().to_string().as_str()));
+    assert_eq!(
+        body_text(&single),
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":{"value":120,"observedAt":"2018-08-01T12:03:00Z"}}"#
+    );
+    let default = request(&CreateOrUpdateTemporalEvolution::builder().entity(&entity).form(Lossless::Concise).build());
+    assert_eq!(
+        body_text(&default),
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"}]}"#
     );
 }
 

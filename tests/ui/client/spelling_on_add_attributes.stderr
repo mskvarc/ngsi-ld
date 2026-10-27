@@ -1,0 +1,11 @@
+error[E0599]: no method named `spelling` found for struct `AddTemporalAttributesBuilder<'a, S>` in the current scope
+  --> tests/ui/client/spelling_on_add_attributes.rs:17:10
+   |
+14 |       let _ = AddTemporalAttributes::builder()
+   |  _____________-
+15 | |         .id(&id)
+16 | |         .attributes(&attributes)
+17 | |         .spelling(InstanceSpelling::SingleWhenOne);
+   | |         -^^^^^^^^ method not found in `AddTemporalAttributesBuilder<'_, operation::temporal::add_attributes::add_temporal_attributes_builder::SetAttributes<operation::temporal::add_attributes::add_temporal_attributes_builder::SetId>>`
+   | |_________|
+   |

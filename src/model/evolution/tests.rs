@@ -4,3 +4,4 @@ mod input;
 mod ranges;
 mod scope;
 mod simplified;
+mod spelling;

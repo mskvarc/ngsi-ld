@@ -24,7 +24,7 @@ use crate::{
         RawJson,
         TypeDraft,
         attribute::pending::PendingAttributes,
-        evolution::{Evolution, ScopeInstance, TemporalAttributes, read::read_temporal_entity, write::temporal_entity_object},
+        evolution::{Evolution, InstanceSpelling, ScopeInstance, TemporalAttributes, read::read_temporal_entity, write::temporal_entity_object},
         reader::parse_json,
         representation::write::{direction::WriteEntityDirection, write_context},
     },
@@ -135,7 +135,15 @@ impl TemporalEntity<Input> {
     /// instances, with its own `@context` last when it has one.
     #[must_use]
     pub fn render(&self, form: Lossless) -> RawJson {
-        render_temporal(self, form)
+        render_temporal(self, form, InstanceSpelling::Array)
+    }
+
+    /// Writes the temporal entity as [`render`](Self::render) does, with an evolution of one instance, and the
+    /// `scope` of one instance, spelled as `spelling` says (clauses 4.5.6 to 4.5.8): the single object is the other
+    /// spelling Create or Update Temporal Evolution accepts (clause 5.6.11.3).
+    #[must_use]
+    pub fn render_spelled(&self, form: Lossless, spelling: InstanceSpelling) -> RawJson {
+        render_temporal(self, form, spelling)
     }
 
     /// Reads a temporal entity a client could send, in normalized or concise representation.
@@ -219,7 +227,7 @@ impl<C: Completeness> TemporalEntity<Output, C> {
     /// own `@context` last when it has one.
     #[must_use]
     pub fn render(&self, form: Lossless) -> RawJson {
-        render_temporal(self, form)
+        render_temporal(self, form, InstanceSpelling::Array)
     }
 
     /// Reads a temporal entity a broker returned, in normalized or concise representation, keeping its
@@ -388,8 +396,8 @@ impl<D: EntityDirection, C: Completeness> TemporalEntity<D, C> {
 }
 
 /// Writes a temporal entity with its own `@context` last.
-fn render_temporal<D: WriteEntityDirection, C: Completeness>(entity: &TemporalEntity<D, C>, form: Lossless) -> RawJson {
-    let mut object = temporal_entity_object(entity, form);
+fn render_temporal<D: WriteEntityDirection, C: Completeness>(entity: &TemporalEntity<D, C>, form: Lossless, spelling: InstanceSpelling) -> RawJson {
+    let mut object = temporal_entity_object(entity, form, spelling);
     write_context(&mut object, entity.context.as_ref());
     RawJson::from_json(Json::Object(object))
 }
