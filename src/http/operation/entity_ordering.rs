@@ -25,21 +25,21 @@ pub(crate) fn push_query(query: &mut QueryString, ordering: &EntityOrdering) {
     }
 }
 
-/// Reads the parameters of a received query string, `None` when none is given. They are the members of the
+/// Reads the parameters of a received query string, `None` when there is no `orderBy`. They are the members of the
 /// `OrderingParams` object of clause 5.2.43 under other names (`orderFrom` its `coordinates`, `orderGeometry` its
 /// `geometry`), so they are read by its reader: one grammar, one set of rules.
 ///
+/// Without `orderBy` there is nothing to order by. The tables of the `GET` bindings list `collation`, `orderFrom`
+/// and `orderGeometry` as optional parameters tied to no other (Table 6.4.3.2-1), so a query string that holds them
+/// alone is not malformed: it asks for no ordering, and they are not read.
+///
 /// # Errors
 ///
-/// Returns [`ParameterError::OrderingWithoutOrderBy`] for an ordering parameter without `orderBy`,
-/// [`ParameterError::CoordinatesNotJson`] for an `orderFrom` that is not JSON, and [`ParameterError::Ordering`]
-/// when the parameters do not make an ordering.
+/// Returns [`ParameterError::CoordinatesNotJson`] for an `orderFrom` that is not JSON, and
+/// [`ParameterError::Ordering`] when the parameters do not make an ordering.
 pub(crate) fn read_query(received: &ReceivedQuery<'_>) -> Result<Option<EntityOrdering>, ParameterError> {
     let Some(order_by) = received.text(QueryParameter::OrderBy)? else {
-        return [QueryParameter::Collation, QueryParameter::OrderFrom, QueryParameter::OrderGeometry]
-            .into_iter()
-            .find(|&parameter| received.contains(parameter))
-            .map_or(Ok(None), |parameter| Err(ParameterError::OrderingWithoutOrderBy { parameter }));
+        return Ok(None);
     };
     let mut object = Object::new();
     object.push(

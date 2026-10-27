@@ -148,12 +148,6 @@ pub enum ParameterError {
         #[source]
         source: DocumentError<TemporalQueryError>,
     },
-    /// An ordering parameter given without `orderBy`, which the others complete (clause 4.23.3).
-    #[error("the parameter `{parameter}` needs `orderBy`")]
-    OrderingWithoutOrderBy {
-        /// The parameter.
-        parameter: QueryParameter,
-    },
 }
 
 impl ParameterError {

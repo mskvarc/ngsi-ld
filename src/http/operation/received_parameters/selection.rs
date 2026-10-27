@@ -157,8 +157,9 @@ pub(crate) fn read_geo_query(received: &ReceivedQuery<'_>) -> Result<(Option<Geo
 /// The parameters are the ordering (NGSI-LD clause 4.23), `splitEntities`, and the entity map (`entityMap`,
 /// `entityMapLifetime`, clause 4.5.25).
 ///
-/// `collation`, `orderFrom` and `orderGeometry` complete an `orderBy` (clause 4.23.3), so each is refused without
-/// it; every other parameter is read on its own.
+/// `collation`, `orderFrom` and `orderGeometry` complete an `orderBy` (clause 4.23.3). Without it they ask for no
+/// ordering and are not read, as the tables list them as optional and tie them to no other parameter; every other
+/// parameter is read on its own.
 ///
 /// The struct is `#[non_exhaustive]`: later versions of the specification add parameters.
 ///

@@ -98,6 +98,10 @@ impl EntitySource {
 /// `expiresAt`, and the operations return the map "as mandated by clause 5.2.39", so `expiresAt` is read and
 /// `expiredBy` refused.
 ///
+/// `expiresAt` has cardinality 1 (Table 5.2.39-1), so a map without it is refused. That includes the map of a broker
+/// answering for an earlier version of the specification: the fallbacks of clause 4.3.6.8 are defined for entities,
+/// Properties and Relationships only, and none gives an entity map a default expiry.
+///
 /// ```
 /// use ngsi_ld::registration::{EntityMap, EntitySource};
 ///

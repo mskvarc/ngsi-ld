@@ -374,12 +374,15 @@ fn an_invalid_query_string_is_refused_naming_the_parameter() {
     assert_eq!((level.join, level.join_level), (None, NonZeroU32::new(2)));
     let uncounted = QueryEntitiesParameters::parse("type=Vehicle&count=false").unwrap();
     assert_eq!(uncounted.count, ResultsCount::Exclude);
-    assert!(matches!(
-        refused("orderFrom=%5B8,40%5D"),
-        ParameterError::OrderingWithoutOrderBy {
-            parameter: QueryParameter::OrderFrom
-        }
-    ));
+    for lone in [
+        "collation=de-u-co-phonebk",
+        "orderFrom=%5B8,40%5D",
+        "orderGeometry=Point",
+        "collation=und&orderFrom=north",
+    ] {
+        let unordered = QueryEntitiesParameters::parse(&format!("type=Vehicle&{lone}")).unwrap();
+        assert_eq!(unordered.assembly.ordering, None, "{lone}");
+    }
     assert!(matches!(
         refused("orderBy=location;dist-asc&orderFrom=north"),
         ParameterError::CoordinatesNotJson {
