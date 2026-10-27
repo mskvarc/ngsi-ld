@@ -24,7 +24,7 @@ use ngsi_ld::{
             UpdateAttributes,
         },
     },
-    model::{Attribute, AttributeFragment, AttributeMembers, AttributeName, Change, EntityFragment, Lossless, Property, Uri},
+    model::{Attribute, AttributeFragment, AttributeMembers, AttributeName, Change, DatasetId, EntityFragment, Lossless, Property},
     query::{Locality, SelectorType},
 };
 use pretty_assertions::assert_eq;
@@ -194,7 +194,7 @@ fn replace_attribute_sends_put_to_the_attribute() {
 fn to_b21_delete_attribute_selects_the_default_instance_a_dataset_or_all() {
     let id = vehicle_id();
     let name = speed();
-    let gps: Uri = "urn:ngsi-ld:dataset:gps".parse().unwrap();
+    let gps: DatasetId = "urn:ngsi-ld:dataset:gps".parse().unwrap();
     let delete = |instances| {
         DeleteAttribute::builder()
             .id(&id)
@@ -212,6 +212,11 @@ fn to_b21_delete_attribute_selects_the_default_instance_a_dataset_or_all() {
     assert_eq!(
         delete(InstanceSelection::Dataset(&gps)).uri().query(),
         Some("datasetId=urn%3Angsi-ld%3Adataset%3Agps")
+    );
+    // Clause 4.5.5: `@none` names the default instance wherever a datasetId is given.
+    assert_eq!(
+        delete(InstanceSelection::Dataset(&DatasetId::DefaultInstance)).uri().query(),
+        Some("datasetId=%40none")
     );
     assert_eq!(delete(InstanceSelection::All).uri().query(), Some("deleteAll=true"));
     assert_eq!(delete(InstanceSelection::Selected(None)).uri().query(), Some("deleteAll=false"));

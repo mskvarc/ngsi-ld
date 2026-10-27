@@ -8,7 +8,7 @@ use iri_rs::iri;
 use ngsi_ld::{
     client::{Client, ReqwestTransport},
     http::operation::InstanceSelection,
-    model::{AttributeName, Entity, Instances, Property, Representation, Uri},
+    model::{AttributeName, DatasetId, Entity, Instances, Property, Representation},
 };
 use std::{env, slice};
 use url::Url;
@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
     let count = stored.attribute(&speed).map_or(0, Instances::len);
     println!("read back with {count} instances of speed:\n{}", stored.render(Representation::Normalized));
 
-    let gps = Uri::from(iri!("urn:ngsi-ld:dataset:gps"));
+    let gps = DatasetId::from(iri!("urn:ngsi-ld:dataset:gps"));
     client
         .entities()
         .delete_attribute(&vehicle.id, &speed)

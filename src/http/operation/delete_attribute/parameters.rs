@@ -6,7 +6,7 @@ use crate::{
         QueryParameter,
         operation::{InstanceSelection, ParameterError, received_parameters::ReceivedQuery},
     },
-    model::Uri,
+    model::DatasetId,
     query::{Locality, type_selection::TypeSelection},
 };
 
@@ -58,7 +58,7 @@ pub enum DeleteAll {
 #[non_exhaustive]
 pub struct DeleteAttributeParameters {
     /// `datasetId`: the instance to delete.
-    pub dataset_id: Option<Uri>,
+    pub dataset_id: Option<DatasetId>,
     /// `deleteAll`.
     pub delete_all: DeleteAll,
     /// `type` (clause 4.17).

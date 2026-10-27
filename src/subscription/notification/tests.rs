@@ -144,6 +144,26 @@ fn projected_entities_need_the_projected_reader() {
 }
 
 #[test]
+fn entities_a_pick_or_omit_reduced_are_read_in_every_form_whichever_of_id_and_type_remain() {
+    let without_type = notification(r#"[{"id":"urn:ngsi-ld:Vehicle:A4567","speed":{"type":"Property","value":55}}]"#);
+    let read = Notification::<Vec<Entity<Output, Projected>>>::parse(&without_type, Lossless::Normalized).unwrap();
+    assert_eq!(read.render(Lossless::Normalized).to_string(), without_type);
+    assert!(read.data()[0].id.is_some());
+    assert_eq!(read.data()[0].entity_type, None);
+
+    let without_id = notification(r#"[{"type":"Vehicle","speed":55}]"#);
+    let read = Notification::<Vec<Entity<Output, Projected>>>::parse(&without_id, Lossless::Concise).unwrap();
+    assert_eq!(read.render(Lossless::Concise).to_string(), without_id);
+    assert_eq!(read.data()[0].id, None);
+    assert!(read.data()[0].entity_type.is_some());
+
+    let simplified = notification(r#"[{"speed":55},{"id":"urn:ngsi-ld:Vehicle:B9211","speed":40}]"#);
+    let read = Notification::<Vec<SimplifiedEntity<Projected>>>::parse(&simplified).unwrap();
+    assert_eq!(read.render().to_string(), simplified);
+    assert_eq!(read.data().len(), 2);
+}
+
+#[test]
 fn the_context_of_a_json_ld_notification_is_kept_last() {
     let text = format!(
         r#"{{{HEAD},"data":{NORMALIZED},"@context":["https://example.org/context.jsonld","https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.9.jsonld"]}}"#
@@ -204,6 +224,43 @@ fn deleted_attributes_round_trip_in_concise_form_and_equal_the_normalized_ones()
     let concise = notification(&format!("[{DELETED_CONCISE}]"));
     assert_eq!(normalized.render(Lossless::Concise).to_string(), concise);
     assert_eq!(round_trip(&concise, Lossless::Concise), normalized);
+}
+
+#[test]
+fn every_instance_of_a_deleted_multi_attribute_is_kept_with_its_dataset_and_its_times() {
+    let stamps = r#""createdAt":"2024-05-01T09:00:00Z","modifiedAt":"2024-05-01T10:00:00Z","deletedAt":"2024-05-01T10:00:00Z""#;
+    let text = notification(&format!(
+        concat!(
+            r#"[{{"id":"urn:ngsi-ld:Building:1","type":"Building","label":["#,
+            r#"{{"type":"Property","value":"urn:ngsi-ld:null",{stamps}}},"#,
+            r#"{{"type":"Property","value":"urn:ngsi-ld:null","datasetId":"urn:ngsi-ld:Dataset:french",{stamps}}},"#,
+            r#"{{"type":"Property","value":"urn:ngsi-ld:null","datasetId":"urn:ngsi-ld:Dataset:german",{stamps}}}],"#,
+            r#""hosts":[{{"type":"Relationship","object":"urn:ngsi-ld:null",{stamps}}},"#,
+            r#"{{"type":"Relationship","object":"urn:ngsi-ld:null","datasetId":"urn:ngsi-ld:Dataset:french",{stamps}}}]}}]"#
+        ),
+        stamps = stamps
+    ));
+    let read = round_trip(&text, Lossless::Normalized);
+    let entity = &read.data()[0];
+    let label = entity.attribute(&"label".parse::<AttributeName>().unwrap()).unwrap();
+    assert_eq!(label.iter().count(), 3);
+    assert_eq!(label.iter().filter(|instance| instance.meta().dataset_id.is_some()).count(), 2);
+    let hosts = entity.attribute(&"hosts".parse::<AttributeName>().unwrap()).unwrap();
+    assert_eq!(hosts.iter().count(), 2);
+}
+
+#[test]
+fn a_deleted_attribute_with_nothing_to_report_is_written_as_the_bare_null_whichever_way_it_was_notified() {
+    let object = notification(
+        r#"[{"id":"urn:ngsi-ld:Building:1","type":"Building","hosts":{"type":"Relationship","object":"urn:ngsi-ld:null"},"label":{"type":"Property","value":"urn:ngsi-ld:null"}}]"#,
+    );
+    let bare = notification(r#"[{"id":"urn:ngsi-ld:Building:1","type":"Building","hosts":"urn:ngsi-ld:null","label":"urn:ngsi-ld:null"}]"#);
+    let read = Notification::<Vec<Entity<Output>>>::parse(&object, Lossless::Normalized).unwrap();
+    assert_eq!(attribute(&read.data()[0], "hosts").kind().as_str(), "Relationship");
+    assert_eq!(read.render(Lossless::Normalized).to_string(), bare);
+    assert_eq!(read.render(Lossless::Concise).to_string(), bare);
+    let read = round_trip(&bare, Lossless::Normalized);
+    assert_eq!(attribute(&read.data()[0], "hosts").kind().as_str(), "Property");
 }
 
 #[test]

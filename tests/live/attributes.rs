@@ -11,7 +11,7 @@ use ngsi_ld::{
         UpdateResult,
         operation::{InstanceSelection, Overwrite},
     },
-    model::{Attribute, AttributeName, DatasetId, Entity, EntityFragment, EntityId, ErrorType, Input, Instances, Output, Property, Uri, Value},
+    model::{Attribute, AttributeName, DatasetId, Entity, EntityFragment, EntityId, ErrorType, Input, Instances, Output, Property, Value},
 };
 use pretty_assertions::assert_eq;
 
@@ -234,7 +234,7 @@ async fn delete_attribute_with_a_dataset_id_removes_only_that_instance() {
     let client = client();
     let id = entity_id("deleteDataset");
     create(&client, &multi_instance_vehicle(&id)).await;
-    let gps = Uri::from(iri!("urn:ngsi-ld:dataset:gps"));
+    let gps = DatasetId::from(iri!("urn:ngsi-ld:dataset:gps"));
     let outcome = client
         .entities()
         .delete_attribute(&id, &name("speed"))

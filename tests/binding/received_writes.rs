@@ -27,7 +27,7 @@ use ngsi_ld::{
             WithLocality,
         },
     },
-    model::{AttributeName, Entity, EntityFragment, EntityId, Uri},
+    model::{AttributeName, DatasetId, Entity, EntityFragment, EntityId},
     query::{IdPattern, Locality, SelectorType, geoquery::GeoQuery, q::Query, scope_query::ScopeQuery, type_selection::TypeSelection},
 };
 use pretty_assertions::assert_eq;
@@ -171,7 +171,7 @@ fn a_purge_reads_the_parameters_of_its_table_it_does_not_send_and_refuses_others
 fn a_delete_attribute_reads_back_the_instances_it_removes() {
     let id = vehicle_id();
     let name: AttributeName = "speed".parse().unwrap();
-    let gps = Uri::from(iri!("urn:ngsi-ld:dataset:gps"));
+    let gps = DatasetId::from(iri!("urn:ngsi-ld:dataset:gps"));
     let vehicles: TypeSelection = "Vehicle".parse().unwrap();
     for instances in [
         InstanceSelection::Default,
@@ -198,15 +198,23 @@ fn a_delete_attribute_reads_delete_all_as_table_6_7_3_2_1_says() {
     assert_eq!(received.delete_all, DeleteAll::Selected);
     assert_eq!(
         received.instances(),
-        InstanceSelection::Selected(Some(&Uri::from(iri!("urn:ngsi-ld:dataset:gps"))))
+        InstanceSelection::Selected(Some(&DatasetId::from(iri!("urn:ngsi-ld:dataset:gps"))))
     );
     let unflagged = DeleteAttributeParameters::parse("datasetId=urn:ngsi-ld:dataset:gps").unwrap();
-    assert_eq!(unflagged.instances(), InstanceSelection::Dataset(&Uri::from(iri!("urn:ngsi-ld:dataset:gps"))));
+    assert_eq!(
+        unflagged.instances(),
+        InstanceSelection::Dataset(&DatasetId::from(iri!("urn:ngsi-ld:dataset:gps")))
+    );
     let every = DeleteAttributeParameters::parse("deleteAll=true&datasetId=urn:ngsi-ld:dataset:gps").unwrap();
     assert_eq!(every.instances(), InstanceSelection::All);
     assert_eq!(
         DeleteAttributeParameters::parse("deleteAll=false").unwrap().instances(),
         InstanceSelection::Selected(None)
+    );
+    // Clause 4.5.5: `@none` names the default instance wherever a datasetId is given.
+    assert_eq!(
+        DeleteAttributeParameters::parse("datasetId=%40none").unwrap().instances(),
+        InstanceSelection::Dataset(&DatasetId::DefaultInstance)
     );
     assert!(matches!(
         DeleteAttributeParameters::parse("deleteAll=yes").unwrap_err(),

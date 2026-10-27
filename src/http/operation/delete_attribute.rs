@@ -17,7 +17,7 @@ use crate::{
         request::{RequestParts, scope::RequestScope},
         response::classify,
     },
-    model::{AttributeName, EntityId, Uri},
+    model::{AttributeName, DatasetId, EntityId},
     query::type_selection::TypeSelection,
 };
 use bytes::Bytes;
@@ -34,14 +34,15 @@ pub enum InstanceSelection<'a> {
     /// The default instance, the one without a dataset id.
     #[default]
     Default,
-    /// The instance with this dataset id (`datasetId`).
-    Dataset(&'a Uri),
+    /// The instance with this dataset id (`datasetId`). [`DatasetId::DefaultInstance`] (`@none`) names the default
+    /// instance (clause 4.5.5).
+    Dataset(&'a DatasetId),
     /// Every instance (`deleteAll=true`).
     All,
     /// Only one instance, with the flag spelled out (`deleteAll=false`): the instance with this dataset id, or the
     /// default instance when there is none. The request removes what [`Dataset`](Self::Dataset) or
     /// [`Default`](Self::Default) removes, since the flag is `false` by default (Tables 6.7.3.2-1 and 6.21.3.1-1).
-    Selected(Option<&'a Uri>),
+    Selected(Option<&'a DatasetId>),
 }
 
 impl InstanceSelection<'_> {
