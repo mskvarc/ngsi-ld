@@ -7,9 +7,9 @@ use crate::{
         ContextSourceAlias,
         DatasetId,
         DateTime,
+        DocumentError,
         Duration,
         MemberChange,
-        MemberProblem,
         OneOrMany,
         RawJson,
         Scope,
@@ -17,6 +17,7 @@ use crate::{
         UrlDraft,
         Value,
         geometry::Geometry,
+        reader::parse_json,
     },
     registration::{
         ContextSourceInfo,
@@ -33,9 +34,11 @@ use crate::{
         TimeInterval,
         context_source_info,
         property,
-        rules::auxiliary_operations,
+        reader::fragment::read_registration_fragment,
+        rules::{FragmentMembers, fragment_member_problems},
         writer::fragment_object,
     },
+    subscription::ReadErrorKind,
 };
 use bon::bon;
 use indexmap::IndexMap;
@@ -90,7 +93,7 @@ pub enum RegistrationTypeMember {
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct RegistrationFragment {
     /// Whether the fragment writes `type`.
     pub(crate) type_member: RegistrationTypeMember,
@@ -178,32 +181,15 @@ impl RegistrationFragment {
         expires_at: Option<DateTime>,
         refresh_rate: Option<Duration>,
     ) -> Result<Self, BuildError<Problem>> {
-        let mut problems = Vec::new();
-        for (member, text) in [
-            (RegistrationMember::RegistrationName, registration_name.as_deref()),
-            (RegistrationMember::Description, description.as_deref()),
-        ] {
-            if text.is_some_and(str::is_empty) {
-                problems.push(Problem::from(MemberProblem::Empty {
-                    member: RegistrationField::from(member),
-                }));
-            }
-        }
-        if let Some(information) = &information {
-            if information.is_empty() {
-                problems.push(Problem::from(MemberProblem::Empty {
-                    member: RegistrationField::Information,
-                }));
-            }
-            if mode == Some(RegistrationMode::Exclusive) && !information.iter().all(RegistrationInfo::names_entity_ids_and_attributes) {
-                problems.push(Problem::ExclusiveWithoutEntityIdAndAttributes);
-            }
-        }
-        if let (Some(RegistrationMode::Auxiliary), Some(operations)) = (mode, &operations)
-            && !auxiliary_operations(operations)
-        {
-            problems.push(Problem::AuxiliaryOperations);
-        }
+        let mut problems = fragment_member_problems(&FragmentMembers {
+            information: information.as_deref(),
+            mode,
+            operations: operations.as_deref(),
+            texts: [
+                (RegistrationMember::RegistrationName, registration_name.as_deref()),
+                (RegistrationMember::Description, description.as_deref()),
+            ],
+        });
         let context_source_info = context_source_info.map(|pairs| context_source_info::resolve(pairs, &mut problems));
         let properties = property::resolve(properties, &mut problems);
         let endpoint = endpoint.and_then(|url| url.resolve(RegistrationField::Endpoint, &mut problems));
@@ -282,6 +268,34 @@ impl<S: registration_fragment_builder::State> RegistrationFragmentBuilder<S> {
 }
 
 impl RegistrationFragment {
+    /// Reads the body of Update Context Source Registration.
+    ///
+    /// A member set is replaced and a member whose value is the NGSI-LD Null is deleted (clause 5.4). `type` may be
+    /// left out where the operation names the target, which [`RegistrationFragment::type_member`] reports; `id` may
+    /// be given, and is checked and not kept, as is the `@context`, which belongs to the binding (clause 6.3.5).
+    /// `information` and `endpoint` can be replaced but not deleted. A member no table defines is a Context Source
+    /// Property when its name allows one (clause 4.9), and unexpected otherwise.
+    ///
+    /// ```
+    /// use ngsi_ld::registration::{RegistrationFragment, RegistrationMember, RegistrationTypeMember};
+    ///
+    /// let fragment =
+    ///     RegistrationFragment::parse(r#"{"description":"Vehicles","location":"urn:ngsi-ld:null"}"#)?;
+    /// assert_eq!(fragment.type_member(), RegistrationTypeMember::Omitted);
+    /// assert!(fragment.deletes(RegistrationMember::Location));
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] naming the member at fault: a member given twice, a value of the wrong shape, an
+    /// `information` or `endpoint` set to the Null, an empty text, an `exclusive` mode with `information` that names
+    /// no entity ids and attributes, an `auxiliary` mode with operations it does not support, and a member no table
+    /// or Context Source Property defines.
+    pub fn parse(text: &str) -> Result<Self, DocumentError<ReadErrorKind<Problem>>> {
+        read_registration_fragment(parse_json(text)?)
+    }
+
     /// Returns the change to the name (`registrationName`).
     #[must_use]
     pub fn name(&self) -> Option<MemberChange<&str>> {

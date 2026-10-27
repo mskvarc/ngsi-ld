@@ -1,7 +1,7 @@
 //! Registration fragments.
 
 use crate::{
-    model::{MemberChange, MemberProblem},
+    model::{DatasetId, MemberChange, MemberError, MemberProblem},
     registration::{
         ContextSourceInfoKey,
         EntityInfoMember,
@@ -17,6 +17,7 @@ use crate::{
         RegistrationTypeMember,
         tests::{problems, vehicle_speed},
     },
+    subscription::{ReadErrorKind, read_error::tests::broken_rules},
 };
 use pretty_assertions::assert_eq;
 use strum::IntoEnumIterator;
@@ -124,6 +125,86 @@ fn rf_01_a_fragment_reads_back_the_members_it_sets_and_deletes() {
         fragment.render().to_string(),
         r#"{"type":"ContextSourceRegistration","mode":"redirect","location":"urn:ngsi-ld:null"}"#
     );
+}
+
+#[test]
+fn a_fragment_body_reads_back_as_the_builder_writes_it() {
+    let fragment = RegistrationFragment::builder()
+        .registration_name("vehicles")
+        .information([vehicle_speed()])
+        .endpoint("http://my.csource.org:1027/")
+        .mode(RegistrationMode::Inclusive)
+        .operations([OperationGroup::FederationOps])
+        .tenant("tenant1".parse().unwrap())
+        .dataset_ids([DatasetId::DefaultInstance])
+        .expires_at("2030-01-01T00:00:00Z".parse().unwrap())
+        .refresh_rate("PT5M".parse().unwrap())
+        .property("temperature", 5)
+        .delete_property("humidity")
+        .delete(RegistrationMember::Location)
+        .delete(RegistrationMember::Description)
+        .build()
+        .unwrap();
+    assert_eq!(RegistrationFragment::parse(&fragment.render().to_string()).unwrap(), fragment);
+    let omitted = RegistrationFragment::builder()
+        .type_member(RegistrationTypeMember::Omitted)
+        .description("Vehicles")
+        .build()
+        .unwrap();
+    assert_eq!(RegistrationFragment::parse(&omitted.render().to_string()).unwrap(), omitted);
+    assert_eq!(RegistrationFragment::parse("{}").unwrap().type_member(), RegistrationTypeMember::Omitted);
+}
+
+#[test]
+fn a_fragment_body_may_name_its_target_and_carry_a_context_neither_of_which_it_keeps() {
+    let body = concat!(
+        r#"{"@context":"https://example.org/context.jsonld","id":"urn:ngsi-ld:ContextSourceRegistration:csr1","#,
+        r#""type":"ContextSourceRegistration","mode":"redirect","location":"urn:ngsi-ld:null"}"#
+    );
+    let fragment = RegistrationFragment::parse(body).unwrap();
+    assert_eq!(fragment.type_member(), RegistrationTypeMember::Written);
+    assert_eq!(fragment.mode(), Some(MemberChange::Set(RegistrationMode::Redirect)));
+    assert_eq!(fragment.location(), Some(MemberChange::Delete));
+    assert_eq!(
+        fragment.render().to_string(),
+        r#"{"type":"ContextSourceRegistration","mode":"redirect","location":"urn:ngsi-ld:null"}"#
+    );
+}
+
+#[test]
+fn a_fragment_body_refuses_what_a_registration_cannot_hold() {
+    // `information` and `endpoint` are replaced, never removed (Table 5.2.9-1).
+    for member in ["information", "endpoint"] {
+        let body = format!(r#"{{"{member}":"urn:ngsi-ld:null"}}"#);
+        assert!(RegistrationFragment::parse(&body).is_err(), "{member}");
+    }
+    assert!(RegistrationFragment::parse(r#"{"information":[]}"#).is_err());
+    assert!(matches!(
+        RegistrationFragment::parse(r#"{"description":""}"#).unwrap_err().kind,
+        ReadErrorKind::Member(MemberError::Empty)
+    ));
+    assert_eq!(
+        broken_rules(RegistrationFragment::parse(r#"{"endpoint":"urn:ngsi-ld:null"}"#).unwrap_err()),
+        [Problem::MandatoryMemberDeleted {
+            member: RegistrationField::Endpoint
+        }]
+    );
+    assert_eq!(
+        broken_rules(RegistrationFragment::parse(r#"{"mode":"auxiliary","operations":["federationOps"]}"#).unwrap_err()),
+        [Problem::AuxiliaryOperations]
+    );
+    assert_eq!(
+        broken_rules(RegistrationFragment::parse(r#"{"mode":"exclusive","information":[{"entities":[{"type":"Vehicle"}]}]}"#).unwrap_err()),
+        [Problem::ExclusiveWithoutEntityIdAndAttributes]
+    );
+    assert!(RegistrationFragment::parse(r#"{"mode":"auxiliary"}"#).is_ok());
+    assert!(RegistrationFragment::parse(r#"{"type":"Subscription"}"#).is_err());
+    assert!(RegistrationFragment::parse(r#"{"mode":"nowhere"}"#).is_err());
+    assert!(RegistrationFragment::parse(r#"{"bad name":1}"#).is_err());
+    assert!(RegistrationFragment::parse(r#"{"mode":"redirect","mode":"urn:ngsi-ld:null"}"#).is_err());
+    // A member only a broker writes names no Context Source Property of a request.
+    assert!(RegistrationFragment::parse(r#"{"status":"active"}"#).is_err());
+    assert!(RegistrationFragment::parse(r#"{"temperature":1}"#).is_ok_and(|fragment| fragment.properties().len() == 1));
 }
 
 #[test]

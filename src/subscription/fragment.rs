@@ -2,7 +2,7 @@
 //! subscription.
 
 use crate::{
-    model::{AttributeName, ConformanceVersion, DatasetId, DateTime, Input, MemberChange, PositiveNumber, RawJson},
+    model::{AttributeName, ConformanceVersion, DatasetId, DateTime, DocumentError, Input, MemberChange, PositiveNumber, RawJson, reader::parse_json},
     query::{
         EntitySelector,
         EntitySplitting,
@@ -19,12 +19,14 @@ use crate::{
         NotificationParams,
         NotificationTriggers,
         Problem,
+        ReadErrorKind,
         RegistrationSubscription,
         SubscriptionField,
         SubscriptionKind,
         SubscriptionMember,
         builders::SubscriptionFragmentBuilder,
         kind::sealed::{KindChanges, KindMembers},
+        reader::fragment::read_subscription_fragment,
         writer::fragment_object,
     },
 };
@@ -43,9 +45,9 @@ pub(super) mod builder;
 /// so the members a subscription needs cannot be removed.
 ///
 /// It is written with `"type": "Subscription"` and without `id`: the binding names the subscription, whose `id`
-/// cannot change (Table 5.2.12-1). A replaced `notification` replaces the whole member. Like an entity fragment,
-/// it is only written. `K` is the kind of subscription it changes, as for [`Subscription`]: the builder of
-/// [`SubscriptionFragment::builder`] sets `csf`, the one of [`SubscriptionFragment::registration_builder`]
+/// cannot change (Table 5.2.12-1). A replaced `notification` replaces the whole member. A request body is read by
+/// [`SubscriptionFragment::parse`]. `K` is the kind of subscription it changes, as for [`Subscription`]: the builder
+/// of [`SubscriptionFragment::builder`] sets `csf`, the one of [`SubscriptionFragment::registration_builder`]
 /// `temporalQ`.
 ///
 /// [`Subscription`]: crate::subscription::Subscription
@@ -70,7 +72,7 @@ pub(super) mod builder;
 /// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct SubscriptionFragment<K: SubscriptionKind = EntitySubscription> {
     /// `subscriptionName`.
     pub(crate) name: Option<MemberChange<String>>,
@@ -209,6 +211,35 @@ member_slots!(
 );
 
 impl<K: SubscriptionKind> SubscriptionFragment<K> {
+    /// Reads the body of Update Subscription, or of Update Context Source Registration Subscription for a fragment
+    /// of kind [`RegistrationSubscription`].
+    ///
+    /// A member set is replaced and a member whose value is the NGSI-LD Null is deleted (clause 5.4). Tables
+    /// 6.11.3.2-1 and 6.13.3.2-1 describe the body as including `id` and `type`; clause 5.4 makes both optional where
+    /// the operation names the target, so both may be left out. The `id` is checked and not kept, as is the
+    /// `@context`, which belongs to the binding (clause 6.3.5), and the fragment is always written with its `type`. A
+    /// `notification` replaces the whole member and cannot be deleted. A member of the other kind of subscription is
+    /// unexpected.
+    ///
+    /// ```
+    /// use ngsi_ld::subscription::{EntitySubscription, SubscriptionFragment, SubscriptionMember};
+    ///
+    /// let fragment = SubscriptionFragment::<EntitySubscription>::parse(
+    ///     r#"{"type":"Subscription","isActive":false,"throttling":"urn:ngsi-ld:null"}"#,
+    /// )?;
+    /// assert!(fragment.deletes(SubscriptionMember::Throttling));
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] naming the member at fault: a member given twice, a value of the wrong shape, a
+    /// query or number that is invalid, an empty list Table 5.2.12-1 forbids, a repeated trigger, `watchedAttributes`
+    /// or `throttling` set together with `timeInterval`, and a member the table does not define for the kind.
+    pub fn parse(text: &str) -> Result<Self, DocumentError<ReadErrorKind<Problem>>> {
+        read_subscription_fragment(parse_json(text)?)
+    }
+
     /// Returns the change to the name (`subscriptionName`).
     #[must_use]
     pub fn name(&self) -> Option<MemberChange<&str>> {
@@ -336,7 +367,7 @@ impl<K: SubscriptionKind> SubscriptionFragment<K> {
     }
 
     /// Records the pairs of members a subscription cannot hold when the fragment sets both (Table 5.2.12-1).
-    fn check_pairs(&self, problems: &mut Vec<Problem>) {
+    pub(crate) fn check_pairs(&self, problems: &mut Vec<Problem>) {
         if set(self.time_interval.as_ref()) && set(self.watched_attributes.as_ref()) {
             problems.push(Problem::WatchedAttributesWithTimeInterval);
         }

@@ -60,6 +60,7 @@ use indexmap::IndexMap;
 use jstrict::{Object, Value as Json, object::Entry};
 use std::error::Error;
 
+pub(super) mod fragment;
 mod information;
 
 /// Reads a text the specification forbids to be empty.

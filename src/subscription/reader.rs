@@ -54,6 +54,7 @@ use crate::{
 use jstrict::{Object, Value as Json, object::Entry};
 use std::{error::Error, str::FromStr};
 
+pub(crate) mod fragment;
 pub(crate) mod notification_params;
 
 /// An error of `kind` at the top of the member being read.
@@ -274,7 +275,7 @@ pub(crate) fn selectors<P: Error>(json: Json) -> Result<Vec<EntitySelector>, Doc
 }
 
 /// Reads `notificationTrigger`, written as the member `member`: a non-empty array of triggers, none repeated.
-fn notification_triggers(json: Json, member: &'static str) -> Result<NotificationTriggers, DocumentError<ReadErrorKind<Problem>>> {
+pub(crate) fn notification_triggers(json: Json, member: &'static str) -> Result<NotificationTriggers, DocumentError<ReadErrorKind<Problem>>> {
     let triggers = list(json, Emptiness::Allowed)?
         .into_iter()
         .map(|item| token(item, member))

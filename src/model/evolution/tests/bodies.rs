@@ -1,0 +1,118 @@
+//! Reading the bodies a client sends that hold only the attributes of a temporal evolution, or the entity in
+//! simplified temporal representation.
+
+use crate::model::{
+    AttributeKind,
+    DocumentErrorKind,
+    Input,
+    Lossless,
+    NullMember,
+    Output,
+    Property,
+    evolution::{DeletedInstance, Evolution, SimplifiedTemporalInput, TemporalAttributes},
+};
+use pretty_assertions::assert_eq;
+
+/// The attributes of a temporal evolution a client sends: two instances of `speed`, then one of `brand`.
+fn attributes() -> TemporalAttributes<Input> {
+    let mut attributes = TemporalAttributes::<Input>::new();
+    for (speed, at) in [(120, "2018-08-01T12:03:00Z"), (80, "2018-08-01T12:05:00Z")] {
+        attributes
+            .insert(
+                "speed".parse().unwrap(),
+                Property::builder(speed).observed_at(at.parse().unwrap()).build().unwrap().into(),
+            )
+            .unwrap();
+    }
+    attributes
+        .insert_identified(
+            "brand".parse().unwrap(),
+            "urn:ngsi-ld:Instance:1".parse().unwrap(),
+            Property::builder("Mercedes").build().unwrap().into(),
+        )
+        .unwrap();
+    attributes
+}
+
+#[test]
+fn the_attributes_of_an_evolution_read_back_as_they_are_written_in_both_forms() {
+    let written = attributes();
+    for form in [Lossless::Normalized, Lossless::Concise] {
+        let text = written.render(form).to_string();
+        assert_eq!(TemporalAttributes::<Input>::parse(&text, form).unwrap(), written, "{text}");
+    }
+}
+
+#[test]
+fn the_attributes_of_an_evolution_may_be_a_single_instance_and_carry_a_context() {
+    let single = TemporalAttributes::<Input>::parse(
+        r#"{"@context":"https://example.org/context.jsonld","speed":{"value":120,"observedAt":"2018-08-01T12:03:00Z"}}"#,
+        Lossless::Concise,
+    )
+    .unwrap();
+    assert_eq!(single.len(), 1);
+    assert_eq!(single.get(&"speed".parse().unwrap()).map(Evolution::len), Some(1));
+}
+
+#[test]
+fn the_attributes_of_an_evolution_keep_a_recorded_deletion() {
+    let mut written = TemporalAttributes::<Input>::new();
+    let deleted = DeletedInstance::builder(AttributeKind::Property, "2018-08-01T12:07:00Z".parse().unwrap()).build();
+    written.insert_deleted("speed".parse().unwrap(), deleted).unwrap();
+    let text = written.render(Lossless::Normalized).to_string();
+    let read = TemporalAttributes::<Input>::parse(&text, Lossless::Normalized).unwrap();
+    assert_eq!(read, written);
+    assert_eq!(
+        read.get(&"speed".parse().unwrap()).map(|evolution| evolution.deleted_ats().flatten().count()),
+        Some(1)
+    );
+}
+
+#[test]
+fn the_attributes_of_an_evolution_refuse_what_a_request_cannot_carry() {
+    let parse = |text: &str| TemporalAttributes::<Input>::parse(text, Lossless::Normalized);
+    assert!(parse(r#"{"speed":[]}"#).is_err());
+    assert!(parse(r#"{"speed":[{"type":"Property","value":1}],"speed":[{"type":"Property","value":2}]}"#).is_err());
+    assert!(parse(r#"{"speed":[{"type":"Property","value":1},{"type":"Relationship","object":"urn:ngsi-ld:Vehicle:A4567"}]}"#).is_err());
+    assert!(parse(r#"{"speed":[{"type":"Property","value":1,"createdAt":"2018-08-01T12:03:00Z"}]}"#).is_err());
+    assert!(parse(r#"{"speed":[{"type":"Property","value":"urn:ngsi-ld:null"}]}"#).is_err());
+    assert!(parse(r#"{"1speed":[{"type":"Property","value":1}]}"#).is_err());
+    assert!(parse("[]").is_err());
+}
+
+#[test]
+fn the_attributes_a_broker_answers_keep_their_output_only_members() {
+    let text = r#"{"speed":[{"type":"Property","value":120,"observedAt":"2018-08-01T12:03:00Z","createdAt":"2018-08-01T12:03:01Z","instanceId":"urn:ngsi-ld:Instance:1"}]}"#;
+    let read = TemporalAttributes::<Output>::parse(text, Lossless::Normalized).unwrap();
+    assert_eq!(read.render(Lossless::Normalized).to_string(), text);
+}
+
+#[test]
+fn a_simplified_temporal_input_reads_back_as_it_is_written() {
+    let text = concat!(
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+        r#""scope":{"type":"Property","values":[["/Madrid","2018-08-01T12:00:00Z"]]},"#,
+        r#""speed":{"type":"Property","values":[[120,"2018-08-01T12:03:00Z"],[80,"2018-08-01T12:05:00Z"]]}}"#
+    );
+    let read = SimplifiedTemporalInput::parse(text).unwrap();
+    assert_eq!(read.render().to_string(), text);
+    let with_context = text.replacen('{', r#"{"@context":"https://example.org/context.jsonld","#, 1);
+    assert!(SimplifiedTemporalInput::parse(&with_context).unwrap().as_entity().context.is_some());
+}
+
+#[test]
+fn a_simplified_temporal_input_refuses_the_null_of_a_deleted_instance() {
+    let attribute = SimplifiedTemporalInput::parse(
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":{"type":"Property","values":[["urn:ngsi-ld:null","2018-08-01T12:03:00Z"]]}}"#,
+    )
+    .unwrap_err();
+    assert!(matches!(attribute.kind, DocumentErrorKind::NgsiLdNull { member: NullMember::Value }));
+    assert_eq!(attribute.path.to_string(), "speed");
+    let scope = SimplifiedTemporalInput::parse(
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","scope":{"type":"Property","values":[["urn:ngsi-ld:null","2018-08-01T12:03:00Z"]]}}"#,
+    )
+    .unwrap_err();
+    assert!(matches!(scope.kind, DocumentErrorKind::NgsiLdNull { member: NullMember::Scope }));
+    assert!(SimplifiedTemporalInput::parse(r#"{"type":"Vehicle"}"#).is_err());
+    assert!(SimplifiedTemporalInput::parse(r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","expiresAt":"2030-01-01T00:00:00Z"}"#).is_err());
+}

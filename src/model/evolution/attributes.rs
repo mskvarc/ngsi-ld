@@ -3,7 +3,6 @@
 
 #[cfg(feature = "linked-data")]
 use crate::model::{
-    DocumentError,
     direction::names::MapDirection,
     name::mapping::{MapNames, NameMapping, map_attribute_names},
 };
@@ -17,6 +16,7 @@ use crate::{
         BuildError,
         BuildProblem,
         DateTime,
+        DocumentError,
         EntityDirection,
         Input,
         InstanceId,
@@ -24,7 +24,8 @@ use crate::{
         Output,
         RawJson,
         attribute::attributes::check_kind,
-        evolution::{DeletedInstance, TemporalInstanceMembers, write::temporal_attributes_object},
+        evolution::{DeletedInstance, TemporalInstanceMembers, read::read_temporal_attributes, write::temporal_attributes_object},
+        reader::parse_json,
     },
     query::temporal_query::TemporalProperty,
     seal::Seal,
@@ -284,6 +285,33 @@ impl TemporalAttributes<Input> {
     pub fn render(&self, form: Lossless) -> RawJson {
         RawJson::from_json(Json::Object(temporal_attributes_object(self, form)))
     }
+
+    /// Reads the attributes of a temporal evolution a client could send, in normalized or concise representation:
+    /// the body of Add Attributes. Each member is the evolution of an attribute, an array of instances or the
+    /// single instance clauses 4.5.7 and 4.5.8 allow when only one is present; an instance may name its `instanceId`
+    /// and record a deletion as [`TemporalEntity::parse`](crate::model::evolution::TemporalEntity::parse) reads them.
+    /// An `@context` is checked and not kept: the binding delivers it (clause 6.3.5).
+    ///
+    /// ```
+    /// use ngsi_ld::model::{Input, Lossless, evolution::TemporalAttributes};
+    ///
+    /// let attributes = TemporalAttributes::<Input>::parse(
+    ///     r#"{"speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"},{"value":80,"observedAt":"2018-08-01T12:05:00Z"}]}"#,
+    ///     Lossless::Concise,
+    /// )?;
+    /// assert_eq!(attributes.len(), 1);
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] naming the member at fault, including an attribute given twice, an evolution with
+    /// no instance, instances of one attribute of different kinds, any output-only member besides the `instanceId`
+    /// and the `deletedAt` of a recorded deletion, and any instance holding the NGSI-LD Null without that
+    /// `deletedAt` (clause 5.5.4).
+    pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
+        read_temporal_attributes(parse_json(text)?, form)
+    }
 }
 
 impl TemporalAttributes<Output> {
@@ -291,6 +319,17 @@ impl TemporalAttributes<Output> {
     #[must_use]
     pub fn render(&self, form: Lossless) -> RawJson {
         RawJson::from_json(Json::Object(temporal_attributes_object(self, form)))
+    }
+
+    /// Reads the attributes of a temporal evolution a broker returns, in normalized or concise representation, with
+    /// the output-only members of their instances.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] naming the member at fault, including an attribute given twice, an evolution with
+    /// no instance and instances of one attribute of different kinds.
+    pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
+        read_temporal_attributes(parse_json(text)?, form)
     }
 
     /// Adds the instances of `later`, the answer for the time range after this one (clause 6.3.10), dropping each one

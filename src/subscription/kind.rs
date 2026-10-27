@@ -4,7 +4,7 @@ use crate::{
     model::{
         DocumentError,
         MemberChange,
-        member_change::delete_member,
+        member_change::{delete_member, read_change},
         reader::{once, within},
     },
     query::{q::Query, temporal_query::TemporalQuery},
@@ -60,6 +60,10 @@ pub(crate) mod sealed {
 
         /// Whether the block deletes `member`.
         fn deletes(&self, seal: Seal, member: SubscriptionMember) -> bool;
+
+        /// Reads the change to `member` into the block, or returns `json` when the block has no such member: the
+        /// member of the other kind.
+        fn read<P: Error>(&mut self, seal: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>>;
 
         /// Writes the changes the block holds, in canonical order.
         fn write(&self, seal: Seal, object: &mut Object);
@@ -179,6 +183,15 @@ impl sealed::KindChanges for EntitySubscriptionChanges {
         member == SubscriptionMember::Csf && self.csf.as_ref().is_some_and(MemberChange::is_delete)
     }
 
+    fn read<P: Error>(&mut self, _: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        if member != SubscriptionMember::Csf {
+            return Ok(Some(json));
+        }
+        let key = member.into();
+        once(&mut self.csf, key, within(key, read_change(json, |json| language(json, key)))?)?;
+        Ok(None)
+    }
+
     fn write(&self, _: Seal, object: &mut Object) {
         push_change(object, SubscriptionMember::Csf.into(), self.csf.as_ref(), |csf| Some(printed(csf)));
     }
@@ -236,6 +249,15 @@ impl sealed::KindChanges for RegistrationSubscriptionChanges {
 
     fn deletes(&self, _: Seal, member: SubscriptionMember) -> bool {
         member == SubscriptionMember::TemporalQ && self.temporal_q.as_ref().is_some_and(MemberChange::is_delete)
+    }
+
+    fn read<P: Error>(&mut self, _: Seal, member: SubscriptionMember, json: Json) -> Result<Option<Json>, DocumentError<ReadErrorKind<P>>> {
+        if member != SubscriptionMember::TemporalQ {
+            return Ok(Some(json));
+        }
+        let key = member.into();
+        once(&mut self.temporal_q, key, within(key, read_change(json, temporal_query))?)?;
+        Ok(None)
     }
 
     fn write(&self, _: Seal, object: &mut Object) {

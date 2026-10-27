@@ -58,6 +58,15 @@ impl<T> MemberChange<T> {
     }
 }
 
+/// Reads the change a fragment makes to one member: the NGSI-LD Null deletes it (clause 5.4), any other value is read
+/// with `read`.
+pub(crate) fn read_change<T, E>(json: Json, read: impl FnOnce(Json) -> Result<T, E>) -> Result<MemberChange<T>, E> {
+    match json {
+        Json::String(text) if text.as_str() == NGSI_LD_NULL.as_str() => Ok(MemberChange::Delete),
+        other @ (Json::Null | Json::Boolean(_) | Json::Number(_) | Json::String(_) | Json::Array(_) | Json::Object(_)) => read(other).map(MemberChange::Set),
+    }
+}
+
 /// Whether a member is deleted.
 pub(crate) const fn deleted<T>(change: Option<&MemberChange<T>>) -> bool {
     matches!(change, Some(MemberChange::Delete))

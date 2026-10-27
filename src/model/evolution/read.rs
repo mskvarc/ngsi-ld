@@ -9,6 +9,7 @@ use crate::model::{
     Lossless,
     entity::member::{EntityMember, SystemMember},
     evolution::{TemporalAttributes, TemporalEntity, scope::read_scope_evolution},
+    keyword::CONTEXT,
     reader::{attribute_name, context, date_time, duplicate, empty, entity_types, object, once},
     representation::{
         member::{entity_id, identifying},
@@ -54,6 +55,22 @@ pub(crate) fn read_temporal_entity<D: ReadEntityDirection, C: Completeness>(json
         output,
         context: entity_context,
     })
+}
+
+/// Reads the attributes of a temporal evolution alone, the body of Add Attributes: each member an evolution, in the
+/// order written. An `@context` is checked and not kept, since the binding delivers it (clause 6.3.5).
+pub(crate) fn read_temporal_attributes<D: ReadEntityDirection>(json: Json, form: Lossless) -> Result<TemporalAttributes<D>, DocumentError> {
+    let mut attributes = TemporalAttributes::<D>::new();
+    let mut attributes_context = None;
+    for Entry { key, value } in object(json)? {
+        let key = key.as_str();
+        if key == CONTEXT {
+            once(&mut attributes_context, key, context(value)?)?;
+        } else {
+            read_evolution_member(&mut attributes, key, value, form)?;
+        }
+    }
+    Ok(attributes)
 }
 
 /// Reads the member `member` as the evolution of an attribute and adds it after the ones read before, refusing a

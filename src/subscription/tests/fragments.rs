@@ -1,19 +1,23 @@
 //! Subscription fragments.
 
 use crate::{
-    model::{MemberChange, MemberProblem},
+    model::{MemberChange, MemberError, MemberProblem},
     query::{q::Query, temporal_query},
     subscription::{
         Activation,
         Endpoint,
         EndpointMember,
+        EntitySubscription,
         NotificationMember,
         NotificationParams,
         Problem,
+        ReadErrorKind,
+        RegistrationSubscription,
         SubscriptionField,
         SubscriptionFragment,
         SubscriptionMember,
-        tests::problems,
+        read_error::tests::broken_rules,
+        tests::{building::FULL, problems},
     },
 };
 use pretty_assertions::assert_eq;
@@ -94,6 +98,103 @@ fn a_fragment_refuses_members_a_subscription_cannot_hold_together() {
         [Problem::Member(MemberProblem::Empty {
             member: SubscriptionField::Subscription(SubscriptionMember::WatchedAttributes)
         })]
+    );
+}
+
+#[test]
+fn a_fragment_body_with_every_member_of_an_entity_subscription_is_written_back_as_it_was_read() {
+    let body = FULL.replacen(r#""id":"urn:ngsi-ld:Subscription:full","#, "", 1);
+    let fragment = SubscriptionFragment::<EntitySubscription>::parse(&body).unwrap();
+    assert_eq!(fragment.render().to_string(), body);
+    assert_eq!(fragment.q(), Some(MemberChange::Set(&"speed>50".parse().unwrap())));
+    assert_eq!(fragment.csf(), Some(MemberChange::Set(&"owner".parse().unwrap())));
+    assert_eq!(fragment.activation(), Some(MemberChange::Set(Activation::Paused)));
+}
+
+#[test]
+fn a_fragment_body_reads_back_as_the_builder_writes_it_in_both_kinds() {
+    let entity = SubscriptionFragment::builder()
+        .q("speed>50".parse().unwrap())
+        .csf("owner".parse().unwrap())
+        .delete(SubscriptionMember::WatchedAttributes)
+        .delete(SubscriptionMember::Lang)
+        .build()
+        .unwrap();
+    assert_eq!(SubscriptionFragment::<EntitySubscription>::parse(&entity.render().to_string()).unwrap(), entity);
+    let temporal = temporal_query::between("2018-08-01T12:00:00Z".parse().unwrap(), "2018-08-01T13:00:00Z".parse().unwrap())
+        .build()
+        .unwrap();
+    let registration = SubscriptionFragment::registration_builder()
+        .temporal_q(temporal)
+        .delete(SubscriptionMember::Throttling)
+        .build()
+        .unwrap();
+    assert_eq!(
+        SubscriptionFragment::<RegistrationSubscription>::parse(&registration.render().to_string()).unwrap(),
+        registration
+    );
+    let deleted = SubscriptionFragment::registration_builder()
+        .delete(SubscriptionMember::TemporalQ)
+        .build()
+        .unwrap();
+    assert_eq!(
+        SubscriptionFragment::<RegistrationSubscription>::parse(&deleted.render().to_string()).unwrap(),
+        deleted
+    );
+}
+
+#[test]
+fn a_fragment_body_may_leave_out_its_type_and_name_its_target_and_carry_a_context() {
+    let paused = SubscriptionFragment::builder().activation(Activation::Paused).build().unwrap();
+    assert_eq!(SubscriptionFragment::<EntitySubscription>::parse(r#"{"isActive":false}"#).unwrap(), paused);
+    let named = concat!(
+        r#"{"@context":"https://example.org/context.jsonld","id":"urn:ngsi-ld:Subscription:mySubscription","#,
+        r#""type":"Subscription","isActive":false}"#
+    );
+    let fragment = SubscriptionFragment::<EntitySubscription>::parse(named).unwrap();
+    assert_eq!(fragment, paused);
+    // The fragment is always written with its `type`, which Tables 6.11.3.2-1 and 6.13.3.2-1 ask for.
+    assert_eq!(fragment.render().to_string(), r#"{"type":"Subscription","isActive":false}"#);
+}
+
+#[test]
+fn a_fragment_body_refuses_what_a_subscription_cannot_hold() {
+    let refused = |body: &str| SubscriptionFragment::<EntitySubscription>::parse(body).unwrap_err();
+    let unexpected =
+        |body: &str, member: &str| matches!(refused(body).kind, ReadErrorKind::Member(MemberError::UnexpectedMember { member: ref found }) if found == member);
+    // The notification replaces the whole member and cannot be deleted.
+    assert!(SubscriptionFragment::<EntitySubscription>::parse(r#"{"notification":"urn:ngsi-ld:null"}"#).is_err());
+    assert!(SubscriptionFragment::<EntitySubscription>::parse(r#"{"notification":{}}"#).is_err());
+    assert!(SubscriptionFragment::<EntitySubscription>::parse(r#"{"entities":[]}"#).is_err());
+    assert!(
+        SubscriptionFragment::<EntitySubscription>::parse(r#"{"entities":"urn:ngsi-ld:null"}"#)
+            .is_ok_and(|fragment| fragment.deletes(SubscriptionMember::Entities))
+    );
+    assert!(unexpected(r#"{"temporalQ":"urn:ngsi-ld:null"}"#, "temporalQ"));
+    assert!(unexpected(r#"{"status":"active"}"#, "status"));
+    assert!(unexpected(r#"{"createdAt":"2024-05-01T10:00:00Z"}"#, "createdAt"));
+    assert!(matches!(
+        SubscriptionFragment::<RegistrationSubscription>::parse(r#"{"csf":"owner"}"#).unwrap_err().kind,
+        ReadErrorKind::Member(MemberError::UnexpectedMember { ref member }) if member == "csf"
+    ));
+    assert!(matches!(
+        refused(r#"{"type":"ContextSourceRegistration"}"#).kind,
+        ReadErrorKind::WrongType { .. }
+    ));
+    assert!(matches!(refused(r#"{"throttling":0}"#).kind, ReadErrorKind::NotPositive { .. }));
+    assert!(matches!(
+        refused(r#"{"q":"speed>50","q":"urn:ngsi-ld:null"}"#).kind,
+        ReadErrorKind::Member(MemberError::DuplicateMember { .. })
+    ));
+    assert_eq!(
+        broken_rules(refused(r#"{"timeInterval":60,"watchedAttributes":["speed"],"throttling":5}"#)),
+        [Problem::WatchedAttributesWithTimeInterval, Problem::ThrottlingWithTimeInterval]
+    );
+    assert_eq!(
+        broken_rules(refused(
+            r#"{"notification":{"format":"simplified","showChanges":true,"endpoint":{"uri":"http://my.endpoint.org/notify"}}}"#
+        )),
+        [Problem::ShowChangesWithSimplified]
     );
 }
 

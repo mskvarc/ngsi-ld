@@ -5,7 +5,10 @@ use crate::model::{
     BuildError,
     BuildProblem,
     Context,
+    DocumentError,
+    DocumentErrorKind,
     IdDraft,
+    NullMember,
     OneOrMany,
     ProblemKind,
     RawJson,
@@ -117,6 +120,36 @@ impl SimplifiedTemporalInput {
         } else {
             Err(BuildError::new(problems))
         }
+    }
+
+    /// Reads the simplified temporal evolution of an entity a client could send, keeping its `@context`.
+    ///
+    /// It is read as [`SimplifiedTemporalEntity::parse`] reads the broker's answer, then checked to hold no NGSI-LD
+    /// Null: no data point of an attribute and no scope is the Null of a deleted instance (clause 5.5.4).
+    ///
+    /// ```
+    /// use ngsi_ld::model::evolution::SimplifiedTemporalInput;
+    ///
+    /// let vehicle = SimplifiedTemporalInput::parse(
+    ///     r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":{"type":"Property","values":[[120,"2018-08-01T12:03:00Z"]]}}"#,
+    /// )?;
+    /// assert_eq!(vehicle.as_entity().attributes.len(), 1);
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] naming the member at fault, including a missing `id` or `type`, a data point of the
+    /// wrong kind and a data point or scope holding the NGSI-LD Null.
+    pub fn parse(text: &str) -> Result<Self, DocumentError> {
+        let entity = SimplifiedTemporalEntity::parse(text)?;
+        for (name, values) in &entity.attributes {
+            check_temporal_values(values).map_err(|member| DocumentError::top(DocumentErrorKind::NgsiLdNull { member }).within(name.as_ref()))?;
+        }
+        if entity.scope.iter().any(|point| point.value.is_removed()) {
+            return Err(DocumentError::top(DocumentErrorKind::NgsiLdNull { member: NullMember::Scope }).within("scope"));
+        }
+        Ok(Self { entity })
     }
 
     /// The entity, as the simplified temporal representation the broker answers with models it.

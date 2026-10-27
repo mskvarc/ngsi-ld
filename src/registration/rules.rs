@@ -29,6 +29,47 @@ pub(crate) struct Members<'a> {
     pub(crate) texts: [(RegistrationMember, Option<&'a str>); 2],
 }
 
+/// The members of a registration fragment the rules relate, borrowed from a fragment or from the builder's input. A
+/// member the fragment does not set is `None`, and a rule that needs it is left to the registration it changes.
+pub(crate) struct FragmentMembers<'a> {
+    /// The replacement `information`.
+    pub(crate) information: Option<&'a [RegistrationInfo]>,
+    /// The `mode` the fragment sets.
+    pub(crate) mode: Option<RegistrationMode>,
+    /// The `operations` the fragment sets.
+    pub(crate) operations: Option<&'a [SupportedOperation]>,
+    /// `registrationName` and `description`, each a non-empty string when set.
+    pub(crate) texts: [(RegistrationMember, Option<&'a str>); 2],
+}
+
+/// Every rule a fragment breaks by itself, checked by the builder and by the reader.
+pub(crate) fn fragment_member_problems(members: &FragmentMembers<'_>) -> Vec<Problem> {
+    let mut problems = Vec::new();
+    for (member, text) in members.texts {
+        if text.is_some_and(str::is_empty) {
+            problems.push(Problem::from(MemberProblem::Empty {
+                member: RegistrationField::from(member),
+            }));
+        }
+    }
+    if let Some(information) = members.information {
+        if information.is_empty() {
+            problems.push(Problem::from(MemberProblem::Empty {
+                member: RegistrationField::Information,
+            }));
+        }
+        if members.mode == Some(RegistrationMode::Exclusive) && !information.iter().all(RegistrationInfo::names_entity_ids_and_attributes) {
+            problems.push(Problem::ExclusiveWithoutEntityIdAndAttributes);
+        }
+    }
+    if let (Some(RegistrationMode::Auxiliary), Some(operations)) = (members.mode, members.operations)
+        && !auxiliary_operations(operations)
+    {
+        problems.push(Problem::AuxiliaryOperations);
+    }
+    problems
+}
+
 /// Every rule `registration` breaks.
 pub(crate) fn registration_problems<D: RegistrationDirection>(registration: &CSourceRegistration<D>) -> Vec<Problem> {
     member_problems(&Members {

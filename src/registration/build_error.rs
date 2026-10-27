@@ -58,6 +58,13 @@ pub enum Problem {
     /// elements (clause 4.3.6.3).
     #[error("an exclusive registration needs an entity id and attribute names")]
     ExclusiveWithoutEntityIdAndAttributes,
+    /// A fragment deletes a member a registration needs, `information` or `endpoint` (Table 5.2.9-1): a fragment
+    /// can replace it, not remove it.
+    #[error("a fragment cannot delete `{member}`, which a registration needs")]
+    MandatoryMemberDeleted {
+        /// The member.
+        member: RegistrationField,
+    },
     /// A `contextSourceInfo` pair holds a value its key does not allow (clause 4.3.6.6).
     #[error("context source information {index} is invalid")]
     ContextSourceInfo {

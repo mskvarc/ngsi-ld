@@ -1,8 +1,18 @@
 //! The bodies of Clone Snapshot and Update Snapshot Status.
 
 use crate::{
-    model::MemberProblem,
-    snapshot::{AggregationMember, Problem, QueryMember, SnapshotClone, SnapshotField, SnapshotFragment, SnapshotMember},
+    model::{MemberError, MemberProblem},
+    snapshot::{
+        AggregationMember,
+        Problem,
+        QueryMember,
+        SnapshotClone,
+        SnapshotField,
+        SnapshotFragment,
+        SnapshotMember,
+        tests::{missing, refused, unexpected},
+    },
+    subscription::ReadErrorKind,
 };
 use iri_rs::iri;
 use pretty_assertions::assert_eq;
@@ -53,6 +63,84 @@ fn every_member_a_fragment_deletes_is_reported_as_deleted() {
     for member in SnapshotMember::iter() {
         assert!(SnapshotFragment::builder().delete(member).build().unwrap().deletes(member), "{member}");
     }
+}
+
+#[test]
+fn a_clone_body_reads_back_as_written_with_or_without_an_id() {
+    let named = SnapshotClone::builder()
+        .id(iri!("urn:ngsi-ld:Snapshot:2"))
+        .lifetime("P1D".parse().unwrap())
+        .priority(3)
+        .endpoint("http://my.endpoint.org/snapshots")
+        .build()
+        .unwrap();
+    assert_eq!(SnapshotClone::parse(&named.render().to_string()).unwrap(), named);
+    let anonymous = SnapshotClone::builder().build().unwrap();
+    assert_eq!(SnapshotClone::parse(r#"{"type":"Snapshot"}"#).unwrap(), anonymous);
+    // The binding delivers the `@context` of a body, so the clone does not keep it.
+    assert_eq!(
+        SnapshotClone::parse(r#"{"@context":"https://example.org/context.jsonld","type":"Snapshot"}"#).unwrap(),
+        anonymous
+    );
+}
+
+#[test]
+fn a_clone_body_refuses_what_a_clone_cannot_carry() {
+    assert!(missing(&refused(SnapshotClone::parse(r#"{"id":"urn:ngsi-ld:Snapshot:2"}"#)), "type"));
+    for member in ["snapshotQueries", "snapshotTemporalQueries", "snapshotStatus", "createdAt", "unknown"] {
+        let body = format!(r#"{{"type":"Snapshot","{member}":[]}}"#);
+        assert!(unexpected(&refused(SnapshotClone::parse(&body)), member), "{member}");
+    }
+    assert!(matches!(
+        refused(SnapshotClone::parse(r#"{"type":"Subscription"}"#)).kind,
+        ReadErrorKind::WrongType { .. }
+    ));
+    assert!(matches!(
+        refused(SnapshotClone::parse(r#"{"type":"Snapshot","snapshotPriority":11}"#)).kind,
+        ReadErrorKind::Invalid { .. }
+    ));
+    assert!(SnapshotClone::parse(r#"{"type":"Snapshot","id":"not an id"}"#).is_err());
+}
+
+#[test]
+fn a_fragment_body_reads_back_as_written_and_may_leave_out_its_type_and_name_its_target() {
+    let fragment = SnapshotFragment::builder()
+        .lifetime("PT2H".parse().unwrap())
+        .priority(4)
+        .delete(SnapshotMember::Endpoint)
+        .delete(SnapshotMember::ReceiverInfo)
+        .build()
+        .unwrap();
+    assert_eq!(SnapshotFragment::parse(&fragment.render().to_string()).unwrap(), fragment);
+    let typeless = r#"{"snapshotLifetime":"PT2H","snapshotPriority":4,"endpoint":"urn:ngsi-ld:null","receiverInfo":"urn:ngsi-ld:null"}"#;
+    assert_eq!(SnapshotFragment::parse(typeless).unwrap(), fragment);
+    let named = r#"{"id":"urn:ngsi-ld:Snapshot:1","type":"Snapshot","@context":"https://example.org/context.jsonld","snapshotLifetime":"PT2H","snapshotPriority":4,"endpoint":"urn:ngsi-ld:null","receiverInfo":"urn:ngsi-ld:null"}"#;
+    assert_eq!(SnapshotFragment::parse(named).unwrap(), fragment);
+    assert_eq!(SnapshotFragment::parse("{}").unwrap(), SnapshotFragment::builder().build().unwrap());
+}
+
+#[test]
+fn a_fragment_body_refuses_what_a_client_cannot_change() {
+    for member in ["snapshotQueries", "snapshotTemporalQueries", "snapshotStatus", "expiresAt", "unknown"] {
+        let body = format!(r#"{{"type":"Snapshot","{member}":"urn:ngsi-ld:null"}}"#);
+        assert!(unexpected(&refused(SnapshotFragment::parse(&body)), member), "{member}");
+    }
+    assert!(matches!(
+        refused(SnapshotFragment::parse(r#"{"type":"Snapshot","snapshotPriority":0}"#)).kind,
+        ReadErrorKind::Invalid { .. }
+    ));
+    assert!(matches!(
+        refused(SnapshotFragment::parse(r#"{"type":"ContextSourceRegistration"}"#)).kind,
+        ReadErrorKind::WrongType { .. }
+    ));
+    assert!(matches!(
+        refused(SnapshotFragment::parse(
+            r#"{"endpoint":"urn:ngsi-ld:null","endpoint":"http://my.endpoint.org/"}"#
+        ))
+        .kind,
+        ReadErrorKind::Member(MemberError::DuplicateMember { .. })
+    ));
+    assert!(SnapshotFragment::parse(r#"{"endpoint":"not a url"}"#).is_err());
 }
 
 /// Asserts that every variant of each member enum is written and read back as itself.

@@ -27,6 +27,7 @@ use crate::model::{
     Property,
     Relationship,
     VocabProperty,
+    member_change::read_change,
     null::{self, NGSI_LD_NULL},
     reader::unexpected,
     representation::{
@@ -46,13 +47,7 @@ impl ReadDirection for Patch {
         json: Option<Json>,
         read: impl FnOnce(Json) -> Result<T, DocumentError>,
     ) -> Result<Option<MemberChange<T>>, DocumentError> {
-        json.map(|json| match json {
-            Json::String(text) if text.as_str() == NGSI_LD_NULL.as_str() => Ok(MemberChange::Delete),
-            other @ (Json::Null | Json::Boolean(_) | Json::Number(_) | Json::String(_) | Json::Array(_) | Json::Object(_)) => {
-                read(other).map(MemberChange::Set)
-            }
-        })
-        .transpose()
+        json.map(|json| read_change(json, read)).transpose()
     }
 
     fn read_attribute_output((): &mut Self::AttributeOutput, member: OutputMember, _: Json) -> Result<(), DocumentError> {

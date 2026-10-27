@@ -2,9 +2,9 @@
 //! snapshot.
 
 use crate::{
-    model::{BuildError, Duration, KeyValuePair, MemberProblem, RawJson, UrlDraft, null::NGSI_LD_NULL},
-    snapshot::{Problem, SnapshotField, SnapshotMember, settings::Settings},
-    subscription::DocumentType,
+    model::{BuildError, DocumentError, Duration, KeyValuePair, MemberProblem, RawJson, UrlDraft, null::NGSI_LD_NULL, reader::parse_json},
+    snapshot::{Problem, SnapshotField, SnapshotMember, reader::read_snapshot_fragment, settings::Settings},
+    subscription::{DocumentType, ReadErrorKind},
 };
 use bon::bon;
 use jstrict::{Object, Value as Json, object::Entry};
@@ -17,8 +17,8 @@ use jstrict::{Object, Value as Json, object::Entry};
 /// snapshot exists (Table 5.2.41-1) and the `id` cannot be modified, so a fragment changes the settings only: it
 /// sets each, or deletes it with the NGSI-LD Null (clause 5.5.8). No status transition can be requested.
 ///
-/// It is written with `"type": "Snapshot"` and without `id`: the binding names the snapshot. Like the fragments of
-/// the other documents, it is only written.
+/// It is written with `"type": "Snapshot"` and without `id`: the binding names the snapshot. [`SnapshotFragment::parse`]
+/// reads a body, which may leave `type` out and name the snapshot with an `id`; neither is kept.
 ///
 /// ```
 /// use ngsi_ld::snapshot::{SnapshotFragment, SnapshotMember};
@@ -36,9 +36,9 @@ use jstrict::{Object, Value as Json, object::Entry};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SnapshotFragment {
     /// The members set, written in the order of Table 5.2.41-1.
-    settings: Settings,
+    pub(super) settings: Settings,
     /// The members deleted.
-    deletions: Vec<SnapshotMember>,
+    pub(super) deletions: Vec<SnapshotMember>,
 }
 
 #[bon]
@@ -85,6 +85,30 @@ impl<S: snapshot_fragment_builder::State> SnapshotFragmentBuilder<S> {
 }
 
 impl SnapshotFragment {
+    /// Reads the body of Update Snapshot Status.
+    ///
+    /// A member Table 5.2.41-1 lets a client change is set, or deleted when its value is the NGSI-LD Null (clause
+    /// 5.5.8). Clause 5.4 makes `id` and `type` optional where the operation names the target, so both may be left
+    /// out. The queries and the members only a broker writes cannot be changed and are refused. The `id` and the
+    /// `@context` are checked and not kept: the binding names the snapshot and delivers the context (clause 6.3.5).
+    ///
+    /// ```
+    /// use ngsi_ld::snapshot::{SnapshotFragment, SnapshotMember};
+    ///
+    /// let fragment =
+    ///     SnapshotFragment::parse(r#"{"snapshotLifetime":"PT2H","endpoint":"urn:ngsi-ld:null"}"#)?;
+    /// assert!(fragment.deletes(SnapshotMember::Endpoint));
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] naming the member at fault: a member given twice, a priority outside 1 to 10, an
+    /// `endpoint` that is not a URL, and a member that cannot be changed.
+    pub fn parse(text: &str) -> Result<Self, DocumentError<ReadErrorKind<Problem>>> {
+        read_snapshot_fragment(parse_json(text)?)
+    }
+
     /// Whether the fragment deletes `member`.
     #[must_use]
     pub fn deletes(&self, member: SnapshotMember) -> bool {
