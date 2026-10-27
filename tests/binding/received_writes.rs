@@ -172,7 +172,13 @@ fn a_delete_attribute_reads_back_the_instances_it_removes() {
     let name: AttributeName = "speed".parse().unwrap();
     let gps = Uri::from(iri!("urn:ngsi-ld:dataset:gps"));
     let vehicles: TypeSelection = "Vehicle".parse().unwrap();
-    for instances in [InstanceSelection::Default, InstanceSelection::Dataset(&gps), InstanceSelection::All] {
+    for instances in [
+        InstanceSelection::Default,
+        InstanceSelection::Dataset(&gps),
+        InstanceSelection::All,
+        InstanceSelection::Selected(None),
+        InstanceSelection::Selected(Some(&gps)),
+    ] {
         let delete = DeleteAttribute::builder()
             .id(&id)
             .name(&name)
@@ -189,12 +195,17 @@ fn a_delete_attribute_reads_back_the_instances_it_removes() {
 fn a_delete_attribute_reads_delete_all_as_table_6_7_3_2_1_says() {
     let received = DeleteAttributeParameters::parse("deleteAll=false&datasetId=urn:ngsi-ld:dataset:gps").unwrap();
     assert_eq!(received.delete_all, DeleteAll::Selected);
-    assert_eq!(received.instances(), InstanceSelection::Dataset(&Uri::from(iri!("urn:ngsi-ld:dataset:gps"))));
+    assert_eq!(
+        received.instances(),
+        InstanceSelection::Selected(Some(&Uri::from(iri!("urn:ngsi-ld:dataset:gps"))))
+    );
+    let unflagged = DeleteAttributeParameters::parse("datasetId=urn:ngsi-ld:dataset:gps").unwrap();
+    assert_eq!(unflagged.instances(), InstanceSelection::Dataset(&Uri::from(iri!("urn:ngsi-ld:dataset:gps"))));
     let every = DeleteAttributeParameters::parse("deleteAll=true&datasetId=urn:ngsi-ld:dataset:gps").unwrap();
     assert_eq!(every.instances(), InstanceSelection::All);
     assert_eq!(
         DeleteAttributeParameters::parse("deleteAll=false").unwrap().instances(),
-        InstanceSelection::Default
+        InstanceSelection::Selected(None)
     );
     assert!(matches!(
         DeleteAttributeParameters::parse("deleteAll=yes").unwrap_err(),

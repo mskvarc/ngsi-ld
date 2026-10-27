@@ -206,6 +206,19 @@ fn delete_attribute_selects_the_default_instance_a_dataset_or_every_instance() {
 }
 
 #[test]
+fn delete_attribute_can_spell_out_delete_all_false_with_or_without_a_dataset() {
+    let id = b();
+    let name = speed();
+    let gps = "urn:ngsi-ld:dataset:gps".parse().unwrap();
+    let delete = |instances| DeleteTemporalAttribute::builder().id(&id).name(&name).instances(instances).build();
+    assert_eq!(query_string(&delete(InstanceSelection::Selected(None))).as_deref(), Some("deleteAll=false"));
+    assert_eq!(
+        query_string(&delete(InstanceSelection::Selected(Some(&gps)))).as_deref(),
+        Some("datasetId=urn%3Angsi-ld%3Adataset%3Agps&deleteAll=false")
+    );
+}
+
+#[test]
 fn modify_instance_patches_one_instance_as_the_only_element_of_an_array() {
     let id = b();
     let name = speed();

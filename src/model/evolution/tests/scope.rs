@@ -35,6 +35,16 @@ fn a_scope_evolution_round_trips_in_both_forms() {
 }
 
 #[test]
+fn a_plain_scope_value_is_not_a_temporal_representation_of_the_scope() {
+    for scope in [r#""/Madrid""#, r#"["/Madrid","/Company123/UnitA"]"#] {
+        let input = TemporalEntity::<Input>::parse(&vehicle_with_scope(scope), Lossless::Normalized).unwrap_err();
+        assert_eq!(input.path.to_string(), "scope", "{scope}");
+        let output = TemporalEntity::<Output>::parse(&vehicle_with_scope(scope), Lossless::Concise).unwrap_err();
+        assert_eq!(output.path.to_string(), "scope", "{scope}");
+    }
+}
+
+#[test]
 fn a_scope_instance_holds_nothing_else() {
     let input = |scope: &str| TemporalEntity::<Input>::parse(&vehicle_with_scope(scope), Lossless::Normalized).unwrap_err();
     let output = |scope: &str| TemporalEntity::<Output>::parse(&vehicle_with_scope(scope), Lossless::Normalized).unwrap_err();

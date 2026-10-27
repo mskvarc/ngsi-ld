@@ -89,13 +89,15 @@ impl DeleteAttributeParameters {
     }
 
     /// The instances the request removes (Table 6.7.3.2-1): every instance with `deleteAll=true`, otherwise the
-    /// instance `datasetId` names, or the default instance when neither is given.
+    /// instance `datasetId` names, or the default instance when neither is given. A `deleteAll=false` stays spelled
+    /// out, as [`InstanceSelection::Selected`].
     #[must_use]
     pub const fn instances(&self) -> InstanceSelection<'_> {
         match (self.delete_all, &self.dataset_id) {
             (DeleteAll::Every, _) => InstanceSelection::All,
-            (DeleteAll::Unspecified | DeleteAll::Selected, Some(dataset_id)) => InstanceSelection::Dataset(dataset_id),
-            (DeleteAll::Unspecified | DeleteAll::Selected, None) => InstanceSelection::Default,
+            (DeleteAll::Selected, dataset_id) => InstanceSelection::Selected(dataset_id.as_ref()),
+            (DeleteAll::Unspecified, Some(dataset_id)) => InstanceSelection::Dataset(dataset_id),
+            (DeleteAll::Unspecified, None) => InstanceSelection::Default,
         }
     }
 }

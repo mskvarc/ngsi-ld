@@ -38,6 +38,10 @@ pub enum InstanceSelection<'a> {
     Dataset(&'a Uri),
     /// Every instance (`deleteAll=true`).
     All,
+    /// Only one instance, with the flag spelled out (`deleteAll=false`): the instance with this dataset id, or the
+    /// default instance when there is none. The request removes what [`Dataset`](Self::Dataset) or
+    /// [`Default`](Self::Default) removes, since the flag is `false` by default (Tables 6.7.3.2-1 and 6.21.3.1-1).
+    Selected(Option<&'a Uri>),
 }
 
 impl InstanceSelection<'_> {
@@ -48,6 +52,12 @@ impl InstanceSelection<'_> {
             Self::Default => {}
             Self::Dataset(dataset_id) => query.push(QueryParameter::DatasetId, dataset_id),
             Self::All => query.push(QueryParameter::DeleteAll, true),
+            Self::Selected(dataset_id) => {
+                if let Some(dataset_id) = dataset_id {
+                    query.push(QueryParameter::DatasetId, dataset_id);
+                }
+                query.push(QueryParameter::DeleteAll, false);
+            }
         }
     }
 }

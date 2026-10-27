@@ -175,6 +175,11 @@ fn to_b21_delete_attribute_selects_the_default_instance_a_dataset_or_all() {
         Some("datasetId=urn%3Angsi-ld%3Adataset%3Agps")
     );
     assert_eq!(delete(InstanceSelection::All).uri().query(), Some("deleteAll=true"));
+    assert_eq!(delete(InstanceSelection::Selected(None)).uri().query(), Some("deleteAll=false"));
+    assert_eq!(
+        delete(InstanceSelection::Selected(Some(&gps))).uri().query(),
+        Some("datasetId=urn%3Angsi-ld%3Adataset%3Agps&deleteAll=false")
+    );
 }
 
 #[test]
