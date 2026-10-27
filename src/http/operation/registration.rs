@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub(super) mod delete;
+pub(super) mod parameters;
 pub(super) mod query;
 pub(super) mod register;
 pub(super) mod retrieve;

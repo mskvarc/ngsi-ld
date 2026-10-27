@@ -5,4 +5,5 @@
 pub(super) mod add;
 pub(super) mod delete;
 pub(super) mod list;
+pub(super) mod parameters;
 pub(super) mod serve;

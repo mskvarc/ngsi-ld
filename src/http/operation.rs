@@ -92,15 +92,15 @@
 //! so their requests carry the client's `@context` as every other request does (clause 6.3.5); the `@context` a
 //! document was read with is not sent.
 //!
-//! [`CreateSubscription`], [`RetrieveSubscription`], [`QuerySubscriptions`], [`UpdateSubscription`],
-//! [`DeleteSubscription`].
+//! [`CreateSubscription`], [`RetrieveSubscription`], [`QuerySubscriptions`], [`QuerySubscriptionsParameters`],
+//! [`UpdateSubscription`], [`DeleteSubscription`].
 //!
 //! # Registrations
 //!
 //! The registry operations are always local (clause 6.3.18), so none takes `local`.
 //!
-//! [`RegisterContextSource`], [`RetrieveRegistration`], [`QueryRegistrations`], [`UpdateRegistration`],
-//! [`DeleteRegistration`].
+//! [`RegisterContextSource`], [`RetrieveRegistration`], [`QueryRegistrations`], [`QueryRegistrationsParameters`],
+//! [`UpdateRegistration`], [`DeleteRegistration`].
 //!
 //! # Discovery
 //!
@@ -109,15 +109,15 @@
 //! the `Link` header (clause 6.3.5), where it decides the short names of the answer.
 //!
 //! [`RetrieveEntityTypes`], [`RetrieveEntityTypeDetails`], [`RetrieveEntityTypeInfo`], [`RetrieveAttributes`],
-//! [`RetrieveAttributeDetails`], [`RetrieveAttributeInfo`], [`RetrieveSourceIdentity`].
+//! [`RetrieveAttributeDetails`], [`RetrieveAttributeInfo`], [`DiscoveryParameters`], [`RetrieveSourceIdentity`].
 //!
 //! # Stored contexts
 //!
 //! The body of Add @context is a JSON-LD local context, sent as `application/ld+json` without the client's own context
 //! (clause 6.3.5). As for discovery, `details=true` has its own request types.
 //!
-//! [`AddContext`], [`ListContexts`], [`ListContextDetails`], [`ContextKindFilter`], [`ServeContext`],
-//! [`ServeContextDetails`], [`DeleteContext`], [`ContextDeletion`].
+//! [`AddContext`], [`ListContexts`], [`ListContextDetails`], [`ListContextsParameters`], [`ContextKindFilter`],
+//! [`ServeContext`], [`ServeContextDetails`], [`DeleteContext`], [`ContextDeletion`].
 //!
 //! # Entity maps
 //!
@@ -137,7 +137,7 @@
 //!
 //! # Parameters
 //!
-//! [`SystemAttributes`], [`ResultsCount`], [`SummaryDetails`], [`QueryMethod`], [`Overwrite`], [`UpsertMode`],
+//! [`SystemAttributes`], [`ResultsCount`], [`SummaryDetails`], [`Details`], [`QueryMethod`], [`Overwrite`], [`UpsertMode`],
 //! [`LocalScopeOperation`], [`WithLocality`], [`RepresentationSpelling`], [`RepresentationToken`],
 //! [`RepresentationParameter`], [`NormalizedSpelling`].
 //!
@@ -180,6 +180,7 @@ pub use crate::http::operation::{
         entity_type_details::RetrieveEntityTypeDetails,
         entity_type_info::RetrieveEntityTypeInfo,
         entity_types::RetrieveEntityTypes,
+        parameters::DiscoveryParameters,
     },
     entity_format::Simplified,
     entity_map::{
@@ -197,7 +198,7 @@ pub use crate::http::operation::{
     locality::{LocalScopeOperation, WithLocality},
     merge_entity::{MergeEntity, MergeSimplifiedEntity},
     page_request::PageRequest,
-    parameters::{Overwrite, QueryMethod, ResultsCount, SummaryDetails, SystemAttributes, UpsertMode},
+    parameters::{Details, Overwrite, QueryMethod, ResultsCount, SummaryDetails, SystemAttributes, UpsertMode},
     partial_attribute_update::PartialAttributeUpdate,
     purge_entities::{PurgeEntities, parameters::PurgeEntitiesParameters},
     query_entities::{
@@ -210,6 +211,7 @@ pub use crate::http::operation::{
     },
     registration::{
         delete::DeleteRegistration,
+        parameters::QueryRegistrationsParameters,
         query::QueryRegistrations,
         register::RegisterContextSource,
         retrieve::RetrieveRegistration,
@@ -233,11 +235,13 @@ pub use crate::http::operation::{
         add::AddContext,
         delete::{ContextDeletion, DeleteContext},
         list::{ContextKindFilter, ListContextDetails, ListContexts},
+        parameters::ListContextsParameters,
         serve::{ServeContext, ServeContextDetails},
     },
     subscription::{
         create::CreateSubscription,
         delete::DeleteSubscription,
+        parameters::QuerySubscriptionsParameters,
         query::QuerySubscriptions,
         retrieve::RetrieveSubscription,
         update::UpdateSubscription,

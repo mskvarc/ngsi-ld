@@ -5,12 +5,20 @@
 use crate::{
     http::{
         QueryParameter,
-        operation::{ParameterError, ResultsCount, received_parameters::ReceivedQuery},
+        operation::{ParameterError, ResultsCount, SummaryDetails, SystemAttributes, parameters::Details, received_parameters::ReceivedQuery},
     },
     query::Locality,
 };
 use percent_encoding::percent_decode_str;
 use std::{borrow::Cow, str::FromStr};
+
+/// The one keyword of `options` the listings take: `sysAttrs` (clause 6.3.11).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString)]
+enum SystemAttributesOption {
+    /// `sysAttrs`.
+    #[strum(serialize = "sysAttrs")]
+    SystemAttributes,
+}
 
 impl<'a> ReceivedQuery<'a> {
     /// The percent-decoded value of `parameter`, when it is given.
@@ -102,6 +110,50 @@ impl<'a> ReceivedQuery<'a> {
                     .collect()
             },
         )
+    }
+
+    /// The value of `parameter` read as one token of `T`, when it is given.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ParameterError::Encoding`], or [`ParameterError::UnknownToken`] when the value is not a token of `T`.
+    pub(crate) fn token<T: FromStr>(&self, parameter: QueryParameter) -> Result<Option<T>, ParameterError> {
+        self.text(parameter)?
+            .map(|text| {
+                text.parse::<T>().map_err(|_| ParameterError::UnknownToken {
+                    parameter,
+                    token: text.into_owned(),
+                })
+            })
+            .transpose()
+    }
+
+    /// `details` (Tables 6.25.3.1-1, 6.27.3.1-1 and 6.29.3.2-1).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ParameterError::NotABoolean`] for a value other than `true` and `false`.
+    pub(crate) fn details(&self) -> Result<Details, ParameterError> {
+        Ok(match self.flag(QueryParameter::Details)? {
+            None => Details::Summary(SummaryDetails::Implied),
+            Some(false) => Details::Summary(SummaryDetails::Explicit),
+            Some(true) => Details::Detailed,
+        })
+    }
+
+    /// `options` of an operation whose only keyword is `sysAttrs` (clause 6.3.11).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ParameterError::Encoding`], or [`ParameterError::UnknownToken`] naming the first keyword other than
+    /// `sysAttrs`.
+    pub(crate) fn system_attributes(&self) -> Result<SystemAttributes, ParameterError> {
+        let options = self.tokens::<SystemAttributesOption>(QueryParameter::Options)?;
+        Ok(if options.is_empty() {
+            SystemAttributes::Omit
+        } else {
+            SystemAttributes::Include
+        })
     }
 
     /// The boolean `parameter`, when it is given.

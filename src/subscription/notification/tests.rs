@@ -365,3 +365,42 @@ fn a_request_refuses_the_null_of_a_deleted_attribute() {
     let deleted = Entity::<Output>::parse(DELETED_NORMALIZED, Lossless::Normalized).unwrap();
     assert!(deleted.into_input().is_err());
 }
+
+#[test]
+fn a_notification_posted_to_a_broker_by_a_context_source_is_read_and_written_back() {
+    let core = "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.9.jsonld";
+    let bodies = [
+        r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":40},"owner":{"type":"Relationship","object":"urn:ngsi-ld:Person:ada"},"colour":{"type":"Property","value":"red"}}"#,
+        r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","name":{"type":"LanguageProperty","languageMap":{"en":"Tower","de":"Turm"}}}"#,
+        r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":20,"observedAt":"2025-01-01T00:00:00Z"},"name":{"type":"LanguageProperty","languageMap":{"en":"Tower","de":"Turm"}}}"#,
+        r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","owner":"urn:ngsi-ld:null","speed":{"type":"Property","value":40}}"#,
+        r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","locatedIn":{"type":"Relationship","object":"urn:ngsi-ld:City:1"}}"#,
+    ];
+    for body in bodies {
+        let text = format!(r#"{{{HEAD},"data":[{body}],"@context":"{core}"}}"#);
+        let read = round_trip(&text, Lossless::Normalized);
+        assert_eq!(read.data().len(), 1);
+        assert!(read.context().is_some());
+    }
+}
+
+#[test]
+fn a_notified_entity_without_a_type_is_refused_by_the_complete_reader_and_read_by_the_projected_one() {
+    let text = notification(
+        r#"[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":40}},{"id":"urn:ngsi-ld:Vehicle:B9211","speed":{"type":"Property","value":41}}]"#,
+    );
+    let refused = Notification::<Vec<Entity<Output>>>::parse(&text, Lossless::Normalized).unwrap_err();
+    assert_eq!(refused.path.to_string(), "data.1");
+    let read = Notification::<Vec<Entity<Output, Projected>>>::parse(&text, Lossless::Normalized).unwrap();
+    assert_eq!(read.data().len(), 2);
+    assert_eq!(read.render(Lossless::Normalized).to_string(), text);
+}
+
+#[test]
+fn an_entity_of_a_notification_may_carry_its_own_context() {
+    let text = notification(
+        r#"[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","speed":{"type":"Property","value":40},"@context":"https://example.org/context.jsonld"}]"#,
+    );
+    let read = Notification::<Vec<Entity<Output>>>::parse(&text, Lossless::Normalized).unwrap();
+    assert_eq!(read.render(Lossless::Normalized).to_string(), text);
+}

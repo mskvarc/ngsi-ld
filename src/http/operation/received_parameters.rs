@@ -83,7 +83,7 @@ pub enum ParameterError {
         #[source]
         source: ParseIntError,
     },
-    /// `count`, `local`, `splitEntities`, `entityMap` or `deleteAll` is neither `true` nor `false`.
+    /// `count`, `local`, `details`, `splitEntities`, `entityMap` or `deleteAll` is neither `true` nor `false`.
     #[error("the parameter `{parameter}` must be true or false")]
     NotABoolean {
         /// The parameter.

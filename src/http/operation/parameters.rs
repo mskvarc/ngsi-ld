@@ -76,9 +76,26 @@ pub enum SummaryDetails {
 
 /// Which representation a discovery or stored-context request asks for (NGSI-LD Tables 6.25.3.1-1, 6.27.3.1-1,
 /// 6.29.3.2-1 and 6.30.3.1-1): the summary, with `details` absent or `false`, or the detailed one `details=true`
-/// names. The two answers have different shapes, so each is a request type of its own.
+/// names. The two answers have different shapes, so each is a request type of its own; a context source or a broker
+/// that reads a request tells them apart with this enum.
+///
+/// The enum is exhaustive: a boolean parameter is absent, `false` or `true`.
+///
+/// ```
+/// use ngsi_ld::http::operation::{Details, DiscoveryParameters, SummaryDetails};
+///
+/// assert_eq!(
+///     DiscoveryParameters::parse("details=true")?.details,
+///     Details::Detailed
+/// );
+/// assert_eq!(
+///     DiscoveryParameters::parse("")?.details,
+///     Details::Summary(SummaryDetails::Implied)
+/// );
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) enum Details {
+pub enum Details {
     /// The summary.
     Summary(SummaryDetails),
     /// `details=true`.

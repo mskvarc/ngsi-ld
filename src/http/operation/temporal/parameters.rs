@@ -131,7 +131,7 @@ const fn temporal(source: DocumentError<TemporalQueryError>) -> ParameterError {
 impl TemporalSelectionParameters {
     /// Reads the temporal selection. With a time bound, the parameters are the members of the `TemporalQuery` object
     /// of clause 5.2.21 under the same names, so they are read by its reader: one grammar, one set of rules.
-    fn read(received: &ReceivedQuery<'_>) -> Result<TemporalSelectionParameters, ParameterError> {
+    pub(crate) fn read(received: &ReceivedQuery<'_>) -> Result<TemporalSelectionParameters, ParameterError> {
         let mut object = Object::new();
         for (parameter, member) in TEMPORAL {
             if let Some(text) = received.text(parameter)? {

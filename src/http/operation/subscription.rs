@@ -13,6 +13,7 @@ use crate::{
 
 pub(super) mod create;
 pub(super) mod delete;
+pub(super) mod parameters;
 pub(super) mod query;
 pub(super) mod retrieve;
 pub(super) mod update;

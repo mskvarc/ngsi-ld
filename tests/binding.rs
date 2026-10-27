@@ -127,6 +127,11 @@ mod entity_map_pages;
 #[path = "binding/merge_simplified.rs"]
 mod merge_simplified;
 
+/// The query strings of the listings and the entity map creations, read back in typed form.
+#[cfg(test)]
+#[path = "binding/received_listings.rs"]
+mod received_listings;
+
 /// The query strings of forwarded write operations, read back in typed form.
 #[cfg(test)]
 #[path = "binding/received_writes.rs"]

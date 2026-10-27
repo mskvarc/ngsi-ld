@@ -15,6 +15,7 @@ pub(super) mod attributes;
 pub(super) mod entity_type_details;
 pub(super) mod entity_type_info;
 pub(super) mod entity_types;
+pub(super) mod parameters;
 
 /// Builds the GET of the discovery resource `path`, asking for the representation `details` names, limited to
 /// the broker's own data or not as `locality` says.
