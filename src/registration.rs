@@ -55,7 +55,7 @@
 //!
 //! # Entity maps
 //!
-//! [`EntityMap`], [`EntityMapId`], [`EntitySource`].
+//! [`EntityMap`], [`EntityMapFragment`], [`EntityMapId`], [`EntitySource`].
 //!
 //! # Members and errors
 //!
@@ -80,7 +80,7 @@ pub use crate::registration::{
         OtherContextSourceInfo,
     },
     direction::{RegistrationDirection, RegistrationOutputMembers, RegistrationStatus},
-    entity_map::{EntityMap, EntityMapId, EntitySource},
+    entity_map::{EntityMap, EntityMapId, EntitySource, fragment::EntityMapFragment},
     fragment::{RegistrationFragment, RegistrationTypeMember},
     identifier::RegistrationId,
     information::{EntityInfo, EntityInfoDraft, RegistrationInfo},

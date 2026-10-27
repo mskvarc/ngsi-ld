@@ -267,5 +267,6 @@ fn read_linked_maps(json: Json) -> Result<IndexMap<RegistrationId, EntityMapId>,
     Ok(linked)
 }
 
+pub(super) mod fragment;
 #[cfg(test)]
 mod tests;
