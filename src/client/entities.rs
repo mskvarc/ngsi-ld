@@ -20,6 +20,7 @@ use crate::{
             CreateEntity,
             DeleteAttribute,
             DeleteEntity,
+            EntityIdMember,
             InstanceSelection,
             Overwrite,
             PartialAttributeUpdate,
@@ -155,6 +156,7 @@ impl<T: Transport, M: Answering> Entities<'_, T, M> {
         #[builder(start_fn)] entity: &Entity<Input>,
         #[builder(into)] entity_type: Option<TypeSelectionBuilder>,
         #[builder(default)] form: Lossless,
+        #[builder(default)] id_member: EntityIdMember,
         #[builder(default)] locality: Locality,
         tenant: Option<&Tenant>,
     ) -> Result<M::Answer<BatchOutcome>, ClientError<T::Error>> {
@@ -166,6 +168,7 @@ impl<T: Transport, M: Answering> Entities<'_, T, M> {
                     .entity(entity)
                     .maybe_entity_type(entity_type.as_ref())
                     .form(form)
+                    .id_member(id_member)
                     .build(),
                 tenant,
             )

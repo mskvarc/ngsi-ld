@@ -15,7 +15,19 @@ use ngsi_ld::{
         ContextDelivery,
         RequestError,
         headers::NgsiLdTenant,
-        operation::{ArgumentError, CreateEntity, DeleteEntity, MergeEntity, Operation, QueryEntities, QueryMethod, ReplaceEntity, ResultsCount, Simplified},
+        operation::{
+            ArgumentError,
+            CreateEntity,
+            DeleteEntity,
+            EntityIdMember,
+            MergeEntity,
+            Operation,
+            QueryEntities,
+            QueryMethod,
+            ReplaceEntity,
+            ResultsCount,
+            Simplified,
+        },
     },
     model::{EntityFragment, EntityId, Lossless, Tenant},
     query::{Locality, SelectorType, projection::Projection, q},
@@ -182,6 +194,23 @@ fn replace_sends_put_to_the_entity() {
     let request = ReplaceEntity::builder().entity(&vehicle).build().to_request(&endpoint()).unwrap();
     assert_eq!(request.method(), Method::PUT);
     assert_eq!(request.uri().path(), format!("/ngsi-ld/v1/entities/{}", vehicle.id));
+}
+
+#[test]
+fn replace_can_leave_the_id_out_of_the_body_the_path_names() {
+    let vehicle = vehicle();
+    let written = ReplaceEntity::builder().entity(&vehicle).build().to_request(&endpoint()).unwrap();
+    assert!(json(written.body()).as_object().unwrap().contains_key("id"));
+    let omitted = ReplaceEntity::builder()
+        .entity(&vehicle)
+        .id_member(EntityIdMember::Omitted)
+        .build()
+        .to_request(&endpoint())
+        .unwrap();
+    assert_eq!(omitted.uri().path(), format!("/ngsi-ld/v1/entities/{}", vehicle.id));
+    let body = json(omitted.body());
+    assert!(!body.as_object().unwrap().contains_key("id"));
+    assert!(body.as_object().unwrap().contains_key("type"));
 }
 
 #[test]

@@ -52,7 +52,7 @@
 //! # Entities
 //!
 //! [`CreateEntity`], [`RetrieveEntity`], [`RetrieveEntityParameters`], [`QueryEntities`], [`QueryEntitiesParameters`],
-//! [`QueryEntitiesPostParameters`], [`ReplaceEntity`], [`MergeEntity`], [`MergeSimplifiedEntity`], [`DeleteEntity`],
+//! [`QueryEntitiesPostParameters`], [`ReplaceEntity`], [`EntityIdMember`], [`MergeEntity`], [`MergeSimplifiedEntity`], [`DeleteEntity`],
 //! [`PurgeEntities`], [`PurgeEntitiesParameters`], [`GeoJson`], [`InlineJoin`], [`Flattened`].
 //!
 //! # Attributes
@@ -216,7 +216,7 @@ pub use crate::http::operation::{
         update::UpdateRegistration,
     },
     replace_attribute::ReplaceAttribute,
-    replace_entity::ReplaceEntity,
+    replace_entity::{EntityIdMember, ReplaceEntity},
     representation_spelling::{NormalizedSpelling, RepresentationParameter, RepresentationSpelling, RepresentationToken},
     retrieve_entity::{RetrieveEntity, parameters::RetrieveEntityParameters},
     snapshot::{
