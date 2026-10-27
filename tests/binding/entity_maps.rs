@@ -401,6 +401,7 @@ fn a_creation_reads_the_map_and_its_location_whatever_the_header() {
     let entity_type = vehicle_type();
     let create = create(Some(&entity_type));
     let created = create.decode(&context(), response(201, &[(NgsiLdEntityMap::name(), LOCATION)], MAP)).unwrap();
+    assert_eq!(created.status().as_u16(), 201);
     assert_eq!(created.body().render().to_string(), MAP);
     assert_eq!(
         created.body().entity_map.values().next().map(|sources| sources[0].clone()),
@@ -425,6 +426,7 @@ fn only_the_get_creation_for_query_entities_answers_203() {
         )
         .unwrap();
     assert_eq!(amended.preference_applied().map(ToString::to_string).as_deref(), Some("1.8.1"));
+    assert_eq!(amended.status().as_u16(), 203);
     let post = CreateEntityMap {
         method: QueryMethod::Post,
         ..create(Some(&entity_type))

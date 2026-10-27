@@ -165,6 +165,7 @@ fn a_206_reads_the_range_and_gives_the_query_of_the_rest() {
     let retrieved = retrieve(&id, &window, Lossless::Normalized)
         .decode(&context(), response(206, &[(&header::CONTENT_RANGE, range)], RETRIEVED))
         .unwrap();
+    assert_eq!(retrieved.status().as_u16(), 206);
     let content_range = retrieved.coverage().content_range().unwrap();
     assert_eq!((content_range.start(), content_range.end()), (&time(T1), &time(T2)));
     assert_eq!(content_range.size(), ContentRangeSize::Unknown);
@@ -222,6 +223,7 @@ fn temporal_values_and_aggregated_answers_read_into_their_own_types() {
         .decode(&context(), response(203, &[(PreferenceApplied::name(), "ngsi-ld=1.8.1")], RETRIEVED))
         .unwrap();
     assert_eq!(amended.preference_applied().map(ToString::to_string).as_deref(), Some("1.8.1"));
+    assert_eq!((values.status().as_u16(), amended.status().as_u16()), (200, 203));
 }
 
 #[test]

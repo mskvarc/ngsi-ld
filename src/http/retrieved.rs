@@ -35,9 +35,20 @@ pub struct Retrieved<T> {
     body: T,
     /// The entity map, version, warnings and coverage the headers carry.
     headers: ResultHeaders,
+    /// The success status the broker answered.
+    status: StatusCode,
 }
 
 impl<T> Retrieved<T> {
+    /// The success status the broker answered: 200 OK, 203 Non-Authoritative Information when it amended the payload
+    /// to another version (clause 4.3.6.8), 206 Partial Content when a temporal evolution covers part of its range
+    /// (clause 6.3.10), or 201 Created for the entity map a creation returned. A temporal evolution joined with the
+    /// rest of its range has the status of the last answer, as it has the coverage of the last.
+    #[must_use]
+    pub const fn status(&self) -> StatusCode {
+        self.status
+    }
+
     /// The entity, or the entities of a flattened join.
     #[must_use]
     pub const fn body(&self) -> &T {
@@ -91,6 +102,7 @@ impl<T> Retrieved<T> {
         Ok(Retrieved {
             body: read(&response)?,
             headers: ResultHeaders::read(&response),
+            status: response.status(),
         })
     }
 }
@@ -110,6 +122,7 @@ impl<C: Completeness> Retrieved<TemporalEntity<Output, C>> {
         }
         self.headers.warnings = combine(self.headers.warnings, later.headers.warnings);
         self.headers.coverage = later.headers.coverage;
+        self.status = later.status;
         self
     }
 }

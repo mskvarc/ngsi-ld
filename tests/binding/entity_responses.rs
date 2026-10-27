@@ -263,6 +263,14 @@ fn a_203_page_exposes_the_applied_preference() {
 }
 
 #[test]
+fn a_page_says_which_success_status_the_broker_answered() {
+    let entity_type: SelectorType = "Vehicle".parse().unwrap();
+    let query = query_vehicles(Some(&entity_type), None, Simplified);
+    let statuses = [200_u16, 201, 203].map(|status| query.decode(&context(), response(status, &[], "[]")).unwrap().status());
+    assert_eq!(statuses, [StatusCode::OK, StatusCode::CREATED, StatusCode::NON_AUTHORITATIVE_INFORMATION]);
+}
+
+#[test]
 fn a_201_with_a_malformed_location_is_still_created_and_keeps_the_raw_header() {
     let vehicle = vehicle();
     let create = CreateEntity::builder().entity(&vehicle).build();

@@ -63,9 +63,19 @@ pub struct Page<T> {
     unread_links: Vec<HeaderValue>,
     /// The entity map, version, warnings and coverage the headers carry.
     headers: ResultHeaders,
+    /// The success status the broker answered.
+    status: StatusCode,
 }
 
 impl<T> Page<T> {
+    /// The success status the broker answered: 200 OK, 203 Non-Authoritative Information when it amended the payload
+    /// to another version (clause 4.3.6.8), 206 Partial Content when a temporal query covers part of its range
+    /// (clause 6.3.10), or 201 Created for the entity map a query created (clauses 5.14.4 and 5.14.5).
+    #[must_use]
+    pub const fn status(&self) -> StatusCode {
+        self.status
+    }
+
     /// The items of this page.
     #[must_use]
     pub fn items(&self) -> &[T] {
@@ -202,6 +212,7 @@ impl<T> Page<T> {
             snapshot: context.snapshot().cloned(),
             unread_links: links.unread,
             headers: ResultHeaders::read(&response),
+            status: response.status(),
         })
     }
 }
