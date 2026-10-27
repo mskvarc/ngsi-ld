@@ -33,8 +33,8 @@ pub(super) mod parameters;
 /// Its request is `DELETE /entities` (NGSI-LD clause 6.4.3.3). With `drop` or `keep`, it deletes only some of their
 /// attributes.
 ///
-/// Clause 6.4.3.3 requires a type, a `q` or a geoquery unless the operation is local, as Query Entities does; a
-/// scope query alone does not count (Table 6.4.3.3-1). The request is refused before it is sent otherwise. Every
+/// Clause 5.6.21.4 requires a type, a list of attributes to `drop` or `keep`, a `q` or a geoquery unless the
+/// operation is local; ids, an id pattern or a scope query alone do not count (Table 6.4.3.3-1). The request is refused before it is sent otherwise. Every
 /// type (`*`) makes the purge local, and is refused with `local=false` (Table 6.4.3.3-1).
 ///
 /// Table 6.4.3.3-2 lets the request name an existing entity map in the `NGSILD-EntityMap` header, which the broker
@@ -133,7 +133,7 @@ impl PurgeEntities<'_> {
             csf: self.csf,
             ..EntitySelection::of(EntityTargets::parameters(self.entity_type, self.ids, self.id_pattern))
         };
-        selection.check_bounded(self.locality, reach)?;
+        selection.check_bounded_beside(self.locality, reach, self.drop.iter().chain(self.keep))?;
         let mut query = QueryString::default();
         selection.push_query(&mut query);
         query.push_list(QueryParameter::Drop, self.drop);

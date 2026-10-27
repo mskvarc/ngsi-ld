@@ -113,9 +113,16 @@ impl<'a, N: Display> EntitySelection<'a, N> {
     /// itself (clause 5.5.15), whatever its `locality`, and so is a query of every type (`*`, Tables 6.4.3.2-1 and
     /// 5.2.33-1), which refuses `local=false`.
     pub(crate) fn check_bounded(&self, locality: Locality, reach: Reach) -> Result<(), ArgumentError> {
+        self.check_bounded_beside(locality, reach, self.attrs.iter())
+    }
+
+    /// As [`check_bounded`](Self::check_bounded), for an operation that names attributes in parameters other than
+    /// `attrs`: any attribute in `named` is a restriction too. Purge Entities lists the attributes it deletes or keeps
+    /// in `drop` and `keep`, and clause 5.6.21.4 accepts a list of attribute names as the restriction.
+    pub(crate) fn check_bounded_beside<M>(&self, locality: Locality, reach: Reach, mut named: impl Iterator<Item = M>) -> Result<(), ArgumentError> {
         self.targets.check_locality(locality)?;
         let local = locality == Locality::Local || reach == Reach::Snapshot || self.targets.selects_every_type();
-        if !self.targets.names_type() && self.attrs.is_empty() && self.q.is_none() && self.geo_q.is_none() && !local {
+        if !self.targets.names_type() && named.next().is_none() && self.q.is_none() && self.geo_q.is_none() && !local {
             return Err(ArgumentError::UnboundedQuery);
         }
         Ok(())

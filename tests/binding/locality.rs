@@ -14,7 +14,7 @@ use ngsi_ld::{
         headers::NgsiLdSnapshot,
         operation::{ArgumentError, BatchDelete, CreateEntity, DeleteEntity, DeleteTemporalEvolution, OnSnapshot, Operation, PurgeEntities, WithLocality},
     },
-    model::Lossless,
+    model::{AttributeName, Lossless},
     query::{Locality, SelectorType},
     snapshot::SnapshotId,
 };
@@ -81,6 +81,38 @@ fn a_query_or_purge_without_restriction_is_still_refused_off_a_snapshot() {
     ));
     assert!(matches!(
         unbounded_purge().to_request(&endpoint()),
+        Err(RequestError::Argument(ArgumentError::UnboundedQuery))
+    ));
+}
+
+#[test]
+fn a_purge_limited_only_by_the_attributes_it_drops_or_keeps_is_bounded() {
+    let speed: AttributeName = "speed".parse().unwrap();
+    let names = [speed];
+    let dropping = PurgeEntities::builder().drop(&names).build();
+    assert_eq!(dropping.to_request(&endpoint()).unwrap().uri().query(), Some("drop=speed"));
+    let keeping = PurgeEntities::builder().keep(&names).build();
+    assert_eq!(keeping.to_request(&endpoint()).unwrap().uri().query(), Some("keep=speed"));
+    let ids = [vehicle_id()];
+    let dropping_by_id = PurgeEntities::builder().ids(&ids).drop(&names).build();
+    assert_eq!(
+        dropping_by_id.to_request(&endpoint()).unwrap().uri().query(),
+        Some("id=urn%3Angsi-ld%3AVehicle%3AA4567&drop=speed")
+    );
+}
+
+#[test]
+fn a_purge_by_ids_alone_or_with_empty_attribute_lists_is_still_refused() {
+    let ids = [vehicle_id()];
+    let by_ids = PurgeEntities::builder().ids(&ids).build();
+    assert!(matches!(
+        by_ids.to_request(&endpoint()),
+        Err(RequestError::Argument(ArgumentError::UnboundedQuery))
+    ));
+    let none: [AttributeName; 0] = [];
+    let empty_lists = PurgeEntities::builder().drop(&none).keep(&none).build();
+    assert!(matches!(
+        empty_lists.to_request(&endpoint()),
         Err(RequestError::Argument(ArgumentError::UnboundedQuery))
     ));
 }
