@@ -36,9 +36,10 @@ use std::{cmp::Reverse, collections::HashSet, num::NonZeroU64, slice};
 
 /// The temporal evolution of one attribute.
 ///
-/// It holds the instances in document order, each recorded at a point in time (NGSI-LD clauses 4.5.7 and 4.5.8). There
-/// is at least one; all are of one kind, the instances of the same attribute; the same dataset id may appear any number
-/// of times, unlike the instances of an entity's attribute (clause 4.5.5).
+/// It holds the instances in document order, each recorded at a point in time (NGSI-LD clauses 4.5.7 and 4.5.8). A
+/// request carries at least one; a response may carry none, when the attribute has no instance in the time range of a
+/// page of a paginated answer (clause 6.3.10). All are of one kind, the instances of the same attribute; the same
+/// dataset id may appear any number of times, unlike the instances of an entity's attribute (clause 4.5.5).
 ///
 /// In a request each instance may name its `instanceId` and record a deletion (see
 /// [`EntityDirection::TemporalMembers`]); in a response the instance holds them among its output-only members.
@@ -82,13 +83,14 @@ impl<D: EntityDirection> Evolution<D> {
         self.instances.iter().zip(&self.members)
     }
 
-    /// Returns the number of instances; never zero.
+    /// Returns the number of instances; zero only for the evolution of a response that holds no instance of the
+    /// attribute in its time range.
     #[must_use]
     pub const fn len(&self) -> usize {
         self.instances.len()
     }
 
-    /// Always `false`: an evolution has at least one instance.
+    /// Whether there is no instance, which only an evolution read from a response can be.
     #[must_use]
     pub const fn is_empty(&self) -> bool {
         self.instances.is_empty()
@@ -326,10 +328,22 @@ impl TemporalAttributes<Output> {
     ///
     /// # Errors
     ///
-    /// Returns [`DocumentError`] naming the member at fault, including an attribute given twice, an evolution with
-    /// no instance and instances of one attribute of different kinds.
+    /// Returns [`DocumentError`] naming the member at fault, including an attribute given twice and instances of one
+    /// attribute of different kinds. An attribute whose evolution is an empty array is read with no instance.
     pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
         read_temporal_attributes(parse_json(text)?, form)
+    }
+
+    /// Adds an attribute with no instance, the evolution of an attribute that has none in the time range of the
+    /// answer (clause 6.3.10).
+    pub(crate) fn insert_empty(&mut self, name: AttributeName) {
+        self.0.insert(
+            name,
+            Evolution {
+                instances: Vec::new(),
+                members: Vec::new(),
+            },
+        );
     }
 
     /// Adds the instances of `later`, the answer for the time range after this one (clause 6.3.10), dropping each one
@@ -362,11 +376,13 @@ impl TemporalAttributes<Output> {
 
     /// Drops the output-only members of every instance, recording each NGSI-LD Null a request cannot carry under the
     /// name of the attribute that holds it. An instance that records a deletion with its `deletedAt` (clauses 4.5.7
-    /// and 4.5.8) stays one, since a request can carry it.
+    /// and 4.5.8) stays one, since a request can carry it. An attribute with no instance is left out: a request
+    /// carries nothing by it.
     pub(crate) fn into_input(self, problems: &mut Vec<BuildProblem>) -> TemporalAttributes<Input> {
         let attributes = self
             .0
             .into_iter()
+            .filter(|(_, evolution)| !evolution.instances.is_empty())
             .map(|(name, evolution)| {
                 let (instances, members): (Vec<_>, Vec<_>) = evolution
                     .instances

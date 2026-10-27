@@ -2,6 +2,7 @@
 
 use crate::model::{
     Attribute,
+    AttributeName,
     Direction,
     DocumentError,
     DocumentErrorKind,
@@ -11,9 +12,9 @@ use crate::model::{
     Lossless,
     Output,
     entity::member::SystemMember,
-    evolution::TemporalInstanceMembers,
+    evolution::{TemporalAttributes, TemporalInstanceMembers},
     null,
-    reader::{date_time, duplicate, identifier, once, unexpected},
+    reader::{date_time, duplicate, empty, identifier, once, unexpected},
     representation::{
         kind_output::{KindOutputMember, KindOutputRepresentation},
         read::{read_instance, read_unadmitted},
@@ -70,6 +71,11 @@ pub(crate) trait ReadEntityDirection: ReadDirection + EntityDirection {
     /// `deletedAt` (clauses 4.5.7 and 4.5.8), which are taken out of the instance before it is read as an attribute;
     /// a response leaves them among the instance's output-only members.
     fn read_temporal_instance(instance: Json, form: Lossless) -> Result<(Attribute<Self>, Self::TemporalMembers), DocumentError>;
+
+    /// Reads an attribute whose evolution is an empty array. A request carries nothing by it and refuses it; a
+    /// response may hold it, since the instances of a page of a paginated answer are the ones of its time range
+    /// (clause 6.3.10) and an attribute may have none in it.
+    fn read_empty_evolution(attributes: &mut TemporalAttributes<Self>, name: AttributeName) -> Result<(), DocumentError>;
 }
 
 impl ReadDirection for Input {
@@ -117,6 +123,10 @@ impl ReadEntityDirection for Input {
             return Err(unexpected(<&str>::from(OutputMember::DeletedAt)));
         }
         Ok((attribute, TemporalInstanceMembers::new(instance_id, Some(deleted_at))))
+    }
+
+    fn read_empty_evolution(_: &mut TemporalAttributes<Self>, _: AttributeName) -> Result<(), DocumentError> {
+        Err(empty())
     }
 }
 
@@ -181,5 +191,10 @@ impl ReadEntityDirection for Output {
 
     fn read_temporal_instance(instance: Json, form: Lossless) -> Result<(Attribute<Output>, ()), DocumentError> {
         Ok((read_instance::<Output>(instance, form)?, ()))
+    }
+
+    fn read_empty_evolution(attributes: &mut TemporalAttributes<Self>, name: AttributeName) -> Result<(), DocumentError> {
+        attributes.insert_empty(name);
+        Ok(())
     }
 }

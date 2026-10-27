@@ -10,7 +10,7 @@ use crate::model::{
     entity::member::{EntityMember, SystemMember},
     evolution::{TemporalAttributes, TemporalEntity, scope::read_scope_evolution},
     keyword::CONTEXT,
-    reader::{attribute_name, context, date_time, duplicate, empty, entity_types, object, once},
+    reader::{attribute_name, context, date_time, duplicate, entity_types, object, once},
     representation::{
         member::{entity_id, identifying},
         read::{direction::ReadEntityDirection, instance_items},
@@ -85,13 +85,19 @@ fn read_evolution_member<D: ReadEntityDirection>(
     if attributes.get(&name).is_some() {
         return Err(duplicate(member));
     }
-    let instances = instance_items(value, form)
+    // Concise form would read `[]` as one instance that is not an object, so the empty array is told apart first.
+    let items = if matches!(&value, Json::Array(items) if items.is_empty()) {
+        Vec::new()
+    } else {
+        instance_items(value, form)
+    };
+    let instances = items
         .into_iter()
         .map(|item| D::read_temporal_instance(item, form))
         .collect::<Result<Vec<_>, DocumentError>>()
         .map_err(|error| error.within(member))?;
     if instances.is_empty() {
-        return Err(empty().within(member));
+        return D::read_empty_evolution(attributes, name).map_err(|error| error.within(member));
     }
     instances.into_iter().try_for_each(|(instance, members)| {
         // The name is kept for the next instance and for the error, so the map gets a copy.

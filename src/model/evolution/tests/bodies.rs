@@ -72,12 +72,25 @@ fn the_attributes_of_an_evolution_keep_a_recorded_deletion() {
 fn the_attributes_of_an_evolution_refuse_what_a_request_cannot_carry() {
     let parse = |text: &str| TemporalAttributes::<Input>::parse(text, Lossless::Normalized);
     assert!(parse(r#"{"speed":[]}"#).is_err());
+    assert!(TemporalAttributes::<Input>::parse(r#"{"speed":[]}"#, Lossless::Concise).is_err());
     assert!(parse(r#"{"speed":[{"type":"Property","value":1}],"speed":[{"type":"Property","value":2}]}"#).is_err());
     assert!(parse(r#"{"speed":[{"type":"Property","value":1},{"type":"Relationship","object":"urn:ngsi-ld:Vehicle:A4567"}]}"#).is_err());
     assert!(parse(r#"{"speed":[{"type":"Property","value":1,"createdAt":"2018-08-01T12:03:00Z"}]}"#).is_err());
     assert!(parse(r#"{"speed":[{"type":"Property","value":"urn:ngsi-ld:null"}]}"#).is_err());
     assert!(parse(r#"{"1speed":[{"type":"Property","value":1}]}"#).is_err());
     assert!(parse("[]").is_err());
+}
+
+#[test]
+fn a_response_may_hold_an_attribute_with_no_instance_and_a_request_may_not() {
+    let normalized = r#"{"speed":[{"type":"Property","value":120,"observedAt":"2018-08-01T12:03:00Z"}],"brand":[]}"#;
+    let concise = r#"{"speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"}],"brand":[]}"#;
+    for (text, form) in [(normalized, Lossless::Normalized), (concise, Lossless::Concise)] {
+        let read = TemporalAttributes::<Output>::parse(text, form).unwrap();
+        assert_eq!(read.get(&"brand".parse().unwrap()).map(Evolution::len), Some(0), "{text}");
+        assert_eq!(read.render(form).to_string(), text);
+        assert!(TemporalAttributes::<Input>::parse(text, form).is_err(), "{text}");
+    }
 }
 
 #[test]

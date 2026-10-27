@@ -175,6 +175,20 @@ fn a_206_reads_the_range_and_gives_the_query_of_the_rest() {
 }
 
 #[test]
+fn a_206_reads_an_attribute_that_has_no_instance_in_its_range() {
+    let id = b();
+    let window = window();
+    let body = RETRIEVED.replacen("]}", r#"],"rpm":[]}"#, 1);
+    let range = "DateTime 2018-08-01T12:03:00Z-2018-08-01T12:05:00Z/*";
+    let retrieved = retrieve(&id, &window, Lossless::Normalized)
+        .decode(&context(), response(206, &[(&header::CONTENT_RANGE, range)], &body))
+        .unwrap();
+    assert_eq!(retrieved.body().attribute(&"rpm".parse().unwrap()).map(Evolution::len), Some(0));
+    assert_eq!(retrieved.body().attribute(&speed()).map(Evolution::len), Some(2));
+    assert_eq!(retrieved.body().render(Lossless::Normalized).to_string(), body);
+}
+
+#[test]
 fn a_206_without_a_readable_range_still_carries_the_entity() {
     let id = b();
     let window = window();
