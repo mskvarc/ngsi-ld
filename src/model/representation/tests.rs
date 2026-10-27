@@ -14,6 +14,7 @@ mod deletions;
 mod entities;
 mod fragments_for_entity;
 mod instances;
+mod keyword_aliases;
 mod output_members;
 mod projected;
 mod proof;

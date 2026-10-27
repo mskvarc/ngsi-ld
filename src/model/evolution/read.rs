@@ -10,6 +10,7 @@ use crate::model::{
     entity::member::{EntityMember, SystemMember},
     evolution::{TemporalAttributes, TemporalEntity, scope::read_scope_evolution},
     keyword::CONTEXT,
+    keyword_alias::unalias_members,
     reader::{attribute_name, context, date_time, duplicate, entity_types, object, once},
     representation::{
         member::{entity_id, identifying},
@@ -21,7 +22,7 @@ use jstrict::{Value as Json, object::Entry};
 /// Reads a temporal entity, keeping its `@context` and the order of its attributes and instances; `C` decides
 /// whether `id` and `type` are required.
 pub(crate) fn read_temporal_entity<D: ReadEntityDirection, C: Completeness>(json: Json, form: Lossless) -> Result<TemporalEntity<D, C>, DocumentError> {
-    let object = object(json)?;
+    let object = unalias_members(object(json)?)?;
     let mut id = None;
     let mut entity_type = None;
     let mut scope = None;

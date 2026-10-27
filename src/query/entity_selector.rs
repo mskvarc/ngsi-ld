@@ -11,6 +11,7 @@ use crate::{
         MemberError,
         OneOrMany,
         RawJson,
+        keyword_alias::unalias_members,
         reader::{identifier, object, once, parse_json, required, string, unexpected, within},
     },
     query::{
@@ -300,7 +301,7 @@ impl EntitySelector {
         let mut selector_type = None;
         let mut ids = None;
         let mut id_pattern = None;
-        for Entry { key, value } in object(json)? {
+        for Entry { key, value } in unalias_members(object(json)?)? {
             let key = key.as_str();
             match key {
                 "type" => once(&mut selector_type, key, within(key, read_type(value))?)?,

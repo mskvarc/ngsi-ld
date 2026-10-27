@@ -9,6 +9,7 @@ use crate::{
         Tenant,
         Value,
         keyword::CONTEXT,
+        keyword_alias::unalias_members,
         reader::{
             boolean,
             context,
@@ -156,7 +157,7 @@ pub(crate) fn read_registration<D: RegistrationDirection>(text: &str) -> Result<
 /// Reads a registration in direction `D` from JSON already parsed, such as an element of an array, and checks the
 /// rules its members relate by.
 pub(crate) fn read_registration_json<D: RegistrationDirection>(json: Json) -> Result<CSourceRegistration<D>, DocumentError<ReadErrorKind<Problem>>> {
-    let registration = read_registration_object::<D>(object(json)?)?;
+    let registration = read_registration_object::<D>(unalias_members(object(json)?)?)?;
     BuildError::finish(rules::registration_problems(&registration), ()).map_err(|source| error(ReadErrorKind::Invalid { source }))?;
     Ok(registration)
 }

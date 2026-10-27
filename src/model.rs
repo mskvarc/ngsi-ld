@@ -211,6 +211,7 @@ pub mod geometry;
 mod identifier;
 mod key_value_pair;
 pub(crate) mod keyword;
+pub(crate) mod keyword_alias;
 pub(crate) mod language;
 mod media_type;
 #[macro_use]

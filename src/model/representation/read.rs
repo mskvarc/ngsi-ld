@@ -12,6 +12,7 @@ use crate::model::{
     Instances,
     Lossless,
     entity::member::{EntityMember, SystemMember},
+    keyword_alias::unalias_members,
     nesting::grow,
     reader::{attribute_name, context, date_time, duplicate, entity_types, object, once, scopes},
     representation::{
@@ -36,7 +37,7 @@ mod patch;
 /// Reads an entity, keeping its `@context` and the order of its attributes; `C` decides whether `id` and `type` are
 /// required.
 pub(crate) fn read_entity<D: ReadEntityDirection, C: Completeness>(json: Json, form: Lossless) -> Result<Entity<D, C>, DocumentError> {
-    let object = object(json)?;
+    let object = unalias_members(object(json)?)?;
     let mut id = None;
     let mut entity_type = None;
     let mut scope = None;

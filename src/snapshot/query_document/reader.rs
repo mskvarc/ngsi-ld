@@ -5,6 +5,7 @@ use crate::{
         DocumentError,
         EntityId,
         MemberError,
+        keyword_alias::unalias_members,
         reader::{boolean, duration, identifier, object, once, required, token, unexpected, within},
     },
     query::{EntityMapReturn, EntitySplitting, Join, ordering::EntityOrdering},
@@ -67,7 +68,7 @@ pub(crate) fn read_query<K: QueryKind>(json: Json) -> Result<QueryDocument<K>, D
     let mut lang = None;
     let mut ordering = None;
     let mut split_entities = None;
-    for Entry { key, value } in object(json)? {
+    for Entry { key, value } in unalias_members(object(json)?)? {
         let Ok(member) = key.as_str().parse::<QueryMember>() else {
             match key.as_str() {
                 "type" => once(&mut typed, "type", within("type", expect_type(value, DocumentType::Query))?)?,

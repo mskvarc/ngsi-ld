@@ -8,6 +8,7 @@ use crate::{
         MemberChange,
         Value,
         keyword::CONTEXT,
+        keyword_alias::unalias_members,
         member_change::read_change,
         reader::{
             context,
@@ -58,7 +59,7 @@ pub(crate) fn read_registration_fragment(json: Json) -> Result<RegistrationFragm
     };
     let mut id: Option<RegistrationId> = None;
     let mut fragment_context = None;
-    for Entry { key, value } in object(json)? {
+    for Entry { key, value } in unalias_members(object(json)?)? {
         let key = key.as_str();
         if let Ok(member) = key.parse::<RegistrationMember>() {
             read_optional(&mut fragment, member, value)?;

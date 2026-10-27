@@ -285,3 +285,16 @@ fn an_empty_dataset_id_list_round_trips_and_differs_from_none() {
     assert_eq!(empty.dataset_ids().map(<[_]>::len), Some(0));
     assert_eq!(round_trip::<Input>(&vehicles_with("")).dataset_ids(), None);
 }
+
+#[test]
+fn a_request_may_write_the_keywords_for_its_id_and_type_and_those_of_its_selectors() {
+    let aliased = format!(r#"{{"@id":"urn:ngsi-ld:Subscription:s1","@type":"Subscription","entities":[{{"@type":"Vehicle"}}],{NOTIFICATION}}}"#);
+    let terms = aliased.replace("@id", "id").replace("@type", "type");
+    assert_eq!(Subscription::<Input>::parse(&aliased).unwrap().render().to_string(), terms);
+    let twice = format!(r#"{{"type":"Subscription","@type":"Subscription","entities":[{{"type":"Vehicle"}}],{NOTIFICATION}}}"#);
+    let error = Subscription::<Input>::parse(&twice).unwrap_err();
+    assert!(
+        matches!(error.kind, ReadErrorKind::Member(MemberError::DuplicateMember { ref member }) if member == "type"),
+        "{error}"
+    );
+}

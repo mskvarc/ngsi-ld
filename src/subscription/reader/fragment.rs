@@ -7,6 +7,7 @@ use crate::{
         DocumentError,
         Input,
         keyword::CONTEXT,
+        keyword_alias::unalias_members,
         member_change::read_change,
         reader::{boolean, context, date_time, identifier, object, once, string, unexpected, url, within},
     },
@@ -51,7 +52,7 @@ pub(crate) fn read_subscription_fragment<K: SubscriptionKind>(json: Json) -> Res
     let mut id: Option<SubscriptionId> = None;
     let mut typed = None;
     let mut fragment_context = None;
-    for Entry { key, value } in object(json)? {
+    for Entry { key, value } in unalias_members(object(json)?)? {
         let key = key.as_str();
         if let Ok(member) = key.parse::<SubscriptionMember>() {
             read_optional(&mut fragment, member, value)?;

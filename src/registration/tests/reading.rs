@@ -255,3 +255,13 @@ fn an_empty_context_source_info_and_an_empty_dataset_id_list_round_trip() {
     assert_eq!(absent.context_source_info(), None);
     assert_eq!(absent.dataset_ids(), None);
 }
+
+#[test]
+fn a_request_may_write_the_keywords_for_its_id_and_type_and_those_of_its_selectors() {
+    let aliased = concat!(
+        r#"{"@id":"urn:ngsi-ld:ContextSourceRegistration:r1","@type":"ContextSourceRegistration","#,
+        r#""information":[{"entities":[{"@type":"Vehicle"}]}],"endpoint":"http://my.csource.org:1026/"}"#
+    );
+    let terms = aliased.replace("@id", "id").replace("@type", "type");
+    assert_eq!(CSourceRegistration::<Input>::parse(aliased).unwrap().render().to_string(), terms);
+}

@@ -196,3 +196,10 @@ fn statuses_and_priorities_hold_to_their_tables() {
     assert!(SnapshotPriority::try_new(0).is_err());
     assert!(SnapshotPriority::try_new(11).is_err());
 }
+
+#[test]
+fn a_snapshot_request_may_write_the_keywords_for_its_type_and_those_of_its_queries() {
+    let aliased = r#"{"@type":"Snapshot","snapshotQueries":[{"@type":"Query","entities":[{"@type":"Vehicle"}]}]}"#;
+    let terms = aliased.replace("@type", "type");
+    assert_eq!(Snapshot::<Input>::parse(aliased).unwrap().render().to_string(), terms);
+}

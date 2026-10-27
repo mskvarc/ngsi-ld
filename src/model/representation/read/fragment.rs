@@ -10,6 +10,7 @@ use crate::model::{
     Patch,
     ScopeChange,
     entity::member::{EntityMember, SystemMember},
+    keyword_alias::unalias_members,
     null::NGSI_LD_NULL,
     reader::{context, date_time, entity_types, object, once, scopes, unexpected},
     representation::{
@@ -22,7 +23,7 @@ use jstrict::{Value as Json, object::Entry};
 /// Reads a fragment, keeping its `@context` and the order of its attributes; `C` decides whether `id` and `type` are
 /// required. A system member is refused: a fragment is what a client sends (clause 5.2.2).
 pub(crate) fn read_fragment<C: Completeness>(json: Json, form: Lossless) -> Result<EntityFragment<C>, DocumentError> {
-    let object = object(json)?;
+    let object = unalias_members(object(json)?)?;
     let mut id = None;
     let mut entity_type = None;
     let mut scope = None;

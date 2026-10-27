@@ -26,6 +26,7 @@ use crate::model::{
     Value,
     VocabProperty,
     VocabTerm,
+    keyword_alias::unalias_attribute,
     null::NGSI_LD_NULL,
     reader::{array, date_time, identifier, identifier_text, once, one_or_many, parsed, required, string, unexpected, value},
     representation::{
@@ -54,6 +55,7 @@ pub(super) fn read_normalized<D: ReadDirection>(json: Json) -> Result<Attribute<
             return Err(DocumentError::top(MemberError::NotAnObject.into()));
         }
     };
+    let object = unalias_attribute(object)?;
     let kind = match object.get_unique("type").ok().flatten() {
         Some(Json::String(found)) => found
             .as_str()

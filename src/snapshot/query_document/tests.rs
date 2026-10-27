@@ -185,3 +185,10 @@ fn an_entity_type_given_as_text_selects_that_type_and_is_checked_when_built() {
         "{error:?}"
     );
 }
+
+#[test]
+fn a_query_may_write_the_keywords_for_its_type_and_the_types_of_its_selectors() {
+    let aliased = r#"{"@type":"Query","entities":[{"@type":"Building"}]}"#;
+    let terms = r#"{"type":"Query","entities":[{"type":"Building"}]}"#;
+    assert_eq!(QueryDocument::<EntityQuery>::parse(aliased).unwrap().render().to_string(), terms);
+}

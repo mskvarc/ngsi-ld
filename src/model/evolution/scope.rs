@@ -19,6 +19,7 @@ use crate::model::{
     Scope,
     Value,
     entity::member::SystemMember,
+    keyword_alias::unalias_attribute,
     null::NGSI_LD_NULL,
     reader::{date_time, empty, object, once, required, scopes, unexpected},
     representation::{
@@ -208,7 +209,7 @@ pub(crate) fn read_scope_evolution<D: ReadEntityDirection>(json: Json, form: Los
 /// Reads one instance: a Property in normalized form (`type` required) or concise form (`type` optional), with no
 /// member besides `value`, `observedAt` and the system members of the direction.
 fn read_scope_instance<D: ReadEntityDirection>(json: Json, form: Lossless) -> Result<ScopeInstance<D>, DocumentError> {
-    let object = object(json)?;
+    let object = unalias_attribute(object(json)?)?;
     let mut typed = None;
     let mut value = None;
     let mut observed_at = None;

@@ -19,6 +19,7 @@ use crate::model::{
     Projected,
     RawJson,
     SimplifiedEntity,
+    keyword_alias::unalias_attribute,
     reader::parse_json,
     representation::{
         read::{
@@ -91,6 +92,12 @@ pub enum Representation {
 /// attribute; otherwise it is the bare array value of a Property.
 ///
 /// Every member keeps its place: attributes and sub-attributes are kept in document order.
+///
+/// Clause 4.4 lets a request write the JSON-LD keywords `@id` and `@type` instead of the terms `id` and `type`. A
+/// reader takes them for the terms, in the entity and, with `@type`, in each attribute whose `@type` names a kind of
+/// attribute, so a JSON-LD value object keeps its `@type`; it refuses a term given beside its keyword as a member
+/// given twice, and the document is written back with the terms. A term a user `@context` aliases to a keyword is a
+/// term of that context, which a reader does not apply: the `@context` is kept and no name is expanded.
 ///
 /// Writing produces the canonical member order, the one the specification's examples use (clauses 4.5.1, C.2.2
 /// and C.5.15):
@@ -359,10 +366,13 @@ impl Change<AttributeFragment, InstanceDeletion> {
     /// or is the bare NGSI-LD Null, which deletes a member of an entity and is no attribute object.
     pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
         let json = match parse_json(text)? {
-            Json::Object(object) => match FragmentShape::of(&object) {
-                FragmentShape::Members(kind) => return read_members(kind, object, form).map(|members| Change::Set(members.into())),
-                FragmentShape::Payload => Json::Object(object),
-            },
+            Json::Object(object) => {
+                let object = unalias_attribute(object)?;
+                match FragmentShape::of(&object) {
+                    FragmentShape::Members(kind) => return read_members(kind, object, form).map(|members| Change::Set(members.into())),
+                    FragmentShape::Payload => Json::Object(object),
+                }
+            }
             other @ (Json::Null | Json::Boolean(_) | Json::Number(_) | Json::String(_) | Json::Array(_)) => other,
         };
         match single(read_instance_list::<Patch>(json, form)?)? {

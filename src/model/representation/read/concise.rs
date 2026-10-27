@@ -14,6 +14,7 @@ use crate::model::{
     Property,
     ValueError,
     geometry::Geometry,
+    keyword_alias::unalias_attribute,
     reader::value,
     representation::{
         read::{direction::ReadDirection, instance::read_known_kind},
@@ -30,6 +31,7 @@ pub(super) fn read_concise<D: ReadDirection>(json: Json) -> Result<Attribute<D>,
         Json::Null => return Err(DocumentError::top(MemberError::Value { source: ValueError::Null }.into())),
         other @ (Json::Boolean(_) | Json::Number(_) | Json::String(_) | Json::Array(_)) => return bare_property(other),
     };
+    let object = unalias_attribute(object)?;
     // Rule 1.
     if let Some(Json::String(found)) = object.get_unique("type").ok().flatten()
         && let Ok(kind) = found.as_str().parse::<AttributeKind>()

@@ -6,6 +6,7 @@ use crate::{
         DocumentError,
         RawJson,
         keyword::CONTEXT,
+        keyword_alias::unalias_members,
         reader::{context, date_time, fixed_token, identifier, object, once, parse_json, unexpected, within},
     },
     registration::{
@@ -84,7 +85,7 @@ impl EntityMapFragment {
         let mut entity_map = None;
         let mut linked_maps = None;
         let mut document_context = None;
-        for Entry { key, value } in object(parse_json(text)?)? {
+        for Entry { key, value } in unalias_members(object(parse_json(text)?)?)? {
             let key = key.as_str();
             match key {
                 "id" => once(&mut id, key, within(key, identifier(value, "id"))?)?,

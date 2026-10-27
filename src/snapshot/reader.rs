@@ -7,6 +7,7 @@ use crate::{
         DocumentError,
         MemberChange,
         keyword::CONTEXT,
+        keyword_alias::unalias_members,
         member_change::read_change,
         reader::{context, duplicate, identifier, object, once, required, unexpected, within},
     },
@@ -42,7 +43,7 @@ pub(crate) fn read_snapshot_clone(json: Json) -> Result<SnapshotClone, DocumentE
     let mut typed = None;
     let mut settings = Settings::default();
     let mut body_context = None;
-    for Entry { key, value } in object(json)? {
+    for Entry { key, value } in unalias_members(object(json)?)? {
         let key = key.as_str();
         match key {
             "id" => once(&mut id, key, within(key, identifier(value, "id"))?)?,
@@ -69,7 +70,7 @@ pub(crate) fn read_snapshot_fragment(json: Json) -> Result<SnapshotFragment, Doc
     let mut deletions = Vec::new();
     let mut set = Vec::new();
     let mut body_context = None;
-    for Entry { key, value } in object(json)? {
+    for Entry { key, value } in unalias_members(object(json)?)? {
         let key = key.as_str();
         match key {
             "id" => once(&mut id, key, within(key, identifier::<SnapshotId, _>(value, "id"))?)?,
@@ -103,7 +104,7 @@ pub(crate) fn read_snapshot<D: SnapshotDirection>(json: Json) -> Result<Snapshot
     let mut settings = Settings::default();
     let mut snapshot_context = None;
     let mut output = <D::SnapshotOutput as OutputMembers>::Pending::default();
-    for Entry { key, value } in object(json)? {
+    for Entry { key, value } in unalias_members(object(json)?)? {
         let key = key.as_str();
         match key {
             "id" => once(&mut id, key, within(key, identifier(value, "id"))?)?,

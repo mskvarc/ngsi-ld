@@ -12,6 +12,7 @@ use crate::{
         NameError,
         PositiveNumber,
         keyword::CONTEXT,
+        keyword_alias::unalias_members,
         reader::{
             array,
             boolean,
@@ -147,7 +148,7 @@ pub(crate) fn read_subscription<D: SubscriptionDirection, K: SubscriptionKind>(
 pub(crate) fn read_subscription_json<D: SubscriptionDirection, K: SubscriptionKind>(
     json: Json,
 ) -> Result<Subscription<D, K>, DocumentError<ReadErrorKind<Problem>>> {
-    let subscription = read_subscription_object::<D, K>(object(json)?)?;
+    let subscription = read_subscription_object::<D, K>(unalias_members(object(json)?)?)?;
     BuildError::finish(rules::subscription_problems(&subscription), ()).map_err(|source| error(ReadErrorKind::Invalid { source }))?;
     Ok(subscription)
 }

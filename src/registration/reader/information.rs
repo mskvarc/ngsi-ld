@@ -5,6 +5,7 @@ use crate::{
     model::{
         BuildError,
         DocumentError,
+        keyword_alias::unalias_members,
         reader::{entity_types, identifier, object, once, required, string, unexpected, within},
     },
     query::IdPattern,
@@ -69,7 +70,7 @@ fn entity_info<P: Error>(json: Json) -> Result<EntityInfo, DocumentError<ReadErr
     let mut entity_type = None;
     let mut id = None;
     let mut id_pattern = None;
-    for Entry { key, value } in object(json)? {
+    for Entry { key, value } in unalias_members(object(json)?)? {
         let Ok(member) = key.as_str().parse::<EntityInfoMember>() else {
             return Err(unexpected(key.as_str()));
         };

@@ -15,6 +15,7 @@ use crate::model::{
     RawJson,
     Value,
     VocabTerm,
+    keyword_alias::unalias_attribute,
     reader::{array, date_time, object, once, one_or_many, parsed, required, unexpected, value},
     representation::member::{entity_id, geo_value},
 };
@@ -223,7 +224,7 @@ pub(crate) fn temporal_attribute(kind: AttributeKind, member: &str, json: Json) 
 /// Reads `{"type": kind, member: [...]}`, where `member` is the one member the kind allows; returns the kind and the
 /// elements of the member's array.
 pub(crate) fn read_temporal_attribute(json: Json, member_of: impl Fn(AttributeKind) -> &'static str) -> Result<(AttributeKind, Vec<Json>), DocumentError> {
-    let object = object(json)?;
+    let object = unalias_attribute(object(json)?)?;
     let kind = match object.get_unique("type").ok().flatten() {
         Some(Json::String(found)) => found
             .as_str()

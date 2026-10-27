@@ -24,6 +24,7 @@ use crate::model::{
     VocabTerm,
     entity::member::EntityMember,
     geometry::Geometry,
+    keyword_alias::unalias_members,
     null::{self, NGSI_LD_NULL},
     reader::{attribute_name, context, duplicate, entity_types, identifier_text, object, once, one_or_many, parse_json, parsed, scopes, unexpected, value},
     representation::{
@@ -362,7 +363,7 @@ impl<C: Completeness> SimplifiedEntity<C> {
 
     /// Reads an entity in simplified representation from a JSON value.
     pub(crate) fn from_json(json: Json) -> Result<Self, DocumentError> {
-        let object = object(json)?;
+        let object = unalias_members(object(json)?)?;
         let mut id = None;
         let mut entity_type = None;
         let mut scope = None;
