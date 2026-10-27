@@ -10,6 +10,7 @@ use crate::model::{
     JsonProperty,
     LanguageMap,
     LanguageProperty,
+    LanguageText,
     ListProperty,
     ListRelationship,
     Lossless,
@@ -124,6 +125,30 @@ fn a_language_property() {
             r#"{"languageMap":{"fr":"Grand Place","nl":"Grote Markt"}}"#.to_owned()
         )
     );
+}
+
+#[test]
+fn a_language_property_with_several_strings_for_one_language_round_trips() {
+    let map = LanguageMap::try_from_pairs([
+        ("fr", LanguageText::Multiple(vec!["Grand Place".to_owned(), "Grote Markt".to_owned()])),
+        ("@none", LanguageText::Single("Market square".to_owned())),
+    ])
+    .unwrap();
+    let (normalized, concise) = both(LanguageProperty::builder(map).build().unwrap());
+    assert_eq!(
+        normalized,
+        r#"{"type":"LanguageProperty","languageMap":{"fr":["Grand Place","Grote Markt"],"@none":"Market square"}}"#
+    );
+    assert_eq!(concise, r#"{"languageMap":{"fr":["Grand Place","Grote Markt"],"@none":"Market square"}}"#);
+    for (text, form) in [(&normalized, Lossless::Normalized), (&concise, Lossless::Concise)] {
+        let Attribute::LanguageProperty(property) = Attribute::<Output>::parse(text, form).unwrap() else {
+            panic!("not a LanguageProperty");
+        };
+        assert_eq!(
+            property.language_map().get(&"fr".parse().unwrap()),
+            Some(&LanguageText::Multiple(vec!["Grand Place".to_owned(), "Grote Markt".to_owned()]))
+        );
+    }
 }
 
 #[test]
