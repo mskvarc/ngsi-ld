@@ -170,8 +170,10 @@ impl Overwrite {
 /// An entity that does not exist is created in either mode (NGSI-LD clauses 5.6.8.3 and 6.15.3.1).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum UpsertMode {
-    /// The existing entity is replaced by the one sent: the default mode, sent as no parameter.
+    /// No `options`: the broker applies its default mode, which replaces the existing entity (clause 6.15.3.1).
     #[default]
+    Unspecified,
+    /// `options=replace`: the existing entity is replaced by the one sent, the default mode spelled out.
     Replace,
     /// `options=update`: the existing entity is updated with the attributes sent (clause 5.6.2).
     Update,
@@ -181,7 +183,8 @@ impl UpsertMode {
     /// The `options` parameter value.
     pub(crate) const fn parameter(self) -> Option<&'static str> {
         match self {
-            Self::Replace => None,
+            Self::Unspecified => None,
+            Self::Replace => Some("replace"),
             Self::Update => Some("update"),
         }
     }

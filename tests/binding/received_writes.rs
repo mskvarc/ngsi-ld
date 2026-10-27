@@ -82,11 +82,12 @@ fn an_append_refuses_a_parameter_or_option_its_table_does_not_define() {
 #[test]
 fn an_upsert_reads_back_its_mode() {
     let entities = [Entity::builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").build().unwrap()];
-    for mode in [UpsertMode::Update, UpsertMode::Replace] {
+    for mode in [UpsertMode::Unspecified, UpsertMode::Update, UpsertMode::Replace] {
         let upsert = BatchUpsert::builder().entities(&entities).mode(mode).build();
         assert_eq!(BatchUpsertParameters::parse(&sent(&upsert)).unwrap().mode, mode);
     }
     assert_eq!(BatchUpsertParameters::parse("options=replace").unwrap().mode, UpsertMode::Replace);
+    assert_eq!(BatchUpsertParameters::parse("").unwrap().mode, UpsertMode::Unspecified);
     assert_eq!(
         BatchUpsertParameters::parse("options=update&local=false").unwrap().locality,
         Locality::Distributed

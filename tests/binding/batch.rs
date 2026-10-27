@@ -147,6 +147,13 @@ fn a_batch_upsert_sends_no_options_by_default_and_options_update_in_update_mode(
     .to_request(&endpoint())
     .unwrap();
     assert_batch_target(&request, "upsert", Some("options=update"));
+    let request = BatchUpsert {
+        mode: UpsertMode::Replace,
+        ..upsert
+    }
+    .to_request(&endpoint())
+    .unwrap();
+    assert_batch_target(&request, "upsert", Some("options=replace"));
 }
 
 #[test]

@@ -37,13 +37,14 @@ pub(crate) fn overwrite(received: &ReceivedQuery<'_>) -> Result<Overwrite, Param
     })
 }
 
-/// Reads the `options` of Batch Entity Upsert: the mode they name, or [`UpsertMode::Replace`], the default, when
-/// they name none.
+/// Reads the `options` of Batch Entity Upsert: the mode they name, or [`UpsertMode::Unspecified`] when they
+/// name none.
 pub(crate) fn upsert_mode(received: &ReceivedQuery<'_>) -> Result<UpsertMode, ParameterError> {
     let tokens = received.tokens::<UpsertToken>(QueryParameter::Options)?;
     match (tokens.contains(&UpsertToken::Replace), tokens.contains(&UpsertToken::Update)) {
         (true, true) => Err(ParameterError::UpsertModeTwice),
         (false, true) => Ok(UpsertMode::Update),
-        (true | false, false) => Ok(UpsertMode::Replace),
+        (true, false) => Ok(UpsertMode::Replace),
+        (false, false) => Ok(UpsertMode::Unspecified),
     }
 }

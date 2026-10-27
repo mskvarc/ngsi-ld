@@ -31,13 +31,16 @@ const ACCEPTED: [QueryParameter; 2] = [QueryParameter::Options, QueryParameter::
 ///     BatchUpsertParameters::parse("options=update")?.mode,
 ///     UpsertMode::Update
 /// );
-/// assert_eq!(BatchUpsertParameters::parse("")?.mode, UpsertMode::Replace);
+/// assert_eq!(
+///     BatchUpsertParameters::parse("")?.mode,
+///     UpsertMode::Unspecified
+/// );
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct BatchUpsertParameters {
-    /// `options=update` or `options=replace`, the default.
+    /// `options=update` or `options=replace`; without `options`, the broker's default, which replaces.
     pub mode: UpsertMode,
     /// `local` (clause 6.3.18).
     pub locality: Locality,
