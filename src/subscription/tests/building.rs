@@ -1,7 +1,20 @@
 //! Building subscriptions, and each refusal of the builders.
 
 use crate::{
-    model::{AttributeName, ConformanceVersion, EntityId, Input, MemberProblem, NameError, NgsiLdMediaType, NotPositive, Number, OneOrMany, Representation},
+    model::{
+        AttributeName,
+        ConformanceVersion,
+        EntityId,
+        Input,
+        MemberProblem,
+        NameError,
+        NgsiLdMediaType,
+        NotPositive,
+        Number,
+        OneOrMany,
+        Representation,
+        SimplifiedSpelling,
+    },
     query::{EntitySelector, EntitySelectorDraft, EntitySplitting, Join, Locality, geoquery::GeoQuery},
     subscription::{
         Activation,
@@ -19,6 +32,7 @@ use crate::{
         SubscriptionMember,
         SystemAttributeReporting,
         tests::{endpoint, notification, problems, round_trip, vehicles},
+        writer::notification_params,
     },
 };
 use iri_rs::iri;
@@ -207,6 +221,35 @@ fn previous_values_need_a_lossless_format_and_a_join_level_alone_is_kept() {
     assert_eq!(problems(simplified), [Problem::ShowChangesWithSimplified]);
     assert!(NotificationParams::builder(endpoint()).join_level(2).build().is_ok());
     assert!(NotificationParams::builder(endpoint()).join(Join::None).join_level(2).build().is_ok());
+}
+
+#[test]
+fn the_simplified_format_is_written_with_the_name_the_caller_chose() {
+    let written = |format: Representation, spelling: SimplifiedSpelling| {
+        let params = NotificationParams::builder(endpoint())
+            .format(format)
+            .simplified_spelling(spelling)
+            .build()
+            .unwrap();
+        notification_params(&params).to_string()
+    };
+    let uri = r#","endpoint":{"uri":"http://my.endpoint.org/notify"}}"#;
+    assert_eq!(
+        written(Representation::Simplified, SimplifiedSpelling::Simplified),
+        format!(r#"{{"format":"simplified"{uri}"#)
+    );
+    assert_eq!(
+        written(Representation::Simplified, SimplifiedSpelling::KeyValues),
+        format!(r#"{{"format":"keyValues"{uri}"#)
+    );
+    assert_eq!(
+        written(Representation::Concise, SimplifiedSpelling::KeyValues),
+        format!(r#"{{"format":"concise"{uri}"#)
+    );
+    assert_eq!(
+        written(Representation::Normalized, SimplifiedSpelling::KeyValues),
+        format!(r#"{{"format":"normalized"{uri}"#)
+    );
 }
 
 #[test]

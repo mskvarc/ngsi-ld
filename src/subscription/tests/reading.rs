@@ -1,7 +1,7 @@
 //! Reading subscriptions in both directions, and each refusal of the readers.
 
 use crate::{
-    model::{Input, MemberError, NgsiLdMediaType, Output, PathSegment, Representation},
+    model::{Input, MemberError, NgsiLdMediaType, Output, PathSegment, Representation, SimplifiedSpelling},
     query::{EntitySelectorError, EntitySplitting, Locality},
     subscription::{
         Activation,
@@ -147,13 +147,17 @@ fn a_read_subscription_obeys_the_rules_of_the_builder() {
 }
 
 #[test]
-fn each_format_is_read_and_key_values_is_written_simplified() {
-    for format in ["normalized", "concise", "simplified"] {
+fn each_format_round_trips_and_key_values_is_the_simplified_representation_spelled_otherwise() {
+    for format in ["normalized", "concise", "simplified", "keyValues"] {
         round_trip::<Input>(&notification_with(&format!(r#""format":"{format}","#)));
     }
     let key_values = Subscription::<Input>::parse(&notification_with(r#""format":"keyValues","#)).unwrap();
+    let simplified = Subscription::<Input>::parse(&notification_with(r#""format":"simplified","#)).unwrap();
     assert_eq!(key_values.notification().format(), Some(Representation::Simplified));
-    assert_eq!(key_values.render().to_string(), notification_with(r#""format":"simplified","#));
+    assert_eq!(simplified.notification().format(), Some(Representation::Simplified));
+    assert_eq!(key_values.notification().simplified_spelling(), SimplifiedSpelling::KeyValues);
+    assert_eq!(simplified.notification().simplified_spelling(), SimplifiedSpelling::Simplified);
+    assert_ne!(key_values, simplified);
     let error = read_error::<Input>(&notification_with(r#""format":"geojson","#));
     assert!(matches!(error.kind, ReadErrorKind::Member(MemberError::InvalidToken { member: "format", .. })));
     assert_eq!(error.path.to_string(), "notification.format");

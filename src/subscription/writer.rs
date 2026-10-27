@@ -2,7 +2,7 @@
 //! its notification parameters and endpoint, and the members a subscription fragment shares with them.
 
 use crate::{
-    model::{AttributeName, DatasetId, MemberChange, PositiveNumber, Representation},
+    model::{AttributeName, DatasetId, MemberChange, PositiveNumber, Representation, SimplifiedSpelling},
     query::{EntitySelector, geoquery::GeoQuery, projection::Projection},
     seal::Seal,
     subscription::{
@@ -82,9 +82,13 @@ pub(crate) fn projection(projection: &Projection) -> Json {
     Json::Array(projection.terms().iter().map(printed).collect())
 }
 
-/// `format`: the token of the representation, `simplified` for the one also spelled `keyValues`.
-fn format(representation: Representation) -> Json {
-    Json::from(<&str>::from(representation))
+/// `format`: the token of the representation; the simplified one is named by `spelling`, `simplified` or its
+/// synonym `keyValues` (Table 5.2.14-1).
+fn format(representation: Representation, spelling: SimplifiedSpelling) -> Json {
+    match representation {
+        Representation::Simplified => Json::from(<&str>::from(spelling)),
+        Representation::Normalized | Representation::Concise => Json::from(<&str>::from(representation)),
+    }
 }
 
 /// Writes the notification parameters: `attributes`, `pick`, `omit`, `format`, `showChanges`, `sysAttrs`,
@@ -94,7 +98,11 @@ pub(crate) fn notification_params<D: SubscriptionDirection>(params: &Notificatio
     push(&mut object, NotificationMember::Attributes.into(), name_array(&params.attributes));
     push(&mut object, NotificationMember::Pick.into(), params.pick.as_ref().map(projection));
     push(&mut object, NotificationMember::Omit.into(), params.omit.as_ref().map(projection));
-    push(&mut object, NotificationMember::Format.into(), params.format.map(format));
+    push(
+        &mut object,
+        NotificationMember::Format.into(),
+        params.format.map(|representation| format(representation, params.simplified_spelling)),
+    );
     push(&mut object, NotificationMember::ShowChanges.into(), params.show_changes.flag().map(Json::from));
     push(
         &mut object,

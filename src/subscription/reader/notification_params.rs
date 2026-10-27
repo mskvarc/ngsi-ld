@@ -7,6 +7,7 @@ use crate::{
         NotPositive,
         Number,
         Representation,
+        SimplifiedSpelling,
         reader::{boolean, count, object, once, required, string, token, unexpected, url, within},
     },
     query::{Join, projection::Projection},
@@ -47,6 +48,7 @@ pub(super) fn read_notification_params<D: SubscriptionDirection>(json: Json) -> 
     let mut pick = None;
     let mut omit = None;
     let mut format = None;
+    let mut simplified_spelling = SimplifiedSpelling::default();
     let mut show_changes = None;
     let mut system_attributes = None;
     let mut join = None;
@@ -62,7 +64,11 @@ pub(super) fn read_notification_params<D: SubscriptionDirection>(json: Json) -> 
             NotificationMember::Attributes => once(&mut attributes, key, within(key, names(value, key, Emptiness::Refused))?)?,
             NotificationMember::Pick => once(&mut pick, key, within(key, projection(value, key))?)?,
             NotificationMember::Omit => once(&mut omit, key, within(key, projection(value, key))?)?,
-            NotificationMember::Format => once(&mut format, key, within(key, token::<Representation, _>(value, key))?)?,
+            NotificationMember::Format => {
+                // `keyValues` reads as the simplified representation, and its spelling is kept to write it back.
+                simplified_spelling = spelling_of(&value);
+                once(&mut format, key, within(key, token::<Representation, _>(value, key))?)?;
+            }
             NotificationMember::ShowChanges => once(&mut show_changes, key, within(key, boolean(&value, key)).map(ChangeReporting::from_flag)?)?,
             NotificationMember::SysAttrs => once(
                 &mut system_attributes,
@@ -89,6 +95,7 @@ pub(super) fn read_notification_params<D: SubscriptionDirection>(json: Json) -> 
         pick,
         omit,
         format,
+        simplified_spelling,
         show_changes: show_changes.unwrap_or_default(),
         system_attributes: system_attributes.unwrap_or_default(),
         join,
@@ -96,6 +103,15 @@ pub(super) fn read_notification_params<D: SubscriptionDirection>(json: Json) -> 
         endpoint: required(endpoint, NotificationMember::Endpoint.into())?,
         output,
     })
+}
+
+/// The name a `format` value spells the simplified representation with; the default for any other value, which
+/// the token reader refuses or reads as another representation.
+fn spelling_of(json: &Json) -> SimplifiedSpelling {
+    match json {
+        Json::String(text) => text.as_str().parse().unwrap_or_default(),
+        Json::Null | Json::Boolean(_) | Json::Number(_) | Json::Array(_) | Json::Object(_) => SimplifiedSpelling::default(),
+    }
 }
 
 /// Reads `joinLevel`: a positive integer.

@@ -11,6 +11,7 @@ use crate::{
         Number,
         Output,
         Representation,
+        SimplifiedSpelling,
         name::draft::resolve_required_names,
     },
     query::{Join, projection::Projection},
@@ -125,6 +126,8 @@ pub struct NotificationParams<D: SubscriptionDirection> {
     pub(crate) omit: Option<Projection>,
     /// `format`; `keyValues` is read as [`Representation::Simplified`].
     pub(crate) format: Option<Representation>,
+    /// Which of its two names the simplified `format` is written with.
+    pub(crate) simplified_spelling: SimplifiedSpelling,
     /// `showChanges`.
     pub(crate) show_changes: ChangeReporting,
     /// `sysAttrs`.
@@ -141,7 +144,8 @@ pub struct NotificationParams<D: SubscriptionDirection> {
 
 #[bon]
 impl NotificationParams<Input> {
-    /// Starts a builder from the endpoint the notifications go to.
+    /// Starts a builder from the endpoint the notifications go to. `simplified_spelling` chooses between `simplified` and its synonym `keyValues` for the simplified `format`;
+    /// any other format has one name and ignores it.
     ///
     /// # Errors
     ///
@@ -156,6 +160,7 @@ impl NotificationParams<Input> {
         pick: Option<Projection>,
         omit: Option<Projection>,
         format: Option<Representation>,
+        #[builder(default)] simplified_spelling: SimplifiedSpelling,
         #[builder(default)] show_changes: ChangeReporting,
         #[builder(default)] system_attributes: SystemAttributeReporting,
         join: Option<Join>,
@@ -177,6 +182,7 @@ impl NotificationParams<Input> {
             pick,
             omit,
             format,
+            simplified_spelling,
             show_changes,
             system_attributes,
             join,
@@ -212,6 +218,13 @@ impl<D: SubscriptionDirection> NotificationParams<D> {
     #[must_use]
     pub const fn format(&self) -> Option<Representation> {
         self.format
+    }
+
+    /// Returns which name the simplified `format` is written with: `simplified` or its synonym `keyValues` (Table
+    /// 5.2.14-1). It matters only when [`format`](Self::format) is [`Representation::Simplified`].
+    #[must_use]
+    pub const fn simplified_spelling(&self) -> SimplifiedSpelling {
+        self.simplified_spelling
     }
 
     /// Returns whether previous values are shown (`showChanges`).
@@ -262,6 +275,7 @@ impl<D: SubscriptionDirection> NotificationParams<D> {
             pick: self.pick,
             omit: self.omit,
             format: self.format,
+            simplified_spelling: self.simplified_spelling,
             show_changes: self.show_changes,
             system_attributes: self.system_attributes,
             join: self.join,

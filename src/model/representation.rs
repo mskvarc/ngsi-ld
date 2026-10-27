@@ -31,6 +31,7 @@ pub(crate) mod member;
 pub(crate) mod proof;
 pub(crate) mod read;
 pub(crate) mod shape;
+pub(super) mod simplified_spelling;
 pub(crate) mod write;
 
 /// The representation of entities a request asks for, or a document is written in.

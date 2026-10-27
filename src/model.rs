@@ -77,7 +77,7 @@
 //!
 //! # Representations
 //!
-//! [`Representation`], [`Lossless`].
+//! [`Representation`], [`Lossless`], [`SimplifiedSpelling`].
 //!
 //! # Errors
 //!
@@ -154,7 +154,7 @@ pub use crate::model::{
     one_or_many::{EmptyList, OneOrMany, OneOrManyDraft},
     problem::{ErrorType, ProblemDetails},
     raw_json::{InvalidJson, RawJson},
-    representation::{Lossless, Representation},
+    representation::{Lossless, Representation, simplified_spelling::SimplifiedSpelling},
     scope::{Scope, ScopeError, ScopeLevel},
     simplified::{
         SimplifiedEntity,

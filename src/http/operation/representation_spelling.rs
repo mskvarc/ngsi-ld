@@ -8,7 +8,7 @@ use crate::{
         operation::{ArgumentError, SystemAttributes},
         query_string::QueryString,
     },
-    model::Representation,
+    model::{Representation, SimplifiedSpelling},
 };
 
 pub(crate) mod received;
@@ -104,20 +104,6 @@ pub enum NormalizedSpelling {
     Implicit,
     /// The `normalized` token.
     Explicit,
-}
-
-/// How a request asking for the simplified representation of entities writes it.
-///
-/// NGSI-LD Table 6.3.7-1.
-///
-/// The enum is exhaustive: Table 6.3.7-1 defines these two synonyms.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub enum SimplifiedSpelling {
-    /// `simplified`.
-    #[default]
-    Simplified,
-    /// `keyValues`, its synonym.
-    KeyValues,
 }
 
 /// How a request writes the representation it asks for.

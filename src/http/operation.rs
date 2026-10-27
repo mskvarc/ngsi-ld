@@ -139,7 +139,7 @@
 //!
 //! [`SystemAttributes`], [`ResultsCount`], [`SummaryDetails`], [`QueryMethod`], [`Overwrite`], [`UpsertMode`],
 //! [`LocalScopeOperation`], [`WithLocality`], [`RepresentationSpelling`], [`RepresentationToken`],
-//! [`RepresentationParameter`], [`NormalizedSpelling`], [`SimplifiedSpelling`].
+//! [`RepresentationParameter`], [`NormalizedSpelling`].
 //!
 //! # Received requests
 //!
@@ -217,7 +217,7 @@ pub use crate::http::operation::{
     },
     replace_attribute::ReplaceAttribute,
     replace_entity::ReplaceEntity,
-    representation_spelling::{NormalizedSpelling, RepresentationParameter, RepresentationSpelling, RepresentationToken, SimplifiedSpelling},
+    representation_spelling::{NormalizedSpelling, RepresentationParameter, RepresentationSpelling, RepresentationToken},
     retrieve_entity::{RetrieveEntity, parameters::RetrieveEntityParameters},
     snapshot::{
         clone::CloneSnapshot,

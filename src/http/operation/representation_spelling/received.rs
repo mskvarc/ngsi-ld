@@ -1,19 +1,21 @@
 //! Reading the `format` and `options` parameters of a received request (Tables 6.3.7-1 and 6.3.12-1, clause
 //! 6.3.11).
 
-use crate::http::{
-    QueryParameter,
-    operation::{
-        NormalizedSpelling,
-        ParameterError,
-        RepresentationParameter,
-        RepresentationSpelling,
-        RepresentationToken,
-        SimplifiedSpelling,
-        SystemAttributes,
-        received_parameters::ReceivedQuery,
-        representation_spelling::RepresentationFamily,
+use crate::{
+    http::{
+        QueryParameter,
+        operation::{
+            NormalizedSpelling,
+            ParameterError,
+            RepresentationParameter,
+            RepresentationSpelling,
+            RepresentationToken,
+            SystemAttributes,
+            received_parameters::ReceivedQuery,
+            representation_spelling::RepresentationFamily,
+        },
     },
+    model::SimplifiedSpelling,
 };
 use std::str::FromStr;
 
