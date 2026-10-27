@@ -30,7 +30,7 @@ use crate::{
             UpdateAttributes,
         },
     },
-    model::{Attribute, AttributeName, Change, Completeness, Entity, EntityFragment, EntityId, Input, InstanceDeletion, Lossless, Patch, Tenant},
+    model::{Attribute, AttributeFragment, AttributeName, Change, Completeness, Entity, EntityFragment, EntityId, Input, InstanceDeletion, Lossless, Tenant},
     query::{
         IdPattern,
         Locality,
@@ -272,7 +272,7 @@ impl<T: Transport, M: Answering> Entities<'_, T, M> {
         &self,
         #[builder(start_fn)] id: &EntityId,
         #[builder(start_fn)] name: &AttributeName,
-        #[builder(start_fn, into)] attribute: Change<Attribute<Patch>, InstanceDeletion>,
+        #[builder(start_fn, into)] attribute: Change<AttributeFragment, InstanceDeletion>,
         #[builder(into)] entity_type: Option<TypeSelectionBuilder>,
         #[builder(default)] form: Lossless,
         #[builder(default)] locality: Locality,

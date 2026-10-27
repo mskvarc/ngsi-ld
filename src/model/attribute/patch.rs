@@ -5,6 +5,7 @@
 use crate::model::{
     Attribute,
     AttributeKind,
+    AttributeMeta,
     AttributeNameDraft,
     BuildError,
     BuildProblem,
@@ -156,16 +157,36 @@ impl Attribute<Patch> {
     /// sub-attribute the deletion cannot stand beside: the bare Null among other instances, or a second change of the
     /// same instance.
     pub fn delete_sub_attribute(mut self, name: impl Into<AttributeNameDraft>, deletion: impl Into<Deletion>) -> Result<Self, BuildError> {
-        let mut problems = Vec::new();
-        match resolve_name(0, name.into()) {
-            Ok(name) => {
-                if let Err(problem) = insert(&mut self.meta_mut().attributes, name, Change::Delete(deletion.into())) {
-                    problems.push(BuildProblem::top(problem));
-                }
-            }
-            Err(problem) => problems.push(BuildProblem::top(problem)),
-        }
+        let problems = self.meta_mut().delete_attribute(name.into(), deletion.into()).into_iter().collect();
         BuildError::finish(problems, self)
+    }
+}
+
+impl AttributeMeta<Patch> {
+    /// Adds the deletion of the sub-attribute `name`, returning the problem when the name is invalid or the fragment
+    /// cannot hold the deletion beside its other changes of that sub-attribute.
+    pub(crate) fn delete_attribute(&mut self, name: AttributeNameDraft, deletion: Deletion) -> Option<BuildProblem> {
+        match resolve_name(0, name) {
+            Ok(name) => insert(&mut self.attributes, name, Change::Delete(deletion)).err().map(BuildProblem::top),
+            Err(problem) => Some(BuildProblem::top(problem)),
+        }
+    }
+}
+
+impl PatchMember {
+    /// Whether an attribute of `kind` has the member (clauses 4.5.2.2, 4.5.3.2 and their counterparts).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MemberOfOtherKind`] when it has not.
+    pub(crate) const fn check(self, kind: AttributeKind) -> Result<(), MemberOfOtherKind> {
+        let has = match self {
+            Self::ObservedAt | Self::ExpiresAt => true,
+            Self::UnitCode => matches!(kind, AttributeKind::Property | AttributeKind::GeoProperty | AttributeKind::ListProperty),
+            Self::ValueType => !matches!(kind, AttributeKind::Relationship | AttributeKind::ListRelationship),
+            Self::ObjectType => matches!(kind, AttributeKind::Relationship | AttributeKind::ListRelationship),
+        };
+        if has { Ok(()) } else { Err(MemberOfOtherKind { member: self, kind }) }
     }
 }
 
@@ -173,6 +194,7 @@ impl Attribute<Patch> {
 mod tests {
     use crate::model::{
         Attribute,
+        AttributeFragment,
         AttributeKind,
         Change,
         EntityId,
@@ -293,8 +315,8 @@ mod tests {
         };
         for form in [Lossless::Normalized, Lossless::Concise] {
             let text = deleted().render(form).to_string();
-            let read = Change::<Attribute<Patch>, InstanceDeletion>::parse(&text, form).unwrap();
-            assert_eq!(read, Change::Set(deleted()), "{text}");
+            let read = Change::<AttributeFragment, InstanceDeletion>::parse(&text, form).unwrap();
+            assert_eq!(read, Change::Set(deleted().into()), "{text}");
         }
     }
 }

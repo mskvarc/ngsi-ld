@@ -4,7 +4,9 @@
 use crate::{
     model::{
         Attribute,
+        AttributeFragment,
         AttributeKind,
+        AttributeMembers,
         AttributeSlot,
         DatasetId,
         DateTime,
@@ -222,7 +224,7 @@ pub struct EntityOutputMembers {
 /// NGSI-LD clauses 5.4, 5.5.8 and 5.5.12.
 ///
 /// `X` is the deletion the fragment can write: a [`Deletion`] in an entity fragment, where an attribute is a member of
-/// the entity; an [`InstanceDeletion`] in the attribute fragment of Partial Attribute Update (clause 6.7.3.1), whose
+/// the entity; an [`InstanceDeletion`] in the [`AttributeFragment`] of Partial Attribute Update (clause 6.7.3.1), whose
 /// body is an object.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]
 pub enum Change<T, X = Deletion> {
@@ -364,16 +366,30 @@ impl From<Deletion> for Change<Attribute<Patch>> {
     }
 }
 
-// See the conversions above for why this is not derived: the body of Partial Attribute Update is an attribute, or the
-// deletion of one instance.
-impl From<Attribute<Patch>> for Change<Attribute<Patch>, InstanceDeletion> {
-    fn from(attribute: Attribute<Patch>) -> Self {
-        Self::Set(attribute)
+// See the conversions above for why this is not derived: the body of Partial Attribute Update is an attribute fragment,
+// or the deletion of one instance.
+impl From<AttributeFragment> for Change<AttributeFragment, InstanceDeletion> {
+    fn from(fragment: AttributeFragment) -> Self {
+        Self::Set(fragment)
     }
 }
 
 // See the conversions above for why this is not derived.
-impl From<InstanceDeletion> for Change<Attribute<Patch>, InstanceDeletion> {
+impl From<Attribute<Patch>> for Change<AttributeFragment, InstanceDeletion> {
+    fn from(attribute: Attribute<Patch>) -> Self {
+        Self::Set(attribute.into())
+    }
+}
+
+// See the conversions above for why this is not derived.
+impl From<AttributeMembers> for Change<AttributeFragment, InstanceDeletion> {
+    fn from(members: AttributeMembers) -> Self {
+        Self::Set(members.into())
+    }
+}
+
+// See the conversions above for why this is not derived.
+impl From<InstanceDeletion> for Change<AttributeFragment, InstanceDeletion> {
     fn from(deletion: InstanceDeletion) -> Self {
         Self::Delete(deletion)
     }

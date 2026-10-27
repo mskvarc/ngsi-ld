@@ -17,7 +17,7 @@ use crate::{
         request::{RequestParts, scope::RequestScope},
         response::classify,
     },
-    model::{Attribute, AttributeName, Change, EntityId, InstanceDeletion, Lossless, Patch, representation::write::write_attribute_body},
+    model::{AttributeFragment, AttributeName, Change, EntityId, InstanceDeletion, Lossless, representation::write::write_attribute_body},
     query::type_selection::TypeSelection,
 };
 use bytes::Bytes;
@@ -26,7 +26,8 @@ use http::{Method, Request, Response};
 /// Changes some members of one attribute.
 ///
 /// Its request is `PATCH /entities/{entityId}/attrs/{attrId}` (NGSI-LD clause 6.7.3.1). The instance is the one the
-/// fragment's `datasetId` names, or the default instance.
+/// fragment's `datasetId` names, or the default instance. The fragment may set the value or leave it alone and change
+/// only the other members, such as `observedAt` or a sub-attribute ([`AttributeFragment`]).
 ///
 /// The body may also be an [`InstanceDeletion`]: clauses 4.5.2.2 and 4.5.3.2 let the NGSI-LD Null stand as the payload
 /// of a partial update patch to delete the attribute, although clause 5.6.4.1 says a partial update does not delete
@@ -40,7 +41,15 @@ use http::{Method, Request, Response};
 ///         Endpoint,
 ///         operation::{Operation, PartialAttributeUpdate},
 ///     },
-///     model::{Attribute, AttributeName, Change, EntityId, Property},
+///     model::{
+///         Attribute,
+///         AttributeFragment,
+///         AttributeName,
+///         Change,
+///         EntityId,
+///         InstanceDeletion,
+///         Property,
+///     },
 /// };
 /// use url::Url;
 ///
@@ -49,7 +58,9 @@ use http::{Method, Request, Response};
 ///     .build()?;
 /// let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"));
 /// let speed: AttributeName = "speed".parse()?;
-/// let faster = Change::Set(Attribute::from(Property::builder(55).build()?).into_patch());
+/// let faster = Change::<AttributeFragment, InstanceDeletion>::from(
+///     Attribute::from(Property::builder(55).build()?).into_patch(),
+/// );
 /// let update = PartialAttributeUpdate::builder()
 ///     .id(&id)
 ///     .name(&speed)
@@ -70,8 +81,9 @@ pub struct PartialAttributeUpdate<'a> {
     /// The attribute.
     pub name: &'a AttributeName,
     /// The members to change, any of which, sub-attributes included, the fragment may delete with the NGSI-LD Null
-    /// (clause 5.5.8); or the deletion of the instance, whose payload is the Null (clauses 4.5.2.2 and 4.5.3.2).
-    pub attribute: &'a Change<Attribute<Patch>, InstanceDeletion>,
+    /// (clause 5.5.8), with or without a new payload; or the deletion of the instance, whose payload is the Null
+    /// (clauses 4.5.2.2 and 4.5.3.2).
+    pub attribute: &'a Change<AttributeFragment, InstanceDeletion>,
     /// Updates only if the entity's type matches (clause 4.17).
     pub entity_type: Option<&'a TypeSelection>,
     /// The representation the body is written in.

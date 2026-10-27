@@ -42,7 +42,8 @@
 //! [`VocabProperty`], [`VocabPropertyOutputMembers`], [`JsonProperty`], [`JsonPropertyOutputMembers`],
 //! [`ListProperty`], [`ListPropertyOutputMembers`], [`ListRelationship`], [`ListRelationshipOutputMembers`],
 //! [`AttributeMeta`], [`Proof`], [`Attributes`], [`AttributesError`], [`Instances`], [`InstanceKey`],
-//! [`InstancesError`], [`PatchMember`], [`PatchMemberIter`], [`MemberOfOtherKind`], [`NullMember`].
+//! [`InstancesError`], [`AttributeFragment`], [`AttributeMembers`], [`PatchMember`], [`PatchMemberIter`],
+//! [`MemberOfOtherKind`], [`NullMember`].
 //!
 //! # Directions
 //!
@@ -101,6 +102,7 @@ pub use crate::model::{
         AttributeKindIter,
         AttributeSlot,
         attributes::{Attributes, AttributesError},
+        fragment::{AttributeFragment, AttributeMembers},
         geo_property::{GeoProperty, GeoPropertyOutputMembers, GeoValue},
         instances::{InstanceKey, Instances, InstancesError},
         json_property::{JsonProperty, JsonPropertyOutputMembers},

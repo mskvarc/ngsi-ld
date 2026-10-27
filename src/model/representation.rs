@@ -2,6 +2,7 @@
 
 use crate::model::{
     Attribute,
+    AttributeFragment,
     Change,
     Completeness,
     Deletion,
@@ -20,8 +21,23 @@ use crate::model::{
     SimplifiedEntity,
     reader::parse_json,
     representation::{
-        read::{fragment::read_fragment, read_entity, read_instance_list, read_instances},
-        write::{Placement, direction::WriteEntityDirection, write_attribute, write_attribute_body, write_context, write_entity, write_fragment},
+        read::{
+            fragment::read_fragment,
+            members::{FragmentShape, read_members},
+            read_entity,
+            read_instance_list,
+            read_instances,
+        },
+        write::{
+            Placement,
+            direction::WriteEntityDirection,
+            write_attribute,
+            write_attribute_body,
+            write_context,
+            write_entity,
+            write_fragment,
+            write_fragment_object,
+        },
     },
 };
 use jstrict::{Object, Value as Json};
@@ -296,16 +312,29 @@ impl<C: Completeness> EntityFragment<C> {
     }
 }
 
-impl Change<Attribute<Patch>, InstanceDeletion> {
+impl AttributeFragment {
+    /// Writes the fragment in normalized or concise representation, as Partial Attribute Update takes it (clause
+    /// 6.7.3.1): always an object, which can carry an `@context`.
+    #[must_use]
+    pub fn render(&self, form: Lossless) -> RawJson {
+        RawJson::from_json(Json::Object(write_fragment_object(self, form)))
+    }
+}
+
+impl Change<AttributeFragment, InstanceDeletion> {
     /// Reads the body of Partial Attribute Update (clauses 5.6.4 and 6.7.3.1): an attribute fragment, whose
     /// sub-attributes and optional members may be deleted with the NGSI-LD Null and whose Property value may hold a
     /// nested Null (clauses 5.5.8 and 5.5.12), or the deletion of the instance, an object whose payload is the Null
     /// in the shape of its kind, with no member besides `type` and `datasetId` (clauses 4.5.2.2 and 4.5.3.2).
     ///
-    /// ```
-    /// use ngsi_ld::model::{Attribute, AttributeKind, Change, InstanceDeletion, Lossless, Patch};
+    /// An object that names no payload (`value`, `object`, `languageMap`, ...) is an [`AttributeMembers`](crate::model::AttributeMembers), in either
+    /// form: `{"value": 100}` sets the value, `{"observedAt": "2022-03-14T12:51:02Z"}` changes only the `observedAt`,
+    /// and `{}` changes nothing.
     ///
-    /// let deletion = Change::<Attribute<Patch>, InstanceDeletion>::parse(
+    /// ```
+    /// use ngsi_ld::model::{AttributeFragment, AttributeKind, Change, InstanceDeletion, Lossless};
+    ///
+    /// let deletion = Change::<AttributeFragment, InstanceDeletion>::parse(
     ///     r#"{"type": "Property", "value": "urn:ngsi-ld:null"}"#,
     ///     Lossless::Normalized,
     /// )?;
@@ -313,6 +342,14 @@ impl Change<Attribute<Patch>, InstanceDeletion> {
     ///     deletion,
     ///     Change::Delete(InstanceDeletion::new(AttributeKind::Property))
     /// );
+    /// let observed = Change::<AttributeFragment, InstanceDeletion>::parse(
+    ///     r#"{"observedAt": "2022-03-14T12:51:02Z"}"#,
+    ///     Lossless::Concise,
+    /// )?;
+    /// assert!(matches!(
+    ///     observed,
+    ///     Change::Set(AttributeFragment::WithoutPayload(_))
+    /// ));
     /// # Ok::<(), anyhow::Error>(())
     /// ```
     ///
@@ -321,8 +358,15 @@ impl Change<Attribute<Patch>, InstanceDeletion> {
     /// Returns [`DocumentError`] when the text is not one attribute object in `form`, holds an output-only member,
     /// or is the bare NGSI-LD Null, which deletes a member of an entity and is no attribute object.
     pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
-        match single(read_instance_list::<Patch>(parse_json(text)?, form)?)? {
-            Change::Set(attribute) => Ok(Change::Set(attribute)),
+        let json = match parse_json(text)? {
+            Json::Object(object) => match FragmentShape::of(&object) {
+                FragmentShape::Members(kind) => return read_members(kind, object, form).map(|members| Change::Set(members.into())),
+                FragmentShape::Payload => Json::Object(object),
+            },
+            other @ (Json::Null | Json::Boolean(_) | Json::Number(_) | Json::String(_) | Json::Array(_)) => other,
+        };
+        match single(read_instance_list::<Patch>(json, form)?)? {
+            Change::Set(attribute) => Ok(Change::Set(attribute.into())),
             Change::Delete(Deletion::Instance(deletion)) => Ok(Change::Delete(deletion)),
             Change::Delete(Deletion::Member) => Err(DocumentError::top(DocumentErrorKind::NgsiLdNull { member: NullMember::Value })),
         }

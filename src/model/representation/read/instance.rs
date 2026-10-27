@@ -17,6 +17,8 @@ use crate::model::{
     ListRelationship,
     Lossless,
     MemberError,
+    OneOrMany,
+    PatchMember,
     Property,
     RawJson,
     Relationship,
@@ -36,6 +38,7 @@ use crate::model::{
         },
     },
 };
+use cefact_units::UnitCode;
 use jstrict::{Object, Value as Json, object::Entry};
 
 /// Reads a normalized attribute: an object whose `type` names the kind, or the bare NGSI-LD Null a notification
@@ -62,41 +65,81 @@ pub(super) fn read_normalized<D: ReadDirection>(json: Json) -> Result<Attribute<
 }
 
 /// The members of one attribute instance, sorted by role.
-struct InstanceMembers<D: ReadDirection> {
+pub(super) struct InstanceMembers<D: ReadDirection> {
     /// The member that carries the instance's content under the kind's name (`value`, `object`, `languageMap`, ...).
-    payload: Option<Json>,
+    pub(super) payload: Option<Json>,
     /// `unitCode`, read only for a kind that allows it.
-    unit_code: Option<Json>,
+    pub(super) unit_code: Option<Json>,
     /// `valueType`, read only for a property kind.
-    value_type: Option<Json>,
+    pub(super) value_type: Option<Json>,
     /// `objectType`, read only for a relationship kind.
-    object_type: Option<Json>,
+    pub(super) object_type: Option<Json>,
     /// `observedAt`.
-    observed_at: Option<Json>,
+    pub(super) observed_at: Option<Json>,
     /// `expiresAt`.
-    expires_at: Option<Json>,
+    pub(super) expires_at: Option<Json>,
     /// The output-only members of the kind (`previousValue` and the like), in document order.
-    kind_output: Vec<(KindOutputMember, Json)>,
+    pub(super) kind_output: Vec<(KindOutputMember, Json)>,
     /// The members every kind shares, and the sub-attributes.
-    meta: AttributeMeta<D>,
+    pub(super) meta: AttributeMeta<D>,
+}
+
+/// The optional members of an attribute instance, read in the direction's way.
+pub(super) struct KindMembers<D: ReadDirection> {
+    /// `unitCode`.
+    pub(super) unit_code: D::Member<UnitCode>,
+    /// `valueType`.
+    pub(super) value_type: D::Member<VocabTerm>,
+    /// `objectType`.
+    pub(super) object_type: D::Member<OneOrMany<EntityTypeName>>,
+    /// The members every kind shares, with their timestamps.
+    pub(super) meta: AttributeMeta<D>,
+}
+
+/// Reads the optional members of an instance: the ones only some kinds have, and the timestamps every kind has,
+/// which are put into `meta`.
+pub(super) fn read_kind_members<D: ReadDirection>(
+    unit_code: Option<Json>,
+    value_type: Option<Json>,
+    object_type: Option<Json>,
+    observed_at: Option<Json>,
+    expires_at: Option<Json>,
+    mut meta: AttributeMeta<D>,
+) -> Result<KindMembers<D>, DocumentError> {
+    let unit_code = D::read_member(unit_code, |json| {
+        string(json, "unitCode")?
+            .parse::<UnitCode>()
+            .map_err(|source| DocumentError::top(DocumentErrorKind::UnitCode { source }))
+    })?;
+    let value_type = D::read_member(value_type, |json| parsed::<VocabTerm, _>(json, "valueType"))?;
+    let object_type = D::read_member(object_type, |json| one_or_many(json, |item| parsed::<EntityTypeName, _>(item, "objectType")))?;
+    meta.observed_at = D::read_member(observed_at, |json| date_time(json, "observedAt"))?;
+    meta.expires_at = D::read_member(expires_at, |json| date_time(json, "expiresAt"))?;
+    Ok(KindMembers {
+        unit_code,
+        value_type,
+        object_type,
+        meta,
+    })
 }
 
 /// Reads one attribute instance of a known kind.
 pub(super) fn read_known_kind<D: ReadDirection>(kind: AttributeKind, object: Object, form: Lossless) -> Result<Attribute<D>, DocumentError> {
-    let members = sort_members::<D>(kind, object, form)?;
+    let members = sort_members::<D>(Some(kind), object, form)?;
     let payload = required(members.payload, kind.payload_member())?;
-    let unit_code = D::read_member(members.unit_code, |json| {
-        string(json, "unitCode")?
-            .parse()
-            .map_err(|source| DocumentError::top(DocumentErrorKind::UnitCode { source }))
-    })?;
-    let value_type = D::read_member(members.value_type, |json| parsed::<VocabTerm, _>(json, "valueType"))?;
-    let object_type = D::read_member(members.object_type, |json| {
-        one_or_many(json, |item| parsed::<EntityTypeName, _>(item, "objectType"))
-    })?;
-    let mut meta = members.meta;
-    meta.observed_at = D::read_member(members.observed_at, |json| date_time(json, "observedAt"))?;
-    meta.expires_at = D::read_member(members.expires_at, |json| date_time(json, "expiresAt"))?;
+    let KindMembers {
+        unit_code,
+        value_type,
+        object_type,
+        meta,
+    } = read_kind_members::<D>(
+        members.unit_code,
+        members.value_type,
+        members.object_type,
+        members.observed_at,
+        members.expires_at,
+        members.meta,
+    )?;
     let kind_output = members.kind_output;
     Ok(match kind {
         AttributeKind::Property => Attribute::Property(Property {
@@ -161,8 +204,9 @@ pub(super) fn read_known_kind<D: ReadDirection>(kind: AttributeKind, object: Obj
     })
 }
 
-/// Sorts the members of an instance into its payload, kind-specific members, shared members and sub-attributes.
-fn sort_members<D: ReadDirection>(kind: AttributeKind, object: Object, form: Lossless) -> Result<InstanceMembers<D>, DocumentError> {
+/// Sorts the members of an instance into its payload, kind-specific members, shared members and sub-attributes. A
+/// fragment that names no kind allows the members of every kind and has no payload.
+pub(super) fn sort_members<D: ReadDirection>(kind: Option<AttributeKind>, object: Object, form: Lossless) -> Result<InstanceMembers<D>, DocumentError> {
     let mut members = InstanceMembers {
         payload: None,
         unit_code: None,
@@ -173,17 +217,16 @@ fn sort_members<D: ReadDirection>(kind: AttributeKind, object: Object, form: Los
         kind_output: Vec::new(),
         meta: AttributeMeta::empty(),
     };
-    let property_kind = !matches!(kind, AttributeKind::Relationship | AttributeKind::ListRelationship);
-    let unit_kind = matches!(kind, AttributeKind::Property | AttributeKind::GeoProperty | AttributeKind::ListProperty);
+    let allows = |member: PatchMember| kind.is_none_or(|kind| member.check(kind).is_ok());
     for Entry { key, value } in object {
         // Member names are free-form here, because every name the specification does not reserve is a
         // sub-attribute; the reserved ones are told apart first.
         match key.as_str() {
             "type" => {}
-            payload if payload == kind.payload_member() => once(&mut members.payload, payload, value)?,
-            "unitCode" if unit_kind => once(&mut members.unit_code, "unitCode", value)?,
-            "valueType" if property_kind => once(&mut members.value_type, "valueType", value)?,
-            "objectType" if !property_kind => once(&mut members.object_type, "objectType", value)?,
+            payload if kind.is_some_and(|kind| payload == kind.payload_member()) => once(&mut members.payload, payload, value)?,
+            "unitCode" if allows(PatchMember::UnitCode) => once(&mut members.unit_code, "unitCode", value)?,
+            "valueType" if allows(PatchMember::ValueType) => once(&mut members.value_type, "valueType", value)?,
+            "objectType" if allows(PatchMember::ObjectType) => once(&mut members.object_type, "objectType", value)?,
             "datasetId" => {
                 once(&mut members.meta.dataset_id, "datasetId", identifier(value, "datasetId")?)?;
             }

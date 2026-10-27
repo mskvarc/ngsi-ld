@@ -7,6 +7,7 @@ use cefact_units::UnitCode;
 use iri_rs::iri;
 use ngsi_ld::model::{
     Attribute,
+    AttributeFragment,
     Change,
     DateTime,
     Entity,
@@ -80,8 +81,8 @@ fn main() -> anyhow::Result<()> {
         .delete_member(PatchMember::UnitCode)?;
     let text = speed.render(Lossless::Normalized).to_string();
     println!("a fragment of speed deleting its unitCode:\n{text}");
-    match Change::<Attribute<_>, InstanceDeletion>::parse(&text, Lossless::Normalized)? {
-        Change::Set(attribute) => println!("read back, concise:\n{}", attribute.render(Lossless::Concise)),
+    match Change::<AttributeFragment, InstanceDeletion>::parse(&text, Lossless::Normalized)? {
+        Change::Set(fragment) => println!("read back, concise:\n{}", fragment.render(Lossless::Concise)),
         Change::Delete(deletion) => println!("read back as a deletion: {deletion:?}"),
     }
     Ok(())

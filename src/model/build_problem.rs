@@ -1,6 +1,7 @@
 //! One problem a data-model builder found: what is wrong, and the attribute it belongs to.
 
 use crate::model::{
+    AttributeKind,
     AttributeName,
     AttributesError,
     BuildError,
@@ -8,6 +9,7 @@ use crate::model::{
     LanguageMapError,
     NameError,
     NullMember,
+    PatchMember,
     ReservedMember,
     ScopeError,
     UriError,
@@ -181,6 +183,14 @@ pub enum ProblemKind {
     /// The value of an `ngsildproof` is not a JSON object (clause 4.5.2.2).
     #[error("the value of an ngsildproof must be a JSON object")]
     ProofNotAnObject,
+    /// A fragment names a member the attribute kind it names has not (clauses 4.5.2.2 and 4.5.3.2).
+    #[error("a {kind} has no `{member}` member")]
+    MemberOfOtherKind {
+        /// The member.
+        member: PatchMember,
+        /// The kind the fragment names.
+        kind: AttributeKind,
+    },
     /// A simplified fragment is given a `dataset` value; its instances are named one by one, each with its dataset
     /// id (clause 4.5.4).
     #[error("the instances of a simplified attribute are given one by one, not as a dataset value")]

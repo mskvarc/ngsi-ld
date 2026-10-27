@@ -125,6 +125,7 @@ fn a_value_holding_the_ngsi_ld_null_is_refused_where_the_null_is() {
             | ProblemKind::EmptyList { .. }
             | ProblemKind::SubAttributeOfUnsetAttribute { .. }
             | ProblemKind::ProofNotAnObject
+            | ProblemKind::MemberOfOtherKind { .. }
             | ProblemKind::DatasetValue) => panic!("unexpected problem {other}"),
         })
         .collect();

@@ -10,6 +10,7 @@ use ngsi_ld::{
     http::operation::{MergeEntity, Operation, PartialAttributeUpdate},
     model::{
         Attribute,
+        AttributeFragment,
         AttributeKind,
         AttributeName,
         Change,
@@ -33,7 +34,7 @@ use ngsi_ld::{
 use pretty_assertions::assert_eq;
 
 /// The body of the Partial Attribute Update of `name` with `attribute`, in `form`.
-fn body(name: &str, attribute: &Change<Attribute<Patch>, InstanceDeletion>, form: Lossless) -> jstrict::Value {
+fn body(name: &str, attribute: &Change<AttributeFragment, InstanceDeletion>, form: Lossless) -> jstrict::Value {
     let id = vehicle_id();
     let name: AttributeName = name.parse().unwrap();
     let request = PartialAttributeUpdate::builder()
@@ -79,7 +80,7 @@ fn a_partial_update_deletes_the_instance_with_the_null_in_the_shape_of_its_kind(
     ] {
         let deletion = Change::from(InstanceDeletion::new(kind));
         assert_eq!(body("name", &deletion, Lossless::Normalized), json(expected.as_bytes()), "{kind}");
-        let read = Change::<Attribute<Patch>, InstanceDeletion>::parse(expected, Lossless::Normalized).unwrap();
+        let read = Change::<AttributeFragment, InstanceDeletion>::parse(expected, Lossless::Normalized).unwrap();
         assert_eq!(read, deletion, "{kind}");
     }
 }
@@ -140,12 +141,14 @@ fn a_partial_update_deletes_a_sub_relationship_with_the_null_as_its_object() {
 #[test]
 fn a_partial_update_body_that_deletes_members_reads_back_as_the_fragment_sent() {
     let text = r#"{"type":"Relationship","object":"urn:ngsi-ld:Sensor:1","objectType":"urn:ngsi-ld:null","observedAt":"urn:ngsi-ld:null"}"#;
-    let Change::Set(Attribute::Relationship(relationship)) = Change::<Attribute<Patch>, InstanceDeletion>::parse(text, Lossless::Normalized).unwrap() else {
+    let Change::Set(AttributeFragment::WithPayload(Attribute::Relationship(relationship))) =
+        Change::<AttributeFragment, InstanceDeletion>::parse(text, Lossless::Normalized).unwrap()
+    else {
         panic!("a Relationship fragment");
     };
     assert_eq!(relationship.object_type(), Some(MemberChange::Delete));
     assert_eq!(relationship.meta().observed_at, Some(MemberChange::Delete));
-    assert!(Change::<Attribute<Patch>, InstanceDeletion>::parse(r#""urn:ngsi-ld:null""#, Lossless::Normalized).is_err());
+    assert!(Change::<AttributeFragment, InstanceDeletion>::parse(r#""urn:ngsi-ld:null""#, Lossless::Normalized).is_err());
 }
 
 #[test]
@@ -233,8 +236,8 @@ fn a_merged_value_reads_back_as_the_fragment_sent() {
     for form in [Lossless::Normalized, Lossless::Concise] {
         let text = address().render(form).to_string();
         assert_eq!(
-            Change::<Attribute<Patch>, InstanceDeletion>::parse(&text, form).unwrap(),
-            Change::Set(address()),
+            Change::<AttributeFragment, InstanceDeletion>::parse(&text, form).unwrap(),
+            Change::Set(address().into()),
             "{text}"
         );
     }

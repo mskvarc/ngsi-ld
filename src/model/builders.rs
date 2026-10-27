@@ -1,6 +1,6 @@
 //! The builders of the types of [`model`](crate::model).
 //!
-//! [`AttributeDeletedBuilder`], [`EntityBuilder`], [`EntityFragmentBuilder`], [`EntityFragmentForEntityBuilder`],
+//! [`AttributeDeletedBuilder`], [`AttributeMembersBuilder`], [`EntityBuilder`], [`EntityFragmentBuilder`], [`EntityFragmentForEntityBuilder`],
 //! [`EntityOutputBuilder`], [`GeoPropertyBuilder`], [`GeoPropertyDeletedBuilder`], [`GeoPropertyOutputBuilder`],
 //! [`JsonPropertyBuilder`], [`JsonPropertyDeletedBuilder`], [`JsonPropertyOutputBuilder`], [`LanguagePropertyBuilder`],
 //! [`LanguagePropertyDeletedBuilder`], [`LanguagePropertyOutputBuilder`], [`ListPropertyBuilder`],
@@ -24,6 +24,7 @@ pub use crate::model::{
             RelationshipDeletedBuilder,
             VocabPropertyDeletedBuilder,
         },
+        fragment::AttributeMembersBuilder,
         geo_property::GeoPropertyBuilder,
         json_property::JsonPropertyBuilder,
         language_property::LanguagePropertyBuilder,

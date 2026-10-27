@@ -53,6 +53,7 @@ fn every_invalid_attribute_name_is_reported_together() {
             | ProblemKind::NgsiLdNull { .. }
             | ProblemKind::SubAttributeOfUnsetAttribute { .. }
             | ProblemKind::ProofNotAnObject
+            | ProblemKind::MemberOfOtherKind { .. }
             | ProblemKind::DatasetValue) => panic!("unexpected problem {other}"),
         })
         .collect();

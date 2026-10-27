@@ -24,7 +24,7 @@ use ngsi_ld::{
             UpdateAttributes,
         },
     },
-    model::{Attribute, AttributeName, Change, EntityFragment, Lossless, Property, Uri},
+    model::{Attribute, AttributeFragment, AttributeMembers, AttributeName, Change, EntityFragment, Lossless, Property, Uri},
     query::{Locality, SelectorType},
 };
 use pretty_assertions::assert_eq;
@@ -119,7 +119,9 @@ fn append_attributes_sends_post_and_no_overwrite_only_when_asked() {
 fn partial_attribute_update_sends_patch_to_the_attribute_with_its_members() {
     let id = vehicle_id();
     let name = speed();
-    let attribute = Change::Set(Attribute::Property(Property::builder(55).build().unwrap()).into_patch());
+    let attribute = Change::Set(AttributeFragment::from(
+        Attribute::Property(Property::builder(55).build().unwrap()).into_patch(),
+    ));
     let request = PartialAttributeUpdate::builder()
         .id(&id)
         .name(&name)
@@ -132,6 +134,43 @@ fn partial_attribute_update_sends_patch_to_the_attribute_with_its_members() {
     assert_eq!(request.uri().path(), "/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567/attrs/speed");
     // A concise attribute body is still an object, never a bare value, so it can carry an `@context`.
     assert_eq!(Unordered(json(request.body())), Unordered(json(br#"{"value": 55}"#)));
+}
+
+#[test]
+fn partial_attribute_update_sends_a_fragment_that_sets_no_value() {
+    let id = vehicle_id();
+    let name = speed();
+    let send = |members: AttributeMembers, form| {
+        let attribute = Change::Set(AttributeFragment::from(members));
+        PartialAttributeUpdate::builder()
+            .id(&id)
+            .name(&name)
+            .attribute(&attribute)
+            .form(form)
+            .build()
+            .to_request(&endpoint())
+            .unwrap()
+    };
+    let observed = || {
+        AttributeMembers::builder()
+            .observed_at("2022-03-14T12:51:02Z".parse().unwrap())
+            .property("accuracy", 3)
+            .build()
+            .unwrap()
+    };
+    let request = send(observed(), Lossless::Concise);
+    assert_eq!(request.method(), Method::PATCH);
+    assert_eq!(
+        Unordered(json(request.body())),
+        Unordered(json(br#"{"observedAt": "2022-03-14T12:51:02Z", "accuracy": 3}"#))
+    );
+    assert_eq!(
+        Unordered(json(send(observed(), Lossless::Normalized).body())),
+        Unordered(json(br#"{"observedAt": "2022-03-14T12:51:02Z", "accuracy": {"type": "Property", "value": 3}}"#))
+    );
+    for form in [Lossless::Normalized, Lossless::Concise] {
+        assert_eq!(json(send(AttributeMembers::builder().build().unwrap(), form).body()), json(b"{}"));
+    }
 }
 
 #[test]

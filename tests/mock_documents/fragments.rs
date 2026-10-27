@@ -5,6 +5,7 @@
 use iri_rs::iri;
 use ngsi_ld::model::{
     Attribute,
+    AttributeFragment,
     AttributeKind,
     AttributeName,
     Change,
@@ -14,6 +15,7 @@ use ngsi_ld::model::{
     EntityFragment,
     InstanceDeletion,
     Lossless,
+    MemberChange,
     MemberError,
     NullMember,
     Patch,
@@ -125,6 +127,78 @@ fn a_fragment_refuses_system_and_output_members_and_a_null_beside_other_members(
     assert!(matches!(observed_null.kind, DocumentErrorKind::NgsiLdNull { member: NullMember::Value }));
 }
 
+/// Reads a Partial Attribute Update body, which is a fragment and never the bare value of a Property.
+fn partial_update_body(text: &str, form: Lossless) -> AttributeFragment {
+    match Change::<AttributeFragment, InstanceDeletion>::parse(text, form).unwrap() {
+        Change::Set(fragment) => fragment,
+        Change::Delete(deletion) => panic!("a deletion of {deletion:?}"),
+    }
+}
+
+#[test]
+fn a_partial_update_body_naming_no_payload_changes_the_members_it_names_in_either_form() {
+    for form in [Lossless::Normalized, Lossless::Concise] {
+        let AttributeFragment::WithoutPayload(empty) = partial_update_body("{}", form) else {
+            panic!("{{}} names no payload in {form:?}");
+        };
+        assert_eq!(empty.kind(), None);
+        assert_eq!(empty.meta().observed_at, None);
+        assert!(empty.meta().attributes.is_empty());
+        let AttributeFragment::WithoutPayload(observed) = partial_update_body(r#"{"observedAt":"2022-03-14T12:51:02Z"}"#, form) else {
+            panic!("observedAt alone names no payload in {form:?}");
+        };
+        assert_eq!(observed.meta().observed_at, Some(MemberChange::Set("2022-03-14T12:51:02Z".parse().unwrap())));
+        let AttributeFragment::WithoutPayload(accuracy) = partial_update_body(r#"{"accuracy":{"type":"Property","value":3}}"#, form) else {
+            panic!("a sub-attribute alone names no payload in {form:?}");
+        };
+        assert_eq!(accuracy.meta().attributes.len(), 1);
+    }
+    let AttributeFragment::WithoutPayload(concise) = partial_update_body(r#"{"accuracy":{"value":3},"unitCode":"urn:ngsi-ld:null"}"#, Lossless::Concise) else {
+        panic!("a concise sub-attribute and a deleted unit code name no payload");
+    };
+    assert_eq!(concise.unit_code(), Some(MemberChange::Delete));
+    assert_eq!(concise.meta().attributes.len(), 1);
+}
+
+#[test]
+fn a_partial_update_body_of_sub_attributes_alone_keeps_each_of_them_and_writes_them_back() {
+    let text = r#"{"accuracy":3,"providedBy":{"object":"urn:ngsi-ld:Person:Bob"}}"#;
+    let fragment = partial_update_body(text, Lossless::Concise);
+    let AttributeFragment::WithoutPayload(members) = &fragment else {
+        panic!("sub-attributes alone name no payload");
+    };
+    let names: Vec<&str> = members.meta().attributes.names().map(AsRef::as_ref).collect();
+    assert_eq!(names, ["accuracy", "providedBy"]);
+    assert_eq!(fragment.render(Lossless::Concise).to_string(), text);
+}
+
+#[test]
+fn a_partial_update_body_naming_a_kind_without_its_payload_keeps_the_kind() {
+    let AttributeFragment::WithoutPayload(fragment) = partial_update_body(r#"{"type":"Property","observedAt":"2022-03-14T12:51:02Z"}"#, Lossless::Normalized)
+    else {
+        panic!("a typed fragment without a value names no payload");
+    };
+    assert_eq!(fragment.kind(), Some(AttributeKind::Property));
+    let refused = Change::<AttributeFragment, InstanceDeletion>::parse(r#"{"type":"Relationship","unitCode":"CEL"}"#, Lossless::Normalized).unwrap_err();
+    assert!(matches!(refused.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "unitCode"));
+}
+
+#[test]
+fn a_partial_update_body_naming_a_payload_is_still_an_attribute() {
+    assert!(matches!(
+        partial_update_body(r#"{"value":100}"#, Lossless::Concise),
+        AttributeFragment::WithPayload(Attribute::Property(_))
+    ));
+    assert!(matches!(
+        partial_update_body(r#"{"type":"Property","value":100}"#, Lossless::Normalized),
+        AttributeFragment::WithPayload(Attribute::Property(_))
+    ));
+    assert!(matches!(
+        partial_update_body(r#"{"object":"urn:ngsi-ld:Sensor:1","observedAt":"2022-03-14T12:51:02Z"}"#, Lossless::Concise),
+        AttributeFragment::WithPayload(Attribute::Relationship(_))
+    ));
+}
+
 #[test]
 fn an_attribute_fragment_reads_back_with_its_sub_attribute_deletions() {
     let fragment = EntityFragment::builder()
@@ -137,9 +211,12 @@ fn an_attribute_fragment_reads_back_with_its_sub_attribute_deletions() {
     };
     for form in [Lossless::Normalized, Lossless::Concise] {
         let text = attribute.render(form).to_string();
-        let read = Change::<Attribute<Patch>, InstanceDeletion>::parse(&text, form).unwrap();
-        assert!(matches!(&read, Change::Set(read) if read == attribute), "{text}");
+        let read = Change::<AttributeFragment, InstanceDeletion>::parse(&text, form).unwrap();
+        assert!(
+            matches!(&read, Change::Set(AttributeFragment::WithPayload(read)) if read == attribute),
+            "{text}"
+        );
     }
-    let whole = Change::<Attribute<Patch>, InstanceDeletion>::parse(r#""urn:ngsi-ld:null""#, Lossless::Normalized).unwrap_err();
+    let whole = Change::<AttributeFragment, InstanceDeletion>::parse(r#""urn:ngsi-ld:null""#, Lossless::Normalized).unwrap_err();
     assert!(matches!(whole.kind, DocumentErrorKind::NgsiLdNull { .. }));
 }

@@ -30,6 +30,7 @@ mod concise;
 pub(crate) mod direction;
 pub(crate) mod fragment;
 pub(crate) mod instance;
+pub(crate) mod members;
 mod patch;
 
 /// Reads an entity, keeping its `@context` and the order of its attributes; `C` decides whether `id` and `type` are

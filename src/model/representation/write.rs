@@ -9,6 +9,7 @@
 use crate::{
     model::{
         Attribute,
+        AttributeFragment,
         AttributeKind,
         AttributeMeta,
         Attributes,
@@ -24,7 +25,6 @@ use crate::{
         Instances,
         Lossless,
         OneOrMany,
-        Patch,
         Property,
         ScopeChange,
         Value,
@@ -38,6 +38,7 @@ use crate::{
             write::{
                 deletion::{bare_deletion, write_instance_deletion},
                 direction::{WriteDirection, WriteEntityDirection, push_member},
+                members::write_members_object,
             },
         },
     },
@@ -47,6 +48,7 @@ use jstrict::{Object, Value as Json};
 
 pub(crate) mod deletion;
 pub(crate) mod direction;
+mod members;
 
 /// Where an attribute instance is written: alone as its member's value, or as one element of an instance array.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -118,10 +120,18 @@ pub(crate) fn write_attribute_object<D: WriteDirection>(attribute: &Attribute<D>
 
 /// Writes the body of Partial Attribute Update (clause 6.7.3.1): the attribute fragment as an object, or the
 /// deletion of the instance as an object whose payload is the NGSI-LD Null.
-pub(crate) fn write_attribute_body(body: &Change<Attribute<Patch>, InstanceDeletion>, form: Lossless) -> Object {
+pub(crate) fn write_attribute_body(body: &Change<AttributeFragment, InstanceDeletion>, form: Lossless) -> Object {
     match body {
-        Change::Set(attribute) => write_attribute_object(attribute, form),
+        Change::Set(fragment) => write_fragment_object(fragment, form),
         Change::Delete(deletion) => write_instance_deletion(deletion, form),
+    }
+}
+
+/// Writes an attribute fragment as an object, never as a bare concise value.
+pub(crate) fn write_fragment_object(fragment: &AttributeFragment, form: Lossless) -> Object {
+    match fragment {
+        AttributeFragment::WithPayload(attribute) => write_attribute_object(attribute, form),
+        AttributeFragment::WithoutPayload(members) => write_members_object(members, form),
     }
 }
 
