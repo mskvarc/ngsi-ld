@@ -24,7 +24,8 @@ use http::{Method, Request, Response};
 ///
 /// Its request is `PATCH /csourceRegistrations/{registrationId}` (NGSI-LD clause 6.9.3.2).
 ///
-/// The body is the fragment alone, with its `type` and without an `id`: clause 5.9.3.3 takes the target from the
+/// The body is the fragment alone, with its `type` unless the fragment omits it ([`RegistrationTypeMember`](crate::registration::RegistrationTypeMember)) and
+/// without an `id`: clause 5.9.3.3 takes the target from the
 /// path and the changes from a Context Source Registration Fragment (clause 5.4), and Table 6.9.3.2-1, unlike
 /// Table 6.11.3.2-1 for subscriptions, does not ask the fragment to repeat the `id`.
 ///

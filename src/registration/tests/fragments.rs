@@ -14,6 +14,7 @@ use crate::{
         RegistrationInfoMember,
         RegistrationMember,
         RegistrationMode,
+        RegistrationTypeMember,
         tests::{problems, vehicle_speed},
     },
 };
@@ -43,6 +44,20 @@ fn a_fragment_writes_its_members_in_canonical_order_and_deletes_with_the_null() 
     assert!(fragment.deletes(RegistrationMember::Location));
     assert!(!fragment.deletes(RegistrationMember::Mode));
     assert_eq!(fragment.information().map(<[_]>::len), Some(1));
+}
+
+#[test]
+fn a_fragment_can_leave_its_type_out_and_writes_it_otherwise() {
+    let written = RegistrationFragment::builder().description("Vehicles").build().unwrap();
+    assert_eq!(written.type_member(), RegistrationTypeMember::Written);
+    assert_eq!(written.render().to_string(), r#"{"type":"ContextSourceRegistration","description":"Vehicles"}"#);
+    let omitted = RegistrationFragment::builder()
+        .type_member(RegistrationTypeMember::Omitted)
+        .description("Vehicles")
+        .build()
+        .unwrap();
+    assert_eq!(omitted.type_member(), RegistrationTypeMember::Omitted);
+    assert_eq!(omitted.render().to_string(), r#"{"description":"Vehicles"}"#);
 }
 
 #[test]

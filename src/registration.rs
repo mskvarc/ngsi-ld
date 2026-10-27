@@ -30,7 +30,7 @@
 //!
 //! # Registrations
 //!
-//! [`CSourceRegistration`], [`RegistrationFragment`], [`RegistrationId`], [`RegistrationDirection`],
+//! [`CSourceRegistration`], [`RegistrationFragment`], [`RegistrationTypeMember`], [`RegistrationId`], [`RegistrationDirection`],
 //! [`RegistrationStatus`], [`RegistrationOutputMembers`], [`RegistrationMode`], [`RegistrationManagementInfo`],
 //! [`TimeInterval`].
 //!
@@ -81,7 +81,7 @@ pub use crate::registration::{
     },
     direction::{RegistrationDirection, RegistrationOutputMembers, RegistrationStatus},
     entity_map::{EntityMap, EntityMapId, EntitySource},
-    fragment::RegistrationFragment,
+    fragment::{RegistrationFragment, RegistrationTypeMember},
     identifier::RegistrationId,
     information::{EntityInfo, EntityInfoDraft, RegistrationInfo},
     management::RegistrationManagementInfo,

@@ -15,6 +15,7 @@ use crate::{
         RegistrationInfoMember,
         RegistrationManagementInfo,
         RegistrationMember,
+        RegistrationTypeMember,
         SupportedOperation,
         TimeInterval,
         member::RegistrationMandatoryMember,
@@ -213,14 +214,19 @@ pub(crate) fn registration_object<D: RegistrationDirection>(registration: &CSour
     object
 }
 
-/// Writes a registration fragment: `type`, then the members it sets or deletes in canonical order, `information`
+/// Writes a registration fragment: `type` unless it is omitted, then the members it sets or deletes in canonical order, `information`
 /// and `endpoint` among them, without an `@context`.
 pub(crate) fn fragment_object(fragment: &RegistrationFragment) -> Object {
     let mut object = Object::new();
-    object.push(
-        <&str>::from(RegistrationMandatoryMember::Type).into(),
-        Json::from(<&str>::from(DocumentType::ContextSourceRegistration)),
-    );
+    match fragment.type_member {
+        RegistrationTypeMember::Written => {
+            object.push(
+                <&str>::from(RegistrationMandatoryMember::Type).into(),
+                Json::from(<&str>::from(DocumentType::ContextSourceRegistration)),
+            );
+        }
+        RegistrationTypeMember::Omitted => {}
+    }
     push_change(&mut object, RegistrationMember::RegistrationName.into(), fragment.name.as_ref(), |name| {
         Some(Json::from(name.as_str()))
     });

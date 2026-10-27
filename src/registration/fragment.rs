@@ -42,6 +42,19 @@ use indexmap::IndexMap;
 use jstrict::{Object, Value as Json};
 use url::Url;
 
+/// Whether a registration fragment carries the `type` member.
+///
+/// Clause 5.4 makes `type` optional "for certain bindings where it can be determined from the operation signature",
+/// and the path of Update Context Source Registration names a registration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum RegistrationTypeMember {
+    /// The fragment writes `"type": "ContextSourceRegistration"`.
+    #[default]
+    Written,
+    /// The fragment leaves the `type` out.
+    Omitted,
+}
+
 /// The changes Update Context Source Registration applies to a registration.
 ///
 /// NGSI-LD clauses 5.4 and 5.9.3.
@@ -50,7 +63,8 @@ use url::Url;
 /// removes it (clause 5.4). A fragment names only the optional members it deletes, through [`RegistrationMember`],
 /// so `information` and `endpoint`, which a registration needs, can be replaced but not removed.
 ///
-/// It is written with `"type": "ContextSourceRegistration"` and without `id`: the binding names the registration,
+/// It is written with `"type": "ContextSourceRegistration"`, unless [`RegistrationTypeMember::Omitted`] leaves it
+/// out, and without `id`: the binding names the registration,
 /// whose `id` cannot change (Table 5.2.9-1). A replaced `information` replaces the whole list. Like an entity
 /// fragment, it is only written.
 ///
@@ -78,6 +92,8 @@ use url::Url;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RegistrationFragment {
+    /// Whether the fragment writes `type`.
+    pub(crate) type_member: RegistrationTypeMember,
     /// `registrationName`.
     pub(crate) name: Option<MemberChange<String>>,
     /// `description`.
@@ -137,6 +153,7 @@ impl RegistrationFragment {
     pub fn new(
         #[builder(field)] deletions: Vec<RegistrationMember>,
         #[builder(field)] properties: Vec<(ContextSourcePropertyNameDraft, MemberChange<Value>)>,
+        #[builder(default)] type_member: RegistrationTypeMember,
         #[builder(into)] registration_name: Option<String>,
         #[builder(into)] description: Option<String>,
         #[builder(with = |information: impl IntoIterator<Item = RegistrationInfo>| information.into_iter().collect())] information: Option<
@@ -191,6 +208,7 @@ impl RegistrationFragment {
         let properties = property::resolve(properties, &mut problems);
         let endpoint = endpoint.and_then(|url| url.resolve(RegistrationField::Endpoint, &mut problems));
         let mut fragment = Self {
+            type_member,
             name: registration_name.map(MemberChange::Set),
             description: description.map(MemberChange::Set),
             information,
@@ -382,6 +400,12 @@ impl RegistrationFragment {
     #[must_use]
     pub const fn properties(&self) -> &IndexMap<ContextSourcePropertyName, MemberChange<Value>> {
         &self.properties
+    }
+
+    /// Returns whether the fragment writes `type`.
+    #[must_use]
+    pub const fn type_member(&self) -> RegistrationTypeMember {
+        self.type_member
     }
 
     /// Writes the fragment: `type`, then the members in canonical order, `information` and `endpoint` among them.
