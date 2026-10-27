@@ -26,6 +26,7 @@ use crate::{
         TypeDraft,
         attribute::pending::PendingAttributes,
         build_problem::Recorded,
+        evolution::TemporalInstanceMembers,
     },
     seal::Seal,
 };
@@ -50,27 +51,41 @@ mod sealed {
 /// They are [`Input`] for a request and [`Output`] for a response. A fragment that changes an entity is an
 /// [`EntityFragment`](crate::model::EntityFragment) instead, whose `id` and `type` are optional (NGSI-LD clause 5.4).
 pub trait EntityDirection: Direction<Slot = Attribute<Self>> + sealed::Sealed {
-    /// The `instanceId` an instance of a temporal evolution carries besides its attribute (clauses 4.5.7 and 4.5.8):
-    /// `Option<InstanceId>` in a request, `()` in a response, whose attributes hold it among their output-only
-    /// members.
+    /// The members an instance of a temporal evolution carries besides its attribute (clauses 4.5.7 and 4.5.8): the
+    /// `instanceId` it names and the `deletedAt` of a recorded deletion. They are a
+    /// [`TemporalInstanceMembers`] in a request and `()` in a response, whose attributes hold them among their
+    /// output-only members.
     ///
-    /// Tables 5.2.5-2 and 5.2.6-2 list `instanceId` among the output-only members but restrict it to "the temporal
-    /// representation" of an attribute, without making it system generated as they make `createdAt`, `modifiedAt`
-    /// and `deletedAt` (clause 5.2.2); Create or Update Temporal Evolution and Add Attributes take that temporal
+    /// Tables 5.2.5-2 and 5.2.6-2 list `instanceId` and `deletedAt` among the output-only members but restrict them to
+    /// "the temporal representation" of an attribute, without making them system generated as they make `createdAt`
+    /// and `modifiedAt` (clause 5.2.2); Create or Update Temporal Evolution and Add Attributes take that temporal
     /// representation (clauses 5.2.20, 5.6.11.3 and 5.6.12.3). The temporal evolution a client sends may therefore
-    /// name its instances, while an entity of the Core API cannot.
-    type TemporalInstanceId: Debug + Clone + PartialEq + Eq + Default + Send + Sync;
+    /// name its instances and record the deletion of one (clauses 4.5.7 and 4.5.8), while an entity of the Core API
+    /// cannot.
+    type TemporalMembers: Debug + Clone + PartialEq + Eq + Default + Send + Sync;
+
+    /// The `instanceId` the members name.
+    #[doc(hidden)]
+    fn instance_id(seal: Seal, members: &Self::TemporalMembers) -> Option<&InstanceId>;
 }
 
 impl sealed::Sealed for Input {}
 impl sealed::Sealed for Output {}
 
 impl EntityDirection for Input {
-    type TemporalInstanceId = Option<InstanceId>;
+    type TemporalMembers = TemporalInstanceMembers;
+
+    fn instance_id(_: Seal, members: &TemporalInstanceMembers) -> Option<&InstanceId> {
+        members.instance_id()
+    }
 }
 
 impl EntityDirection for Output {
-    type TemporalInstanceId = ();
+    type TemporalMembers = ();
+
+    fn instance_id(_: Seal, (): &()) -> Option<&InstanceId> {
+        None
+    }
 }
 
 /// An entity and its attributes.

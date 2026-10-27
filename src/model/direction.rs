@@ -88,7 +88,8 @@ pub trait Plain: Direction {
 /// A document a client sends to create or replace an element.
 ///
 /// Create Entity, Replace Entity, Replace Attribute and Append Attributes send it. It holds neither system members nor
-/// the NGSI-LD Null.
+/// the NGSI-LD Null. The one exception is a temporal evolution, which may record a deleted instance as the Null with
+/// its `deletedAt` (clauses 4.5.7 and 4.5.8).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Input;
 

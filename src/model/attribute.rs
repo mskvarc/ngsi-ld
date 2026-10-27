@@ -268,9 +268,16 @@ impl Attribute<Output> {
         BuildError::finish(problems, input)
     }
 
+    /// Drops the output-only members, recording every NGSI-LD Null a sub-attribute holds but leaving the payload of
+    /// the attribute itself as it is: the record of a deleted instance in a temporal evolution is the Null (clauses
+    /// 4.5.7 and 4.5.8).
+    pub(crate) fn into_input_keeping_null(self, problems: &mut Vec<BuildProblem>) -> Attribute<Input> {
+        self.map_meta(|meta| meta.into_input(problems))
+    }
+
     /// Drops the output-only members, recording every NGSI-LD Null the request attribute would hold.
     pub(crate) fn into_input_reporting(self, problems: &mut Vec<BuildProblem>) -> Attribute<Input> {
-        let input = self.map_meta(|meta| meta.into_input(problems));
+        let input = self.into_input_keeping_null(problems);
         null::report(null::check_attribute(&input), problems);
         input
     }

@@ -7,11 +7,11 @@ use crate::model::{
     EntityDirection,
     EntityOutputMembers,
     Input,
-    InstanceId,
     Lossless,
     MemberChange,
     Output,
     Patch,
+    evolution::TemporalInstanceMembers,
     representation::{
         kind_output::KindOutputRepresentation,
         write::{Placement, deletion::write_deletion, push_display, write_attribute, write_attribute_object},
@@ -100,20 +100,21 @@ pub(crate) trait WriteEntityDirection: EntityDirection + WriteDirection {
     fn write_entity_output(output: &Self::EntityOutput, object: &mut Object);
 
     /// Writes one instance of a temporal evolution, always as an object (clauses 4.5.7 and 4.5.8), with the
-    /// `instanceId` a request names for it.
-    fn write_temporal_instance(attribute: &Attribute<Self>, instance_id: &Self::TemporalInstanceId, form: Lossless) -> Json;
+    /// `instanceId` a request names for it and the `deletedAt` of a deletion it records.
+    fn write_temporal_instance(attribute: &Attribute<Self>, members: &Self::TemporalMembers, form: Lossless) -> Json;
 }
 
 impl WriteEntityDirection for Input {
     fn write_entity_output((): &Self::EntityOutput, _: &mut Object) {}
 
-    /// `instanceId` takes the place a response gives it: after the members of the instance itself, before its
-    /// `ngsildproof` and its sub-attributes, which close the object (see the canonical order of [`write_attribute`]).
-    fn write_temporal_instance(attribute: &Attribute<Self>, instance_id: &Option<InstanceId>, form: Lossless) -> Json {
+    /// `deletedAt` and `instanceId` take the place a response gives them: after the members of the instance itself,
+    /// before its `ngsildproof` and its sub-attributes, which close the object (see the canonical order of
+    /// [`write_attribute`]).
+    fn write_temporal_instance(attribute: &Attribute<Self>, members: &TemporalInstanceMembers, form: Lossless) -> Json {
         let object = write_attribute_object(attribute, form);
-        let Some(instance_id) = instance_id else {
+        if members.deleted_at().is_none() && members.instance_id().is_none() {
             return Json::Object(object);
-        };
+        }
         let meta = attribute.meta();
         let mut head: Vec<Entry> = object.into_iter().collect();
         let tail = head.split_off(head.len().saturating_sub(usize::from(meta.proof.is_some()) + meta.attributes.len()));
@@ -121,7 +122,8 @@ impl WriteEntityDirection for Input {
         for entry in head {
             object.push_entry(entry);
         }
-        object.push("instanceId".into(), Json::from(instance_id.to_string()));
+        push_display(&mut object, "deletedAt", members.deleted_at());
+        push_display(&mut object, "instanceId", members.instance_id());
         for entry in tail {
             object.push_entry(entry);
         }

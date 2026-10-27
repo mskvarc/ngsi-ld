@@ -16,8 +16,8 @@ use jstrict::Object;
 fn write_evolutions<D: WriteEntityDirection>(object: &mut Object, attributes: &TemporalAttributes<D>, form: Lossless, spelling: InstanceSpelling) {
     for (name, evolution) in attributes {
         let instances = evolution
-            .identified()
-            .map(|(instance, instance_id)| D::write_temporal_instance(instance, instance_id, form));
+            .with_members()
+            .map(|(instance, members)| D::write_temporal_instance(instance, members, form));
         object.push(name.as_ref().into(), spelling.list(instances));
     }
 }

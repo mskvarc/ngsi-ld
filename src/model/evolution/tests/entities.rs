@@ -197,8 +197,6 @@ fn a_request_holds_no_system_member_and_no_null() {
     let deleted_at = read(r#""speed":[{"type":"Property","value":120,"deletedAt":"2018-08-01T12:05:00Z"}]"#);
     assert_eq!(deleted_at.path.to_string(), "speed");
     assert!(matches!(deleted_at.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "deletedAt"));
-    let deletion = read(r#""speed":[{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2018-08-01T12:05:00Z"}]"#);
-    assert_eq!(deletion.path.to_string(), "speed");
     let sub_instance_id =
         read(r#""speed":[{"type":"Property","value":120,"accuracy":{"type":"Property","value":1,"instanceId":"urn:ngsi-ld:attribute:instance:1"}}]"#);
     assert!(matches!(sub_instance_id.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "instanceId"));

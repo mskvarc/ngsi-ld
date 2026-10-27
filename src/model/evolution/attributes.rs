@@ -24,7 +24,7 @@ use crate::{
         Output,
         RawJson,
         attribute::attributes::check_kind,
-        evolution::write::temporal_attributes_object,
+        evolution::{DeletedInstance, TemporalInstanceMembers, write::temporal_attributes_object},
     },
     query::temporal_query::TemporalProperty,
     seal::Seal,
@@ -39,22 +39,22 @@ use std::{cmp::Reverse, collections::HashSet, num::NonZeroU64, slice};
 /// is at least one; all are of one kind, the instances of the same attribute; the same dataset id may appear any number
 /// of times, unlike the instances of an entity's attribute (clause 4.5.5).
 ///
-/// In a request each instance may name its `instanceId` (see [`EntityDirection::TemporalInstanceId`]); in a response
-/// the instance holds it among its output-only members.
+/// In a request each instance may name its `instanceId` and record a deletion (see
+/// [`EntityDirection::TemporalMembers`]); in a response the instance holds them among its output-only members.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evolution<D: EntityDirection> {
     /// The instances, in document order.
     instances: Vec<Attribute<D>>,
-    /// The `instanceId` each instance of a request names, at the instance's index.
-    instance_ids: Vec<D::TemporalInstanceId>,
+    /// The `instanceId` each instance of a request names and the deletion it records, at the instance's index.
+    members: Vec<D::TemporalMembers>,
 }
 
 impl<D: EntityDirection> Evolution<D> {
     /// One instance.
-    fn one(attribute: Attribute<D>, instance_id: D::TemporalInstanceId) -> Self {
+    fn one(attribute: Attribute<D>, members: D::TemporalMembers) -> Self {
         Self {
             instances: vec![attribute],
-            instance_ids: vec![instance_id],
+            members: vec![members],
         }
     }
 
@@ -76,9 +76,9 @@ impl<D: EntityDirection> Evolution<D> {
         &self.instances
     }
 
-    /// Iterates over the instances in order, each with the `instanceId` a request names for it.
-    pub(crate) fn identified(&self) -> impl Iterator<Item = (&Attribute<D>, &D::TemporalInstanceId)> {
-        self.instances.iter().zip(&self.instance_ids)
+    /// Iterates over the instances in order, each with the members a request gives it besides the attribute.
+    pub(crate) fn with_members(&self) -> impl Iterator<Item = (&Attribute<D>, &D::TemporalMembers)> {
+        self.instances.iter().zip(&self.members)
     }
 
     /// Returns the number of instances; never zero.
@@ -96,17 +96,19 @@ impl<D: EntityDirection> Evolution<D> {
     /// Adds an instance after the others, refusing one of another kind and one that names an `instanceId` another
     /// instance names: an `instanceId` identifies one instance (clauses 4.5.7 and 4.5.8). An instance that names
     /// none, and every instance of a response, whose identifier is `()`, is the default and never collides.
-    fn push(&mut self, attribute: Attribute<D>, instance_id: D::TemporalInstanceId) -> Result<(), AttributesError> {
+    fn push(&mut self, attribute: Attribute<D>, members: D::TemporalMembers) -> Result<(), AttributesError> {
         if let (Some(expected), Some(found)) = (self.kind(), attribute.written_kind(Seal::new()))
             && expected != found
         {
             return Err(AttributesError::KindChange { expected, found });
         }
-        if instance_id != D::TemporalInstanceId::default() && self.instance_ids.contains(&instance_id) {
+        if let Some(instance_id) = D::instance_id(Seal::new(), &members)
+            && self.members.iter().any(|held| D::instance_id(Seal::new(), held) == Some(instance_id))
+        {
             return Err(AttributesError::InstanceIdRepeated);
         }
         self.instances.push(attribute);
-        self.instance_ids.push(instance_id);
+        self.members.push(members);
         Ok(())
     }
 }
@@ -115,7 +117,13 @@ impl Evolution<Input> {
     /// Iterates over the `instanceId` each instance names, in the order of the instances; `None` for an instance
     /// that names none, whose identifier the broker chooses (clause 4.5.7).
     pub fn instance_ids(&self) -> impl Iterator<Item = Option<&InstanceId>> {
-        self.instance_ids.iter().map(Option::as_ref)
+        self.members.iter().map(TemporalInstanceMembers::instance_id)
+    }
+
+    /// Iterates over the time each instance records a deletion at, in the order of the instances; `None` for an
+    /// instance that records a value (clauses 4.5.7 and 4.5.8).
+    pub fn deleted_ats(&self) -> impl Iterator<Item = Option<&DateTime>> {
+        self.members.iter().map(TemporalInstanceMembers::deleted_at)
     }
 }
 
@@ -182,16 +190,16 @@ impl<D: EntityDirection> TemporalAttributes<D> {
     /// [`AttributesError::GeoPropertyRequired`] when `name` is `location`, `observationSpace` or `operationSpace`
     /// and the instance is not a `GeoProperty` (clause 5.2.4).
     pub fn insert(&mut self, name: AttributeName, attribute: Attribute<D>) -> Result<(), AttributesError> {
-        self.insert_instance(name, attribute, D::TemporalInstanceId::default())
+        self.insert_instance(name, attribute, D::TemporalMembers::default())
     }
 
-    /// Adds an instance and the `instanceId` a request names for it to the evolution of `name`.
-    pub(crate) fn insert_instance(&mut self, name: AttributeName, attribute: Attribute<D>, instance_id: D::TemporalInstanceId) -> Result<(), AttributesError> {
+    /// Adds an instance and the members a request gives it to the evolution of `name`.
+    pub(crate) fn insert_instance(&mut self, name: AttributeName, attribute: Attribute<D>, members: D::TemporalMembers) -> Result<(), AttributesError> {
         check_kind(&name, &attribute)?;
         if let Some(evolution) = self.0.get_mut(&name) {
-            return evolution.push(attribute, instance_id);
+            return evolution.push(attribute, members);
         }
-        self.0.insert(name, Evolution::one(attribute, instance_id));
+        self.0.insert(name, Evolution::one(attribute, members));
         Ok(())
     }
 
@@ -236,7 +244,7 @@ impl<D: MapDirection + EntityDirection> MapNames for TemporalAttributes<D> {
                 let instances = evolution.instances.map_names(mapping)?;
                 Ok(Evolution {
                     instances,
-                    instance_ids: evolution.instance_ids,
+                    members: evolution.members,
                 })
             },
             |target, evolution| evolution.instances.iter().try_for_each(|instance| check_kind(target, instance)),
@@ -248,14 +256,26 @@ impl<D: MapDirection + EntityDirection> MapNames for TemporalAttributes<D> {
 impl TemporalAttributes<Input> {
     /// Adds an instance that names its `instanceId` to the evolution of `name`, after the instances already there: the
     /// temporal representation a client sends to Create or Update Temporal Evolution or Add Attributes may identify its
-    /// instances (see [`EntityDirection::TemporalInstanceId`]).
+    /// instances (see [`EntityDirection::TemporalMembers`]).
     ///
     /// # Errors
     ///
     /// Returns what [`insert`](Self::insert) returns, and [`AttributesError::InstanceIdRepeated`] when another
     /// instance of the evolution of `name` names `instance_id` (clause 4.5.7).
     pub fn insert_identified(&mut self, name: AttributeName, instance_id: InstanceId, attribute: Attribute<Input>) -> Result<(), AttributesError> {
-        self.insert_instance(name, attribute, Some(instance_id))
+        self.insert_instance(name, attribute, TemporalInstanceMembers::new(Some(instance_id), None))
+    }
+
+    /// Adds the record of a deleted instance to the evolution of `name`, after the instances already there (clauses
+    /// 4.5.7 and 4.5.8).
+    ///
+    /// # Errors
+    ///
+    /// Returns what [`insert`](Self::insert) returns, and [`AttributesError::InstanceIdRepeated`] when another
+    /// instance of the evolution of `name` names the `instanceId` the record names.
+    pub fn insert_deleted(&mut self, name: AttributeName, deleted: DeletedInstance) -> Result<(), AttributesError> {
+        let (attribute, members) = deleted.into_instance();
+        self.insert_instance(name, attribute, members)
     }
 
     /// Writes the attributes as one object, each evolution an array of instances, in normalized or concise
@@ -282,7 +302,7 @@ impl TemporalAttributes<Output> {
                     for instance in evolution.instances {
                         if !known.instances.iter().any(|held| same_instance(held, &instance)) {
                             known.instances.push(instance);
-                            known.instance_ids.push(());
+                            known.members.push(());
                         }
                     }
                 }
@@ -301,26 +321,30 @@ impl TemporalAttributes<Output> {
         }
     }
 
-    /// Drops the output-only members of every instance, recording each NGSI-LD Null a request cannot carry, such as
-    /// a deleted instance (clause 4.5.0), under the name of the attribute that holds it.
+    /// Drops the output-only members of every instance, recording each NGSI-LD Null a request cannot carry under the
+    /// name of the attribute that holds it. An instance that records a deletion with its `deletedAt` (clauses 4.5.7
+    /// and 4.5.8) stays one, since a request can carry it.
     pub(crate) fn into_input(self, problems: &mut Vec<BuildProblem>) -> TemporalAttributes<Input> {
         let attributes = self
             .0
             .into_iter()
             .map(|(name, evolution)| {
-                let instances: Vec<_> = evolution
+                let (instances, members): (Vec<_>, Vec<_>) = evolution
                     .instances
                     .into_iter()
                     .map(|instance| {
                         let mut found = Vec::new();
-                        let input = instance.into_input_reporting(&mut found);
+                        let deleted_at = instance.meta().output.deleted_at.filter(|_| instance.is_deleted());
+                        let input = match deleted_at {
+                            Some(_) => instance.into_input_keeping_null(&mut found),
+                            None => instance.into_input_reporting(&mut found),
+                        };
                         problems.extend(BuildError::new(found).within(&name));
-                        input
+                        // The instances a broker identified are sent back without their `instanceId`, which it chose.
+                        (input, TemporalInstanceMembers::new(None, deleted_at))
                     })
-                    .collect();
-                // The instances a broker identified are sent back without their `instanceId`, which it chose.
-                let instance_ids = vec![None; instances.len()];
-                (name, Evolution { instances, instance_ids })
+                    .unzip();
+                (name, Evolution { instances, members })
             })
             .collect();
         TemporalAttributes(attributes)
@@ -347,7 +371,7 @@ impl Evolution<Output> {
         let kept: HashSet<usize> = ranked.into_iter().take(count).map(|(index, _)| index).collect();
         let mut index = 0..;
         self.instances.retain(|_| index.next().is_some_and(|position| kept.contains(&position)));
-        self.instance_ids.truncate(self.instances.len());
+        self.members.truncate(self.instances.len());
     }
 }
 

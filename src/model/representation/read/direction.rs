@@ -8,15 +8,15 @@ use crate::model::{
     EntityDirection,
     EntityOutputMembers,
     Input,
-    InstanceId,
     Lossless,
     Output,
     entity::member::SystemMember,
+    evolution::TemporalInstanceMembers,
     null,
     reader::{date_time, duplicate, identifier, once, unexpected},
     representation::{
         kind_output::{KindOutputMember, KindOutputRepresentation},
-        read::read_instance,
+        read::{read_instance, read_unadmitted},
     },
 };
 use jstrict::Value as Json;
@@ -66,9 +66,10 @@ pub(crate) trait ReadEntityDirection: ReadDirection + EntityDirection {
     /// Reads `createdAt`, `modifiedAt` or `deletedAt`, or refuses it.
     fn read_entity_output(output: &mut Self::EntityOutput, member: SystemMember, json: Json) -> Result<(), DocumentError>;
 
-    /// Takes the `instanceId` a request names for an instance of a temporal evolution out of the instance, before the
-    /// instance is read as an attribute; a response leaves it among the instance's output-only members.
-    fn take_temporal_instance_id(instance: &mut Json) -> Result<Self::TemporalInstanceId, DocumentError>;
+    /// Reads one instance of a temporal evolution. A request may name its `instanceId` and record a deletion with
+    /// `deletedAt` (clauses 4.5.7 and 4.5.8), which are taken out of the instance before it is read as an attribute;
+    /// a response leaves them among the instance's output-only members.
+    fn read_temporal_instance(instance: Json, form: Lossless) -> Result<(Attribute<Self>, Self::TemporalMembers), DocumentError>;
 }
 
 impl ReadDirection for Input {
@@ -102,17 +103,34 @@ impl ReadEntityDirection for Input {
         Err(unexpected(member.as_str()))
     }
 
-    fn take_temporal_instance_id(instance: &mut Json) -> Result<Option<InstanceId>, DocumentError> {
-        let Json::Object(object) = instance else {
-            return Ok(None);
+    /// An instance whose `deletedAt` is given records a deletion, so its payload must be the NGSI-LD Null of its kind
+    /// (clause 4.5.0), which clause 5.5.4 otherwise keeps out of a request; `deletedAt` beside any other payload is not
+    /// a member of the instance.
+    fn read_temporal_instance(mut instance: Json, form: Lossless) -> Result<(Attribute<Input>, TemporalInstanceMembers), DocumentError> {
+        let instance_id = take_member(&mut instance, <&str>::from(OutputMember::InstanceId), |json| identifier(json, "instanceId"))?;
+        let deleted_at = take_member(&mut instance, <&str>::from(OutputMember::DeletedAt), |json| date_time(json, "deletedAt"))?;
+        let Some(deleted_at) = deleted_at else {
+            return Ok((read_instance::<Input>(instance, form)?, TemporalInstanceMembers::new(instance_id, None)));
         };
-        let name = <&str>::from(OutputMember::InstanceId);
-        object
-            .remove_unique(name)
-            .map_err(|_| duplicate(name))?
-            .map(|entry| identifier(entry.value, name))
-            .transpose()
+        let attribute = read_unadmitted::<Input>(instance, form)?;
+        if !null::is_null_payload(&attribute) {
+            return Err(unexpected(<&str>::from(OutputMember::DeletedAt)));
+        }
+        Ok((attribute, TemporalInstanceMembers::new(instance_id, Some(deleted_at))))
     }
+}
+
+/// Takes the member `name` out of `instance` and reads it with `read`; `None` when the instance is not an object or
+/// has no such member.
+fn take_member<T>(instance: &mut Json, name: &'static str, read: impl FnOnce(Json) -> Result<T, DocumentError>) -> Result<Option<T>, DocumentError> {
+    let Json::Object(object) = instance else {
+        return Ok(None);
+    };
+    object
+        .remove_unique(name)
+        .map_err(|_| duplicate(name))?
+        .map(|entry| read(entry.value))
+        .transpose()
 }
 
 impl ReadDirection for Output {
@@ -161,7 +179,7 @@ impl ReadEntityDirection for Output {
         }
     }
 
-    fn take_temporal_instance_id(_: &mut Json) -> Result<(), DocumentError> {
-        Ok(())
+    fn read_temporal_instance(instance: Json, form: Lossless) -> Result<(Attribute<Output>, ()), DocumentError> {
+        Ok((read_instance::<Output>(instance, form)?, ()))
     }
 }

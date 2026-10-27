@@ -24,7 +24,15 @@ use crate::{
         RawJson,
         TypeDraft,
         attribute::pending::PendingAttributes,
-        evolution::{Evolution, InstanceSpelling, ScopeInstance, TemporalAttributes, read::read_temporal_entity, write::temporal_entity_object},
+        evolution::{
+            DeletedInstance,
+            Evolution,
+            InstanceSpelling,
+            ScopeInstance,
+            TemporalAttributes,
+            read::read_temporal_entity,
+            write::temporal_entity_object,
+        },
         reader::parse_json,
         representation::write::{direction::WriteEntityDirection, write_context},
     },
@@ -40,16 +48,16 @@ use std::num::NonZeroU64;
 /// clauses 4.5.6 and 5.2.20).
 ///
 /// `D` is the direction: [`Input`] for what Create or Update Temporal Evolution sends (clause 5.6.11.3), where an
-/// instance may name its `instanceId` (see [`EntityDirection::TemporalInstanceId`]) but holds no system member and no
+/// instance may name its `instanceId` (see [`EntityDirection::TemporalMembers`]) but holds no system member and no
 /// NGSI-LD Null; [`Output`] for what Retrieve and Query Temporal Evolution return, where an instance may carry
 /// `instanceId` and the system members, and a deleted instance holds the NGSI-LD Null with its `deletedAt` (clauses
 /// 4.5.7 and 4.5.8). `C` says whether the entity holds its `id` and `type`, which a projection may remove (clause
 /// 4.21).
 ///
-/// A request never records a deletion: `deletedAt` is system generated, and clause 5.2.2 says a Context Producer
-/// shall not provide it (an implementation ignores it). Without it a Null instance is not the record of a deleted
-/// attribute clauses 4.5.7 and 4.5.8 describe, and clause 5.5.4 refuses the Null in a request outside fragments, so
-/// [`Input`] refuses both; a negative test sends such a document through the unchecked path.
+/// A request may record a deletion (clauses 4.5.7 and 4.5.8): a [`DeletedInstance`], whose value is the NGSI-LD Null
+/// and which carries the `deletedAt` that makes it the record of a deleted instance. The Null with no `deletedAt` is
+/// refused (clause 5.5.4), and so is `deletedAt` beside a value, and `createdAt` and `modifiedAt`, which clause 5.2.5
+/// makes system generated; a negative test sends such a document through the unchecked path.
 ///
 /// ```
 /// use iri_rs::iri;
@@ -150,8 +158,9 @@ impl TemporalEntity<Input> {
     ///
     /// # Errors
     ///
-    /// Returns [`DocumentError`] naming the member at fault, including any output-only member and any instance
-    /// holding the NGSI-LD Null (clause 5.5.4).
+    /// Returns [`DocumentError`] naming the member at fault, including any output-only member besides the
+    /// `instanceId` and the `deletedAt` of a recorded deletion, and any instance holding the NGSI-LD Null without
+    /// that `deletedAt` (clause 5.5.4).
     pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
         read_temporal_entity(parse_json(text)?, form)
     }
@@ -208,8 +217,15 @@ impl<S: temporal_entity_builder::State> TemporalEntityBuilder<S> {
         self
     }
 
+    /// Adds the record of a deleted instance to the evolution of `name`, after the ones already given (clauses 4.5.7
+    /// and 4.5.8).
+    pub fn deleted(mut self, name: impl Into<AttributeNameDraft>, deleted: DeletedInstance) -> Self {
+        self.attributes.push_deleted(name, deleted);
+        self
+    }
+
     /// Adds an instance that names its `instanceId` to the evolution of `name`, after the ones already given: any
-    /// attribute, or attribute builder, a per-kind method takes (see [`EntityDirection::TemporalInstanceId`]).
+    /// attribute, or attribute builder, a per-kind method takes (see [`EntityDirection::TemporalMembers`]).
     pub fn identified<T: Into<Attribute<Input>>>(
         mut self,
         name: impl Into<AttributeNameDraft>,
@@ -366,8 +382,9 @@ impl TemporalEntity<Output> {
     ///
     /// # Errors
     ///
-    /// Returns [`BuildError`] listing every instance that holds the NGSI-LD Null, the record of a deleted instance
-    /// (clause 4.5.0) a request cannot carry (clause 5.5.4), under its attribute's name, and every removed scope.
+    /// Returns [`BuildError`] listing every instance that holds the NGSI-LD Null without a `deletedAt`, which a
+    /// request cannot carry (clause 5.5.4), under its attribute's name, and every removed scope. An instance that
+    /// records a deletion with its `deletedAt` is kept (clauses 4.5.7 and 4.5.8).
     pub fn into_input(self) -> Result<TemporalEntity<Input>, BuildError> {
         let mut problems = Vec::new();
         let attributes = self.attributes.into_input(&mut problems);

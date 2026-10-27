@@ -17,7 +17,7 @@ use crate::{
         Output,
         ProblemKind,
         draft::Draft,
-        evolution::TemporalAttributes,
+        evolution::{DeletedInstance, TemporalAttributes, TemporalInstanceMembers},
     },
     seal::Seal,
 };
@@ -49,8 +49,9 @@ struct PendingEntry<D: EntityDirection> {
     name: AttributeNameDraft,
     /// The attribute, or the problems found building it.
     attribute: Result<Attribute<D>, BuildError>,
-    /// The `instanceId` a temporal request names for the instance; only a temporal entity builder sets it.
-    instance_id: D::TemporalInstanceId,
+    /// The `instanceId` a temporal request names for the instance and the deletion it records; only a temporal entity
+    /// builder sets them.
+    members: D::TemporalMembers,
 }
 
 /// The attributes a builder collects; validated together when the builder finishes. `D` is the direction of the
@@ -64,7 +65,7 @@ impl PendingAttributes<Input> {
         self.0.push(PendingEntry {
             name: name.into(),
             attribute,
-            instance_id: None,
+            members: TemporalInstanceMembers::default(),
         });
     }
 
@@ -73,7 +74,17 @@ impl PendingAttributes<Input> {
         self.0.push(PendingEntry {
             name: name.into(),
             attribute,
-            instance_id: Some(instance_id),
+            members: TemporalInstanceMembers::new(Some(instance_id), None),
+        });
+    }
+
+    /// Adds the record of a deleted instance of a temporal evolution.
+    pub(crate) fn push_deleted(&mut self, name: impl Into<AttributeNameDraft>, deleted: DeletedInstance) {
+        let (attribute, members) = deleted.into_instance();
+        self.0.push(PendingEntry {
+            name: name.into(),
+            attribute: Ok(attribute),
+            members,
         });
     }
 }
@@ -90,7 +101,7 @@ impl PendingAttributes<Output> {
         self.0.push(PendingEntry {
             name: name.into(),
             attribute,
-            instance_id: (),
+            members: (),
         });
     }
 }
@@ -98,7 +109,8 @@ impl PendingAttributes<Output> {
 impl<D: EntityDirection> PendingAttributes<D> {
     /// Validates every name and instance set, collecting every problem.
     pub(crate) fn resolve(self, problems: &mut Vec<BuildProblem>) -> Attributes<D> {
-        // Only a temporal entity builder names instance ids, so an entity's pending attributes hold none.
+        // Only a temporal entity builder names instance ids or records deletions, so an entity's pending attributes hold
+        // none.
         self.place(Attributes::new(), problems, |attributes, name, attribute, _| attributes.insert(name, attribute))
     }
 
@@ -113,9 +125,9 @@ impl<D: EntityDirection> PendingAttributes<D> {
         self,
         mut target: T,
         problems: &mut Vec<BuildProblem>,
-        mut add: impl FnMut(&mut T, AttributeName, Attribute<D>, D::TemporalInstanceId) -> Result<(), AttributesError>,
+        mut add: impl FnMut(&mut T, AttributeName, Attribute<D>, D::TemporalMembers) -> Result<(), AttributesError>,
     ) -> T {
-        for (index, PendingEntry { name, attribute, instance_id }) in self.0.into_iter().enumerate() {
+        for (index, PendingEntry { name, attribute, members }) in self.0.into_iter().enumerate() {
             let name = match resolve_name(index, name) {
                 Ok(name) => name,
                 Err(problem) => {
@@ -126,7 +138,7 @@ impl<D: EntityDirection> PendingAttributes<D> {
             match attribute {
                 // The name is reported if the attribute is refused, so the target gets a copy.
                 Ok(attribute) => {
-                    if let Err(source) = add(&mut target, name.clone(), attribute, instance_id) {
+                    if let Err(source) = add(&mut target, name.clone(), attribute, members) {
                         problems.push(BuildProblem::top(ProblemKind::Attributes { name, source }));
                     }
                 }

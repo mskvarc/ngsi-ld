@@ -134,20 +134,41 @@ fn into_input_drops_what_only_a_broker_writes() {
 }
 
 #[test]
-fn into_input_refuses_a_deleted_instance_and_a_removed_scope() {
+fn into_input_keeps_a_recorded_deletion_and_refuses_a_removed_scope() {
     let read = TemporalEntity::<Output>::parse(
         concat!(
             r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
             r#""scope":[{"type":"Property","value":"urn:ngsi-ld:null","observedAt":"2018-08-01T12:00:00Z"}],"#,
-            r#""speed":[{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2018-08-01T12:03:00Z"}]}"#
+            r#""speed":[{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2018-08-01T12:03:00Z","instanceId":"urn:ngsi-ld:attribute:instance:3"}]}"#
         ),
         Lossless::Normalized,
     )
     .unwrap();
     let error = read.into_input().unwrap_err();
     let problems = error.problems();
-    assert_eq!(problems.len(), 2, "{:?}", kinds(&error));
+    assert_eq!(problems.len(), 1, "{:?}", kinds(&error));
+    assert!(matches!(problems[0].kind, ProblemKind::NgsiLdNull { member: NullMember::Scope }));
+    let without_scope = TemporalEntity::<Output>::parse(
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2018-08-01T12:03:00Z","instanceId":"urn:ngsi-ld:attribute:instance:3"}]}"#,
+        Lossless::Normalized,
+    )
+    .unwrap();
+    assert_eq!(
+        without_scope.into_input().unwrap().render(Lossless::Normalized).to_string(),
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2018-08-01T12:03:00Z"}]}"#
+    );
+}
+
+#[test]
+fn into_input_refuses_a_null_that_records_no_deletion() {
+    let read = TemporalEntity::<Output>::parse(
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"type":"Property","value":"urn:ngsi-ld:null","observedAt":"2018-08-01T12:03:00Z"}]}"#,
+        Lossless::Normalized,
+    )
+    .unwrap();
+    let error = read.into_input().unwrap_err();
+    let problems = error.problems();
+    assert_eq!(problems.len(), 1, "{:?}", kinds(&error));
     assert!(matches!(problems[0].kind, ProblemKind::NgsiLdNull { member: NullMember::Value }));
     assert_eq!(problems[0].within().map(ToString::to_string).collect::<Vec<_>>(), ["speed"]);
-    assert!(matches!(problems[1].kind, ProblemKind::NgsiLdNull { member: NullMember::Scope }));
 }

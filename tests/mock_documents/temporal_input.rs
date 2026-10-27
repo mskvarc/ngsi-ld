@@ -1,9 +1,11 @@
 //! The `instanceId` a client may name for an instance of the temporal evolution it sends to Create or Update
 //! Temporal Evolution or Add Attributes (clauses 4.5.7, 5.6.11.3 and 5.6.12.3, Tables 5.2.5-2 and 5.2.6-2), which an
-//! entity of the Core API never carries.
+//! entity of the Core API never carries, and the record of a deleted instance (clauses 4.5.7 and 4.5.8): the NGSI-LD
+//! Null with its `deletedAt`.
 
 use iri_rs::iri;
 use ngsi_ld::model::{
+    AttributeKind,
     AttributeName,
     AttributesError,
     DateTime,
@@ -13,10 +15,12 @@ use ngsi_ld::model::{
     InstanceId,
     Lossless,
     MemberError,
+    NullMember,
     ProblemKind,
     Property,
-    evolution::{TemporalAttributes, TemporalEntity},
+    evolution::{DeletedInstance, TemporalAttributes, TemporalEntity},
 };
+use strum::IntoEnumIterator;
 
 /// A time.
 fn at(text: &str) -> DateTime {
@@ -130,4 +134,169 @@ fn a_temporal_request_refuses_two_instances_naming_the_same_instance_id() {
         Lossless::Normalized,
     );
     assert!(read.is_err());
+}
+
+/// A temporal entity of one vehicle holding `member`.
+fn vehicle_with(member: &str) -> String {
+    format!(r#"{{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle",{member}}}"#)
+}
+
+#[test]
+fn a_temporal_request_records_a_deleted_instance_beside_the_instances_with_a_value_and_reads_it_back() {
+    let entity = TemporalEntity::builder()
+        .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+        .entity_type("Vehicle")
+        .property("speed", Property::builder(120).observed_at(at("2018-08-01T12:03:00Z")))
+        .deleted(
+            "speed",
+            DeletedInstance::builder(AttributeKind::Property, at("2018-08-01T12:07:00Z"))
+                .observed_at(at("2018-08-01T12:07:00Z"))
+                .instance_id(instance("urn:ngsi-ld:attribute:instance:3"))
+                .build(),
+        )
+        .build()
+        .unwrap();
+    assert_eq!(
+        entity.render(Lossless::Normalized).to_string(),
+        vehicle_with(concat!(
+            r#""speed":[{"type":"Property","value":120,"observedAt":"2018-08-01T12:03:00Z"},"#,
+            r#"{"type":"Property","value":"urn:ngsi-ld:null","observedAt":"2018-08-01T12:07:00Z","#,
+            r#""deletedAt":"2018-08-01T12:07:00Z","instanceId":"urn:ngsi-ld:attribute:instance:3"}]"#
+        ))
+    );
+    for form in [Lossless::Normalized, Lossless::Concise] {
+        let text = entity.render(form).to_string();
+        assert_eq!(TemporalEntity::<Input>::parse(&text, form).unwrap(), entity, "{text}");
+    }
+    let speed: AttributeName = "speed".parse().unwrap();
+    let evolution = entity.attribute(&speed).unwrap();
+    assert_eq!(evolution.deleted_ats().collect::<Vec<_>>(), [None, Some(&at("2018-08-01T12:07:00Z"))]);
+    assert_eq!(evolution.kind(), Some(AttributeKind::Property));
+}
+
+#[test]
+fn a_deleted_instance_of_every_kind_is_written_with_its_null_and_read_back() {
+    for kind in AttributeKind::iter() {
+        let entity = TemporalEntity::builder()
+            .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+            .entity_type("Vehicle")
+            .deleted(
+                "gone",
+                DeletedInstance::builder(kind, at("2018-08-01T12:07:00Z"))
+                    .dataset_id(iri!("urn:ngsi-ld:Dataset:a"))
+                    .build(),
+            )
+            .build()
+            .unwrap();
+        let text = entity.render(Lossless::Normalized).to_string();
+        assert!(text.contains(r#""deletedAt":"2018-08-01T12:07:00Z""#), "{kind}: {text}");
+        assert!(text.contains(r#""datasetId":"urn:ngsi-ld:Dataset:a""#), "{kind}: {text}");
+        assert_eq!(TemporalEntity::<Input>::parse(&text, Lossless::Normalized).unwrap(), entity, "{kind}: {text}");
+    }
+}
+
+#[test]
+fn the_attributes_added_to_a_temporal_evolution_may_record_a_deleted_instance() {
+    let mut attributes = TemporalAttributes::<Input>::new();
+    let humidity: AttributeName = "humidity".parse().unwrap();
+    attributes
+        .insert_deleted(
+            humidity,
+            DeletedInstance::builder(AttributeKind::Property, at("2026-10-19T11:00:00Z"))
+                .observed_at(at("2026-10-19T11:00:00Z"))
+                .build(),
+        )
+        .unwrap();
+    assert_eq!(
+        attributes.render(Lossless::Normalized).to_string(),
+        concat!(
+            r#"{"humidity":[{"type":"Property","value":"urn:ngsi-ld:null","#,
+            r#""observedAt":"2026-10-19T11:00:00Z","deletedAt":"2026-10-19T11:00:00Z"}]}"#
+        )
+    );
+}
+
+#[test]
+fn a_temporal_request_reads_a_deleted_instance_in_either_form() {
+    let normalized = TemporalEntity::<Input>::parse(
+        &vehicle_with(concat!(
+            r#""speed":[{"type":"Property","value":1,"observedAt":"2024-01-01T00:00:00Z"},"#,
+            r#"{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","observedAt":"2024-01-02T00:00:00Z"}]"#
+        )),
+        Lossless::Normalized,
+    )
+    .unwrap();
+    let concise = TemporalEntity::<Input>::parse(
+        &vehicle_with(concat!(
+            r#""speed":[{"value":1,"observedAt":"2024-01-01T00:00:00Z"},"#,
+            r#"{"value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","observedAt":"2024-01-02T00:00:00Z"}]"#
+        )),
+        Lossless::Concise,
+    )
+    .unwrap();
+    assert_eq!(normalized, concise);
+    let speed: AttributeName = "speed".parse().unwrap();
+    assert_eq!(
+        normalized.attribute(&speed).unwrap().deleted_ats().collect::<Vec<_>>(),
+        [None, Some(&at("2024-01-02T00:00:00Z"))]
+    );
+}
+
+#[test]
+fn a_null_with_no_deleted_at_and_a_deleted_at_beside_a_value_are_still_refused() {
+    let read = |instance: &str| TemporalEntity::<Input>::parse(&vehicle_with(&format!(r#""speed":[{instance}]"#)), Lossless::Normalized).unwrap_err();
+    let bare_null = read(r#"{"type":"Property","value":"urn:ngsi-ld:null"}"#);
+    assert!(matches!(bare_null.kind, DocumentErrorKind::NgsiLdNull { member: NullMember::Value }));
+    let beside_a_value = read(r#"{"type":"Property","value":1,"deletedAt":"2024-01-02T00:00:00Z"}"#);
+    assert!(matches!(beside_a_value.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "deletedAt"));
+    let created = read(r#"{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","createdAt":"2024-01-02T00:00:00Z"}"#);
+    assert!(matches!(created.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "createdAt"));
+    let twice = read(r#"{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","deletedAt":"2024-01-03T00:00:00Z"}"#);
+    assert!(matches!(twice.kind, DocumentErrorKind::Member(MemberError::DuplicateMember { .. })));
+    let not_a_time = read(r#"{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"yesterday"}"#);
+    assert_eq!(not_a_time.path.to_string(), "speed");
+    let nested =
+        read(r#"{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","accuracy":{"type":"Property","value":"urn:ngsi-ld:null"}}"#);
+    assert!(matches!(nested.kind, DocumentErrorKind::NgsiLdNull { .. }));
+}
+
+#[test]
+fn a_recorded_deletion_is_held_to_the_kind_and_the_instance_id_rules_of_its_evolution() {
+    let kind_change = TemporalEntity::builder()
+        .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+        .entity_type("Vehicle")
+        .property("speed", Property::builder(120))
+        .deleted(
+            "speed",
+            DeletedInstance::builder(AttributeKind::Relationship, at("2018-08-01T12:07:00Z")).build(),
+        )
+        .build()
+        .unwrap_err();
+    assert!(matches!(
+        kind_change.problems(),
+        [problem] if matches!(problem.kind, ProblemKind::Attributes { source: AttributesError::KindChange { .. }, .. })
+    ));
+    let repeated = TemporalEntity::builder()
+        .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+        .entity_type("Vehicle")
+        .identified("speed", instance("urn:ngsi-ld:attribute:instance:1"), Property::builder(120))
+        .deleted(
+            "speed",
+            DeletedInstance::builder(AttributeKind::Property, at("2018-08-01T12:07:00Z"))
+                .instance_id(instance("urn:ngsi-ld:attribute:instance:1"))
+                .build(),
+        )
+        .build()
+        .unwrap_err();
+    assert!(matches!(
+        repeated.problems(),
+        [problem] if matches!(problem.kind, ProblemKind::Attributes { source: AttributesError::InstanceIdRepeated, .. })
+    ));
+    let twice = TemporalEntity::builder()
+        .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+        .entity_type("Vehicle")
+        .deleted("speed", DeletedInstance::builder(AttributeKind::Property, at("2018-08-01T12:07:00Z")).build())
+        .deleted("speed", DeletedInstance::builder(AttributeKind::Property, at("2018-08-01T12:09:00Z")).build())
+        .build();
+    assert!(twice.is_ok());
 }

@@ -10,7 +10,8 @@
 //! # Normalized and concise
 //!
 //! [`TemporalEntity`], [`TemporalAttributes`], [`Evolution`], [`TemporalAttributeName`],
-//! [`TemporalAttributeNameDraft`], [`ScopeInstance`], [`ScopeValue`], [`InstanceSpelling`].
+//! [`TemporalAttributeNameDraft`], [`ScopeInstance`], [`ScopeValue`], [`InstanceSpelling`], [`DeletedInstance`],
+//! [`TemporalInstanceMembers`].
 //!
 //! # Simplified
 //!
@@ -29,6 +30,8 @@ pub use crate::model::evolution::{
     aggregated::{AggregatedAttribute, AggregatedKind, AggregatedTemporalEntity, AggregatedValue, AggregationMethod, AggregationMethodIter, NotAggregatable},
     attribute_name::{TemporalAttributeName, TemporalAttributeNameDraft},
     attributes::{Evolution, TemporalAttributes},
+    deleted_instance::DeletedInstance,
+    instance_members::TemporalInstanceMembers,
     scope::{ScopeInstance, ScopeValue},
     simplified::{
         SimplifiedTemporalEntity,
@@ -44,6 +47,8 @@ mod attribute_name;
 mod attributes;
 pub mod builders;
 mod checked_names;
+mod deleted_instance;
+mod instance_members;
 #[cfg(feature = "linked-data")]
 mod names;
 mod output;

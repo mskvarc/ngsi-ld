@@ -206,8 +206,9 @@ impl Attribute<Output> {
     /// Starts the builder of a deleted attribute of `kind` as a broker reports it: an instance whose payload is the
     /// NGSI-LD Null in the shape the kind needs (clause 4.5.0), as a notification reports a deleted attribute
     /// (clause 5.8.6) and a temporal evolution records a deleted Property or Relationship, with its `deletedAt`
-    /// (clauses 4.5.7 and 4.5.8). A client cannot send it (clause 5.5.4); a fragment deletes through
-    /// [`Deletion`](crate::model::Deletion) instead. The previous payload a notification with
+    /// (clauses 4.5.7 and 4.5.8). A client cannot send it (clause 5.5.4) except as a
+    /// [`DeletedInstance`](crate::model::evolution::DeletedInstance) of a temporal evolution; a fragment deletes
+    /// through [`Deletion`](crate::model::Deletion) instead. The previous payload a notification with
     /// `showChanges` carries is set on the builder of the kind (`Property::deleted()`, `Relationship::deleted()`,
     /// ...), whose type says which `previous*` member it has.
     ///

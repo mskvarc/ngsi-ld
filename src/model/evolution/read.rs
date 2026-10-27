@@ -12,7 +12,7 @@ use crate::model::{
     reader::{attribute_name, context, date_time, duplicate, empty, entity_types, object, once},
     representation::{
         member::{entity_id, identifying},
-        read::{direction::ReadEntityDirection, instance_items, read_instance},
+        read::{direction::ReadEntityDirection, instance_items},
     },
 };
 use jstrict::{Value as Json, object::Entry};
@@ -70,19 +70,16 @@ fn read_evolution_member<D: ReadEntityDirection>(
     }
     let instances = instance_items(value, form)
         .into_iter()
-        .map(|mut item| {
-            let instance_id = D::take_temporal_instance_id(&mut item)?;
-            Ok((read_instance::<D>(item, form)?, instance_id))
-        })
+        .map(|item| D::read_temporal_instance(item, form))
         .collect::<Result<Vec<_>, DocumentError>>()
         .map_err(|error| error.within(member))?;
     if instances.is_empty() {
         return Err(empty().within(member));
     }
-    instances.into_iter().try_for_each(|(instance, instance_id)| {
+    instances.into_iter().try_for_each(|(instance, members)| {
         // The name is kept for the next instance and for the error, so the map gets a copy.
         attributes
-            .insert_instance(name.clone(), instance, instance_id)
+            .insert_instance(name.clone(), instance, members)
             .map_err(|source| DocumentError::top(DocumentErrorKind::Attributes { source }).within(member))
     })
 }
