@@ -70,6 +70,18 @@ fn entity_type_name_accepts_a_term_and_an_iri() {
 }
 
 #[test]
+fn every_name_returns_the_text_it_was_built_from_as_a_str() {
+    let attribute: AttributeName = "ex:brandName".parse().unwrap();
+    let entity_type: EntityTypeName = "https://example.org/Vehicle".parse().unwrap();
+    let name: Name = "Vehicle".parse().unwrap();
+    let term: Term = "Vehicle".parse().unwrap();
+    assert_eq!(attribute.as_str(), "ex:brandName");
+    assert_eq!(entity_type.as_str(), "https://example.org/Vehicle");
+    assert_eq!(name.as_str(), "Vehicle");
+    assert_eq!(term.as_str(), "Vehicle");
+}
+
+#[test]
 fn name_accepts_unicode_letters_and_numbers() {
     let name: Name = "température²".parse().unwrap();
     assert_eq!(name.to_string(), "température²");

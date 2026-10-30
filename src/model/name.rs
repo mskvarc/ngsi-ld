@@ -199,6 +199,22 @@ pub struct AttributeName(String);
 )]
 pub struct EntityTypeName(String);
 
+/// Generates `as_str` for the `nutype` names, whose derives offer only `AsRef<str>`, a call that needs a type
+/// annotation wherever the target is not already a `&str`.
+macro_rules! name_as_str {
+    ($($name:ident),+) => {$(
+        impl $name {
+            /// Returns the name as written.
+            #[must_use]
+            pub fn as_str(&self) -> &str {
+                AsRef::<str>::as_ref(self)
+            }
+        }
+    )+};
+}
+
+name_as_str!(Name, Term, AttributeName, EntityTypeName);
+
 /// A string a JSON-LD processor coerces into an IRI under the `@context`.
 ///
 /// It is the `vocab` of a `VocabProperty` (NGSI-LD clause 4.5.20) and the `valueType` of a Property (clause 4.5.2.2).
