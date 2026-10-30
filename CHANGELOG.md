@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.0] - 2026-10-30
+
+### 🚀 Features
+- `model` - read a lone attribute body with its @context
+- `http` - request the first and last pages a page links
+- `query` - convert an entity type name into a selector type builder
+- `model` - convert an entity type name into a term
+- `client` - take entity selectors when creating an entity map
+
+### 🐛 Bug Fixes
+- `http` - refuse a fragment naming an entity other than its target
+- `model` - read a value object typed with the term type
+
+### 📚 Documentation
+- `model` - say why value is exhaustive
+
+### 🧪 Tests
+- `model` - read a json literal under an expanded term by path
+- `http` - read a 207 naming the scope by its fully qualified name
+- `model` - read a non-null json literal in a property value as an object
+- `subscription` - read previousobject of a relationship deleted without deletedat
+- `http` - read a keyvalues page answering an unchecked request
+- pin the typed inputs of 1.2.0 over the wire
+- `client` - send replace entity with and without its id over the wire
+- `model` - pin a lone sub-attribute and a typeless concise payload in partial attribute update
+- `subscription` - pin the keyvalues notification format on update and over the wire
+- `client` - send a batch upsert with and without options over the wire
+- `client` - send each body of partial attribute update over the wire
+
+### 🧹 Chores
+- bump version
+
 ## [v1.2.0] - 2026-10-30
 
 ### 🚀 Features
