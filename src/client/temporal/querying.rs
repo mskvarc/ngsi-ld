@@ -7,7 +7,7 @@ use crate::{
         ClientError,
         Temporal,
         Transport,
-        arguments::{SelectionBuilders, build, built},
+        arguments::{SelectionBuilders, build, built, selectors_built},
     },
     http::{
         Page,
@@ -34,6 +34,7 @@ use crate::{
         evolution::{AggregatedTemporalEntity, SimplifiedTemporalEntity, TemporalAttributeName, TemporalEntity},
     },
     query::{
+        EntitySelectorDraft,
         EntitySplitting,
         IdPattern,
         Locality,
@@ -77,6 +78,8 @@ macro_rules! query_method {
                 #[builder(into)] entity_type: Option<SelectorTypeBuilder>,
                 #[builder(default)] ids: Vec<EntityId>,
                 #[builder(into)] id_pattern: Option<IdPattern>,
+                #[builder(default, with = |selectors: impl IntoIterator<Item = impl Into<EntitySelectorDraft>>| selectors.into_iter().map(Into::into).collect())]
+                selectors: Vec<EntitySelectorDraft>,
                 #[builder(into)] q: Option<QueryBuilder>,
                 #[builder(into)] geo_q: Option<GeoQueryBuilder>,
                 #[builder(into)] scope_q: Option<ScopeQueryBuilder>,
@@ -114,11 +117,13 @@ macro_rules! query_method {
                 }
                 .build()?;
                 let ordering: Option<EntityOrdering> = built(ordering)?;
+                let selectors = selectors_built(selectors)?;
                 let $format = $format_value;
                 let query = QueryTemporalEvolution {
                     entity_type: selection.entity_type.as_ref(),
                     ids: &ids,
                     id_pattern: id_pattern.as_ref(),
+                    selectors: &selectors,
                     attrs: &attrs,
                     q: selection.q.as_ref(),
                     geo_q: selection.geo_q.as_ref(),

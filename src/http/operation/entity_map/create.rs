@@ -24,6 +24,7 @@ use crate::{
     },
     model::{AttributeName, DatasetId, EntityId, NgsiLdMediaType},
     query::{
+        EntitySelector,
         EntitySplitting,
         IdPattern,
         Join,
@@ -93,6 +94,10 @@ pub struct CreateEntityMap<'a> {
     pub ids: &'a [EntityId],
     /// A regular expression the entity ids match.
     pub id_pattern: Option<&'a IdPattern>,
+    /// Further entity selectors (clause 5.2.33), each with its own type, ids and id pattern; an entity is matched
+    /// when it matches any selection. Only a POST creation carries more than one selection.
+    #[builder(default)]
+    pub selectors: &'a [EntitySelector],
     /// The attributes of which at least one must exist for an entity to be selected, and which are kept (`attrs`,
     /// clause 5.14.4.3): deprecated, a synonym of a `pick` and a `q`. Empty sends no `attrs`.
     #[builder(default)]
@@ -163,7 +168,11 @@ impl BuildsRequest for CreateEntityMap<'_> {
 impl CreateEntityMap<'_> {
     /// The entities matched.
     const fn selection(&self) -> EntitySelection<'_> {
-        entity_selection!(self)
+        let selection = entity_selection!(self);
+        EntitySelection {
+            targets: selection.targets.with_selectors(self.selectors),
+            ..selection
+        }
     }
 
     /// The linked entity retrieval asked for.
@@ -182,6 +191,7 @@ impl CreateEntityMap<'_> {
         let mut query = QueryString::default();
         let body = match self.method {
             QueryMethod::Get => {
+                self.selection().targets.check_query_string()?;
                 self.selection().push_query(&mut query);
                 self.linked_entities().push_query(&mut query);
                 assembly.push_query(&mut query);

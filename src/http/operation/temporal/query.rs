@@ -44,6 +44,7 @@ use crate::{
         evolution::{AggregatedTemporalEntity, SimplifiedTemporalEntity, TemporalAttributeName, TemporalEntity},
     },
     query::{
+        EntitySelector,
         EntitySplitting,
         IdPattern,
         Locality,
@@ -72,6 +73,11 @@ use jstrict::Object;
 /// [`SimplifiedTemporal`] with pages of [`SimplifiedTemporalEntity`] values and [`Aggregated`] with pages of
 /// [`AggregatedTemporalEntity`] values (clause 6.3.12). `C` is what the entities hold of their `id` and `type`
 /// (clause 4.21).
+///
+/// The entities are named by `entity_type`, `ids` and `id_pattern`, which the GET binding sends as `type`, `id` and
+/// `idPattern` and the POST binding as one `EntitySelector` (clause 5.2.33), and by `selectors`, further selectors each
+/// matched on its own, which only the `Query` body of the POST binding can carry beside another (clause 5.2.23):
+/// `send()` refuses a GET query with more than one selection.
 ///
 /// The temporal query is mandatory (Table 6.18.3.2-1 gives `timerel` and `timeAt` a cardinality of 1). The other
 /// parameters are those of Table 6.18.3.2-1, the paging and count of clauses 4.12, 6.3.10 and 6.3.13, `options`
@@ -127,6 +133,10 @@ pub struct QueryTemporalEvolution<'a, F = Lossless, C = Complete> {
     pub ids: &'a [EntityId],
     /// A regular expression the entity ids match (clause 5.2.33).
     pub id_pattern: Option<&'a IdPattern>,
+    /// Further entity selectors (clause 5.2.33), each with its own type, ids and id pattern; an entity is matched
+    /// when it matches any selection. Only a POST query carries more than one selection.
+    #[builder(default)]
+    pub selectors: &'a [EntitySelector],
     /// The attributes to match and to keep (`attrs`): deprecated by the specification, a synonym of a `pick` of these
     /// attributes and a `q` asking for at least one of them (Table 6.18.3.2-1); prefer `pick` and `q`. It may name
     /// `scope`, which the temporal representation reifies (clauses 4.18 and C.5.16.2). Empty sends no `attrs`.
@@ -248,7 +258,11 @@ query_operation!(Aggregated, Projected, AggregatedTemporalEntity<Projected>, Agg
 impl<F, C> QueryTemporalEvolution<'_, F, C> {
     /// The entities matched and what of them the answer holds.
     const fn selection(&self) -> EntitySelection<'_, TemporalAttributeName> {
-        entity_selection!(self)
+        let selection = entity_selection!(self);
+        EntitySelection {
+            targets: selection.targets.with_selectors(self.selectors),
+            ..selection
+        }
     }
 
     /// How the answer is assembled.
@@ -287,6 +301,7 @@ fn parts<C: Completeness + ProjectionRule, F: TemporalFormat<C>>(query: &QueryTe
     })?;
     let parts = match query.method {
         QueryMethod::Get => {
+            query.selection().targets.check_query_string()?;
             let mut parameters = QueryString::default();
             query.selection().push_query(&mut parameters);
             selection.push_query(&mut parameters);

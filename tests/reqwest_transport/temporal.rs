@@ -13,7 +13,7 @@ use ngsi_ld::{
         RequestError,
         TemporalUpsertOutcome,
         headers::{ContentRange, LinkValue, RelationType},
-        operation::{ArgumentError, InstanceSelection, TemporalSelection},
+        operation::{ArgumentError, InstanceSelection, QueryMethod, TemporalSelection},
     },
     model::{
         APPLICATION_JSON,
@@ -23,10 +23,12 @@ use ngsi_ld::{
         EntityId,
         Input,
         InstanceId,
+        OneOrMany,
         Property,
         evolution::{TemporalAttributes, TemporalEntity},
     },
     query::{
+        EntitySelector,
         projection::{self, EntityMember},
         temporal_query::{self, TemporalQuery},
     },
@@ -143,6 +145,39 @@ async fn query_temporal_evolution_walks_every_page() {
     let every = client.pages(first).try_collect().await.unwrap();
     let ids: Vec<String> = every.iter().map(|entity| entity.id.to_string()).collect();
     assert_eq!(ids, ["urn:ngsi-ld:Vehicle:B9211", "urn:ngsi-ld:Vehicle:A4567"]);
+}
+
+#[tokio::test]
+async fn a_temporal_query_by_post_sends_several_selectors_in_its_body() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/temporal/entityOperations/query"))
+        .and(body_json(json!({
+            "type": "Query",
+            "entities": [{"type": "Vehicle", "id": ["urn:ngsi-ld:Vehicle:B9211"]}, {"type": "Car"}],
+            "temporalQ": {"timerel": "between", "timeAt": "2018-08-01T12:03:00Z", "endTimeAt": "2018-08-01T12:07:00Z"}
+        })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([retrieved("urn:ngsi-ld:Vehicle:B9211")])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let window = temporal_query::between(time("2018-08-01T12:03:00Z"), time("2018-08-01T12:07:00Z"));
+    let selectors = [
+        EntitySelector::new("Vehicle".parse().unwrap()).with_ids(OneOrMany::try_from(vec![b()]).unwrap()),
+        EntitySelector::new("Car".parse().unwrap()),
+    ];
+    let page = client
+        .temporal()
+        .query(window.clone())
+        .selectors(selectors.clone())
+        .method(QueryMethod::Post)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(page.items().len(), 1);
+    let error = refusal(client.temporal().query(window).selectors(selectors).send().await);
+    assert!(matches!(error, RequestError::Argument(ArgumentError::SeveralSelectorsInQueryString)));
 }
 
 #[tokio::test]

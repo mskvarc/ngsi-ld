@@ -23,6 +23,7 @@ use crate::{
     },
     model::{AttributeName, DatasetId, EntityId, evolution::TemporalAttributeName},
     query::{
+        EntitySelector,
         EntitySplitting,
         IdPattern,
         Locality,
@@ -93,6 +94,10 @@ pub struct CreateTemporalEntityMap<'a> {
     pub ids: &'a [EntityId],
     /// A regular expression the entity ids match.
     pub id_pattern: Option<&'a IdPattern>,
+    /// Further entity selectors (clause 5.2.33), each with its own type, ids and id pattern; an entity is matched
+    /// when it matches any selection. Only a POST creation carries more than one selection.
+    #[builder(default)]
+    pub selectors: &'a [EntitySelector],
     /// The attributes of which at least one must exist for an entity to be selected, and which are kept (`attrs`,
     /// clause 5.14.5.3): deprecated, a synonym of a `pick` and a `q`. As in Query Temporal Evolution, it may name
     /// `scope`, which the temporal representation reifies (clause 4.18). Empty sends no `attrs`.
@@ -156,7 +161,11 @@ impl BuildsRequest for CreateTemporalEntityMap<'_> {
 impl CreateTemporalEntityMap<'_> {
     /// The entities matched.
     const fn selection(&self) -> EntitySelection<'_, TemporalAttributeName> {
-        entity_selection!(self)
+        let selection = entity_selection!(self);
+        EntitySelection {
+            targets: selection.targets.with_selectors(self.selectors),
+            ..selection
+        }
     }
 
     /// The request, after the check of clause 5.14.5.4 that it is bounded.
@@ -166,6 +175,7 @@ impl CreateTemporalEntityMap<'_> {
         let mut query = QueryString::default();
         let body = match self.method {
             QueryMethod::Get => {
+                self.selection().targets.check_query_string()?;
                 self.selection().push_query(&mut query);
                 TemporalSelection::Query(self.temporal_q).push_query(&mut query);
                 assembly.push_query(&mut query);

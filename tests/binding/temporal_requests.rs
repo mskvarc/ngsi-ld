@@ -43,6 +43,7 @@ use ngsi_ld::{
         Input,
         Lossless,
         Output,
+        OneOrMany,
         Projected,
         Property,
         Tenant,
@@ -51,7 +52,9 @@ use ngsi_ld::{
     },
     query::{
         EntitySplitting,
+        EntitySelector,
         Locality,
+        IdPattern,
         SelectorType,
         language_filter,
         ordering,
@@ -455,6 +458,74 @@ fn a_temporal_query_refuses_what_the_specification_refuses() {
         let ordered = QueryTemporalEvolution {
             ordering: Some(ordering),
             ..query(Some(&entity_type), &window, Lossless::Normalized)
+#[test]
+fn a_post_query_carries_several_selectors_each_as_the_caller_spelled_it() {
+    let temporal_q = window();
+    let pattern: IdPattern = "^urn:ngsi-ld:Car:A.*$".parse().unwrap();
+    let selectors = [
+        EntitySelector::new("Vehicle".parse().unwrap()).with_ids(OneOrMany::try_from(vec![b()]).unwrap()),
+        EntitySelector::new("Car".parse().unwrap())
+            .with_ids(OneOrMany::one("urn:ngsi-ld:Car:A1".parse().unwrap()))
+            .with_id_pattern(pattern),
+        EntitySelector::all(),
+    ];
+    let operation = QueryTemporalEvolution {
+        selectors: &selectors,
+        method: QueryMethod::Post,
+        ..query(None, &temporal_q, Lossless::Normalized)
+    };
+    let request = request(&operation);
+    assert_eq!(request.uri().path(), "/ngsi-ld/v1/temporal/entityOperations/query");
+    assert_eq!(request.uri().query(), None);
+    assert_eq!(
+        Unordered(json(request.body())),
+        Unordered(json(
+            format!(
+                r#"{{"type":"Query","entities":[
+                    {{"type":"Vehicle","id":["urn:ngsi-ld:Vehicle:B9211"]}},
+                    {{"type":"Car","id":"urn:ngsi-ld:Car:A1","idPattern":"^urn:ngsi-ld:Car:A.*$"}},
+                    {{"type":"*"}}
+                ],"temporalQ":{{"timerel":"between","timeAt":"{T1}","endTimeAt":"{T3}"}}}}"#
+            )
+            .as_bytes()
+        ))
+    );
+}
+
+#[test]
+fn a_get_temporal_query_carries_one_selector_given_alone_and_refuses_more() {
+    let temporal_q = window();
+    let one = [EntitySelector::new("Vehicle".parse().unwrap())];
+    let alone = QueryTemporalEvolution {
+        selectors: &one,
+        ..query(None, &temporal_q, Lossless::Normalized)
+    };
+    assert_eq!(query_string(&alone), Some(format!("type=Vehicle&{WINDOW}")));
+    let entity_type = vehicle_type();
+    let beside_type = QueryTemporalEvolution {
+        selectors: &one,
+        ..query(Some(&entity_type), &temporal_q, Lossless::Normalized)
+    };
+    assert!(matches!(
+        refusal(&beside_type),
+        RequestError::Argument(ArgumentError::SeveralSelectorsInQueryString)
+    ));
+    let two = [EntitySelector::new("Car".parse().unwrap()), EntitySelector::new("Bus".parse().unwrap())];
+    let two_selectors = QueryTemporalEvolution {
+        selectors: &two,
+        ..query(None, &temporal_q, Lossless::Normalized)
+    };
+    assert!(matches!(
+        refusal(&two_selectors),
+        RequestError::Argument(ArgumentError::SeveralSelectorsInQueryString)
+    ));
+    let posted = QueryTemporalEvolution {
+        method: QueryMethod::Post,
+        ..two_selectors
+    };
+    assert!(posted.to_request(&endpoint()).is_ok());
+}
+
         };
         assert!(matches!(refusal(&ordered), RequestError::Argument(ArgumentError::TemporalOrdering)));
     }

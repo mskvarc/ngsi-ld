@@ -26,8 +26,9 @@ use ngsi_ld::{
             UpdateEntityMap,
         },
     },
-    model::{DateTime, DocumentErrorKind, EntityId, ErrorType, MemberError, Tenant},
+    model::{DateTime, DocumentErrorKind, EntityId, ErrorType, MemberError, OneOrMany, Tenant},
     query::{
+        EntitySelector,
         EntitySplitting,
         Join,
         Locality,
@@ -244,6 +245,68 @@ fn a_post_creation_sends_a_query_body() {
     assert_eq!(
         body_text(&request),
         r#"{"type":"Query","entities":[{"type":"Vehicle"}],"q":"speed>50","entityMapLifetime":"PT1H"}"#
+    );
+}
+
+#[test]
+fn a_post_creation_carries_several_selectors_each_as_the_caller_spelled_it() {
+    let selectors = [
+        EntitySelector::new("Vehicle".parse().unwrap()).with_ids(OneOrMany::try_from(vec!["urn:ngsi-ld:Vehicle:A4567".parse::<EntityId>().unwrap()]).unwrap()),
+        EntitySelector::new("Car".parse().unwrap()),
+    ];
+    let request = built(&CreateEntityMap {
+        selectors: &selectors,
+        method: QueryMethod::Post,
+        ..CreateEntityMap::default()
+    });
+    assert_eq!(request.uri().query(), None);
+    assert_eq!(
+        body_text(&request),
+        r#"{"type":"Query","entities":[{"type":"Vehicle","id":["urn:ngsi-ld:Vehicle:A4567"]},{"type":"Car"}]}"#
+    );
+}
+
+#[test]
+fn a_get_creation_carries_one_selector_given_alone_and_refuses_more() {
+    let one = [EntitySelector::new("Vehicle".parse().unwrap())];
+    let alone = CreateEntityMap {
+        selectors: &one,
+        ..CreateEntityMap::default()
+    };
+    assert_eq!(built(&alone).uri().query(), Some("type=Vehicle"));
+    let two = [EntitySelector::new("Car".parse().unwrap()), EntitySelector::new("Bus".parse().unwrap())];
+    let several = CreateEntityMap {
+        selectors: &two,
+        ..CreateEntityMap::default()
+    };
+    assert!(matches!(
+        several.to_request(&endpoint()),
+        Err(RequestError::Argument(ArgumentError::SeveralSelectorsInQueryString))
+    ));
+}
+
+#[test]
+fn a_temporal_creation_carries_several_selectors_in_a_post_body_and_refuses_them_in_a_get() {
+    let temporal_q = after_last_five();
+    let selectors = [EntitySelector::new("Car".parse().unwrap()), EntitySelector::new("Bus".parse().unwrap())];
+    let several = CreateTemporalEntityMap {
+        selectors: &selectors,
+        ..create_temporal(None, &temporal_q)
+    };
+    assert!(matches!(
+        several.to_request(&endpoint()),
+        Err(RequestError::Argument(ArgumentError::SeveralSelectorsInQueryString))
+    ));
+    let request = built(&CreateTemporalEntityMap {
+        method: QueryMethod::Post,
+        ..several
+    });
+    assert_eq!(
+        body_text(&request),
+        concat!(
+            r#"{"type":"Query","entities":[{"type":"Car"},{"type":"Bus"}],"#,
+            r#""temporalQ":{"timerel":"after","timeAt":"2024-05-01T10:00:00Z","lastN":5}}"#
+        )
     );
 }
 
