@@ -131,6 +131,29 @@ mod tests {
     }
 
     #[test]
+    fn a_result_naming_the_scope_by_its_fully_qualified_name_round_trips_in_both_lists() {
+        let text = concat!(
+            r#"{"updated":["https://uri.etsi.org/ngsi-ld/scope"],"notUpdated":[{"attributeName":"#,
+            r#""https://uri.etsi.org/ngsi-ld/scope","reason":"the entity has no scope"}]}"#
+        );
+        let result: UpdateResult = serde_json::from_str(text).unwrap();
+        assert_eq!(result.updated[0].as_str(), "https://uri.etsi.org/ngsi-ld/scope");
+        assert_eq!(result.not_updated[0].attribute_name.as_str(), "https://uri.etsi.org/ngsi-ld/scope");
+        assert_eq!(serde_json::to_string(&result).unwrap(), text);
+        assert_eq!(result.render().to_string(), text);
+    }
+
+    #[test]
+    fn a_result_naming_the_scope_by_its_short_name_is_refused_in_either_list() {
+        for text in [
+            r#"{"updated":["scope"],"notUpdated":[]}"#,
+            r#"{"updated":[],"notUpdated":[{"attributeName":"scope","reason":"the entity has no scope"}]}"#,
+        ] {
+            assert!(serde_json::from_str::<UpdateResult>(text).is_err(), "{text}");
+        }
+    }
+
+    #[test]
     fn a_result_missing_either_mandatory_list_is_refused() {
         for text in ["{}", r#"{"updated":[]}"#, r#"{"notUpdated":[]}"#] {
             assert!(serde_json::from_str::<UpdateResult>(text).is_err(), "{text}");

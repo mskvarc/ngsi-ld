@@ -8,6 +8,7 @@ use jstrict::Unordered;
 use ngsi_ld::{
     http::{
         BatchOutcome,
+        BodyError,
         ContextDelivery,
         RequestError,
         ResponseError,
@@ -25,7 +26,7 @@ use ngsi_ld::{
             UpdateAttributes,
         },
     },
-    model::{Attribute, AttributeFragment, AttributeMembers, AttributeName, Change, DatasetId, EntityFragment, Lossless, Property},
+    model::{Attribute, AttributeFragment, AttributeMembers, AttributeName, Change, DatasetId, EntityFragment, Lossless, OneOrMany, Property, ScopeChange},
     query::{Locality, SelectorType},
 };
 use pretty_assertions::assert_eq;
@@ -339,6 +340,32 @@ fn a_207_to_an_attribute_operation_without_a_mandatory_list_is_refused() {
         let error = update.decode(&context(), response(207, body)).unwrap_err();
         assert!(matches!(error, ResponseError::Body { .. }), "{error:?}");
     }
+}
+
+#[test]
+fn a_207_naming_the_scope_reads_its_fully_qualified_name_and_refuses_the_short_one() {
+    let id = vehicle_id();
+    let fragment = EntityFragment::builder()
+        .scope(ScopeChange::Set(OneOrMany::one("/CompanyA/OrganizationB/UnitC".parse().unwrap())))
+        .build()
+        .unwrap();
+    let update = UpdateAttributes::builder().id(&id).fragment(&fragment).build();
+    let qualified = concat!(
+        r#"{"updated": [], "notUpdated": [{"attributeName": "https://uri.etsi.org/ngsi-ld/scope", "#,
+        r#""reason": "the entity has no scope"}]}"#
+    );
+    let outcome = update.decode(&context(), response(207, qualified)).unwrap();
+    let UpdateOutcome::Partial(result) = outcome else {
+        panic!("expected a partial result, got {outcome:?}")
+    };
+    assert_eq!(result.updated, []);
+    assert_eq!(result.not_updated[0].attribute_name.as_str(), "https://uri.etsi.org/ngsi-ld/scope");
+    let short = r#"{"updated": [], "notUpdated": [{"attributeName": "scope", "reason": "the entity has no scope"}]}"#;
+    let error = update.decode(&context(), response(207, short)).unwrap_err();
+    assert!(
+        matches!(&error, ResponseError::Body { status: StatusCode::MULTI_STATUS, source, .. } if matches!(**source, BodyError::Shape(_))),
+        "{error:?}"
+    );
 }
 
 #[test]
