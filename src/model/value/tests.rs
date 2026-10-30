@@ -1,4 +1,5 @@
 use crate::model::{CoreDatatype, Datatype, DateTime, NotFinite, Number, NumberError, TypedValue, Value, ValueError, VocabTerm};
+use indexmap::IndexMap;
 use jstrict::Value as Json;
 use pretty_assertions::assert_eq;
 
@@ -27,6 +28,22 @@ fn a_json_ld_value_object_is_a_typed_value_and_round_trips() {
 fn a_date_time_converts_into_the_typed_value_of_clause_c_6() {
     let observed: DateTime = "2018-12-04T12:00:00Z".parse().unwrap();
     assert_eq!(Value::from(observed).to_string(), r#"{"@type":"DateTime","@value":"2018-12-04T12:00:00Z"}"#);
+}
+
+#[test]
+fn a_boolean_converts_into_a_boolean_value() {
+    assert_eq!(Value::from(true), Value::Boolean(true));
+    assert_eq!(Value::from(false).to_string(), "false");
+    assert_eq!(Value::from(vec![true, false]).to_string(), "[true,false]");
+}
+
+#[test]
+fn the_other_variants_convert_from_their_payload() {
+    let typed = TypedValue::try_new(CoreDatatype::DateTime, "2018-12-04T12:00:00Z").unwrap();
+    assert_eq!(Value::from(typed.clone()), Value::Typed(typed));
+    assert_eq!(Value::from(Number::from(80)), Value::Number(Number::from(80)));
+    let members = IndexMap::from([("city".to_owned(), Value::from("Berlin"))]);
+    assert_eq!(Value::from(members).to_string(), r#"{"city":"Berlin"}"#);
 }
 
 #[test]

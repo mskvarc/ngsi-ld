@@ -65,8 +65,10 @@ pub enum ValueError {
 #[derive(Eq, derive_more::From, derive_more::IsVariant)]
 pub enum Value {
     /// `true` or `false`.
+    #[from(bool)]
     Boolean(bool),
     /// A number.
+    #[from(Number)]
     Number(Number),
     /// A string.
     #[from(String, &str)]
@@ -75,8 +77,10 @@ pub enum Value {
     #[from(skip)]
     Array(Vec<Value>),
     /// An object. Member names are free-form user data, so they are plain strings; their order is kept.
+    #[from(IndexMap<String, Value>)]
     Object(IndexMap<String, Value>),
     /// A JSON-LD typed value, `{"@type": ..., "@value": ...}` (clause C.6).
+    #[from(TypedValue)]
     Typed(TypedValue),
 }
 
