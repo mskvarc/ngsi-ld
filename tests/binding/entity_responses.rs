@@ -18,7 +18,7 @@ use ngsi_ld::{
         ResponseError,
         UncheckedRequest,
         headers::{LinkValue, NgsiLdResultsCount, NgsiLdTenant, OptionalHeader, PreferenceApplied, RelationType},
-        operation::{CreateEntity, DeleteEntity, MergeEntity, Operation, QueryEntities, Simplified},
+        operation::{CreateEntity, DeleteEntity, MergeEntity, Operation, QueryEntities, RepresentationSpelling, Simplified},
     },
     model::{APPLICATION_LD_JSON, EntityFragment, ErrorType, Lossless, RawJson, Tenant},
     query::SelectorType,
@@ -219,6 +219,43 @@ fn a_page_link_followed_with_a_parameter_of_the_callers_own_is_sent_through_the_
         "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&format=simplified&limit=2&offset=2&count=true"
     );
     assert_eq!(link_of(&request), Some(context_link()));
+}
+
+#[test]
+fn a_key_values_page_answering_an_unchecked_request_reads_through_the_simplified_query_it_started_from() {
+    // `keyValues` is a spelling of the simplified representation (clause 4.5.3, Table 6.3.7-1), so the answer to a
+    // request changed through the unchecked path is read by the query of simplified entities it started from, and
+    // its links resolve against the URI that request was sent to (RFC 8288 section 3.2).
+    let entity_type: SelectorType = "Vehicle".parse().unwrap();
+    let query = QueryEntities {
+        spelling: RepresentationSpelling::default().in_options().key_values(),
+        ..query_vehicles(Some(&entity_type), None, Simplified)
+    };
+    let sent = "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&limit=2&offset=2&options=keyValues&count=true";
+    let request = UncheckedRequest::try_from_operation(&query, &endpoint())
+        .unwrap()
+        .uri(sent.parse().unwrap())
+        .into_request();
+    let link = link_field([link_value("?type=Vehicle&limit=2&offset=4&options=keyValues", RelationType::Next)]);
+    let body = r#"[{"id": "urn:ngsi-ld:Vehicle:A4567", "type": "Vehicle", "speed": 80}, {"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle", "speed": 55, "brandName": "Mercedes"}]"#;
+    let page = query
+        .decode(
+            &ResponseContext::new(&request),
+            response(200, &[(&header::LINK, &link), (NgsiLdResultsCount::name(), "4")], body),
+        )
+        .unwrap();
+    assert_eq!(
+        page.items()
+            .iter()
+            .map(|vehicle| (vehicle.id.as_str(), vehicle.attributes.len()))
+            .collect::<Vec<_>>(),
+        [("urn:ngsi-ld:Vehicle:A4567", 1), ("urn:ngsi-ld:Vehicle:B9211", 2)]
+    );
+    assert_eq!(page.total(), Some(4));
+    assert_eq!(
+        page.next().map(Url::as_str),
+        Some("http://broker.test/ngsi-ld/v1/entities?type=Vehicle&limit=2&offset=4&options=keyValues")
+    );
 }
 
 #[test]
