@@ -117,6 +117,11 @@ mod geo_json;
 #[path = "binding/projected_entities.rs"]
 mod projected_entities;
 
+/// Projected temporal entities.
+#[cfg(test)]
+#[path = "binding/projected_temporal.rs"]
+mod projected_temporal;
+
 /// The entity map on the following pages of a query.
 #[cfg(test)]
 #[path = "binding/entity_map_pages.rs"]

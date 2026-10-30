@@ -24,7 +24,7 @@ use wiremock::{
     Mock,
     MockServer,
     ResponseTemplate,
-    matchers::{header, method, path, query_param},
+    matchers::{header, method, path, query_param, query_param_is_missing},
 };
 
 #[tokio::test]
@@ -108,6 +108,65 @@ async fn a_projection_removing_id_is_refused_for_complete_entities_and_read_for_
         .into_body();
     assert_eq!(entity.id, None);
     assert_eq!(entity.attributes.len(), 1);
+}
+
+#[tokio::test]
+async fn a_projected_query_walks_every_page_of_entities_without_id_in_both_representations() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(query_param("offset", "1"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([{"speed": 40}])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(query_param("limit", "1"))
+        .and(query_param("pick", "speed"))
+        .and(query_param("format", "simplified"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header(
+                    &header::LINK,
+                    link_field([link_value("?type=Vehicle&format=simplified&pick=speed&limit=1&offset=1", RelationType::Next)]),
+                )
+                .set_body_json(json!([{"speed": 80}])),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(query_param("pick", "speed"))
+        .and(query_param_is_missing("format"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([{"speed": {"type": "Property", "value": 80}}])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let first = client
+        .entities()
+        .query_projected_simplified()
+        .entity_type("Vehicle")
+        .pick(projection::attributes(["speed"]))
+        .limit(1)
+        .send()
+        .await
+        .unwrap();
+    let every = client.pages(first).try_collect().await.unwrap();
+    assert_eq!(every.len(), 2);
+    assert!(every.iter().all(|entity| entity.id.is_none() && entity.entity_type.is_none()));
+    let normalized = client
+        .entities()
+        .query_projected()
+        .entity_type("Vehicle")
+        .pick(projection::attributes(["speed"]))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(normalized.items().len(), 1);
+    assert_eq!(normalized.items()[0].id, None);
 }
 
 #[tokio::test]

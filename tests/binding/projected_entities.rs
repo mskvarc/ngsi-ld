@@ -11,7 +11,7 @@ use crate::{
 use ngsi_ld::{
     http::{
         RequestError,
-        operation::{ArgumentError, Operation, QueryEntities, RetrieveEntity, Simplified},
+        operation::{ArgumentError, Operation, QueryEntities, QueryMethod, RetrieveEntity, Simplified},
     },
     model::Lossless,
     query::{
@@ -21,6 +21,7 @@ use ngsi_ld::{
     },
 };
 use pretty_assertions::assert_eq;
+use serde_json::{Value, json};
 
 #[test]
 fn a_request_for_complete_entities_refuses_a_projection_removing_id_or_type() {
@@ -70,6 +71,22 @@ fn a_projected_query_sends_the_projection_and_reads_entities_without_id() {
     assert_eq!(page.items().len(), 1);
     assert_eq!(page.items()[0].id, None);
     assert_eq!(page.items()[0].entity_type, None);
+}
+
+#[test]
+fn a_projected_query_by_post_sends_the_projection_in_the_body_and_reads_entities_without_id() {
+    let entity_type: SelectorType = "Vehicle".parse().unwrap();
+    let omit: Projection = "id,type".parse().unwrap();
+    let query = QueryEntities {
+        method: QueryMethod::Post,
+        omit: Some(&omit),
+        ..query_projected(Some(&entity_type), None, Simplified)
+    };
+    let body: Value = serde_json::from_slice(query.to_request(&endpoint()).unwrap().body()).unwrap();
+    assert_eq!(body["omit"], json!(["id", "type"]));
+    let page = query.decode(&context(), response(200, &[], r#"[{"speed":80},{"speed":40}]"#)).unwrap();
+    assert_eq!(page.items().len(), 2);
+    assert!(page.items().iter().all(|entity| entity.id.is_none() && entity.entity_type.is_none()));
 }
 
 #[test]

@@ -26,7 +26,10 @@ use ngsi_ld::{
         Property,
         evolution::{TemporalAttributes, TemporalEntity},
     },
-    query::temporal_query::{self, TemporalQuery},
+    query::{
+        projection::{self, EntityMember},
+        temporal_query::{self, TemporalQuery},
+    },
 };
 use pretty_assertions::assert_eq;
 use serde_json::{Value, json};
@@ -140,6 +143,72 @@ async fn query_temporal_evolution_walks_every_page() {
     let every = client.pages(first).try_collect().await.unwrap();
     let ids: Vec<String> = every.iter().map(|entity| entity.id.to_string()).collect();
     assert_eq!(ids, ["urn:ngsi-ld:Vehicle:B9211", "urn:ngsi-ld:Vehicle:A4567"]);
+}
+
+#[tokio::test]
+async fn a_projected_temporal_query_walks_every_page_of_entities_without_id() {
+    let server = MockServer::start().await;
+    let speed_only = |value: u32| json!({"speed": [{"type": "Property", "value": value, "observedAt": "2018-08-01T12:05:00Z"}]});
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/temporal/entities"))
+        .and(query_param("offset", "1"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([speed_only(40)])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/temporal/entities"))
+        .and(query_param("limit", "1"))
+        .and(query_param("pick", "speed"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header(
+                    &header::LINK,
+                    &link_field([LinkValue::builder(IriRefBuf::new("?type=Vehicle&limit=1&offset=1&pick=speed").unwrap())
+                        .rel(RelationType::Next)
+                        .media_type(APPLICATION_JSON)
+                        .build()]),
+                )
+                .set_body_json(json!([speed_only(80)])),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let window = temporal_query::between(time("2018-08-01T12:03:00Z"), time("2018-08-01T12:07:00Z"));
+    let first = client
+        .temporal()
+        .query_projected(window)
+        .entity_type("Vehicle")
+        .pick(projection::attributes(["speed"]))
+        .limit(1)
+        .send()
+        .await
+        .unwrap();
+    let every = client.pages(first).try_collect().await.unwrap();
+    assert_eq!(every.len(), 2);
+    assert!(every.iter().all(|entity| entity.id.is_none() && entity.entity_type.is_none()));
+}
+
+#[tokio::test]
+async fn a_projected_temporal_retrieve_reads_the_entity_without_id() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param("omit", "id,type"))
+        .and(query_param("format", "temporalValues"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"speed": {"type": "Property", "values": [[80, "2018-08-01T12:05:00Z"]]}})))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let retrieved = client(&server.uri())
+        .temporal()
+        .retrieve_projected_values(&b())
+        .omit(projection::member(EntityMember::Id).member(EntityMember::Type))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!((&retrieved.body().id, &retrieved.body().entity_type), (&None, &None));
 }
 
 #[tokio::test]
