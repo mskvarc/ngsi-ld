@@ -7,7 +7,7 @@ use crate::{
         ClientError,
         OutcomeOnly,
         Transport,
-        arguments::{SelectionBuilders, build},
+        arguments::{SelectionBuilders, build, selectors_built},
     },
     http::{
         Retrieved,
@@ -15,6 +15,7 @@ use crate::{
     },
     model::{AttributeName, DatasetId, DateTime, EntityId, Tenant, evolution::TemporalAttributeName},
     query::{
+        EntitySelectorDraft,
         EntitySplitting,
         IdPattern,
         Join,
@@ -148,6 +149,8 @@ impl<T: Transport, M: Answering> EntityMaps<'_, T, M> {
     /// At least an entity type, attributes, a `q` or a geoquery is needed unless the creation is local (clause
     /// 5.14.4.4); `send()` refuses the request otherwise. The linked entity retrieval is sent as given, as for Query
     /// Entities: whether a projection or a query reaches deeper than it is the broker's to check (clause 5.14.4.4).
+    /// Further `selectors` (clause 5.2.33) are matched each on its own beside the type, ids and id pattern; only the
+    /// POST binding carries more than one selection, so `send()` refuses several over GET.
     ///
     /// # Errors
     ///
@@ -159,6 +162,8 @@ impl<T: Transport, M: Answering> EntityMaps<'_, T, M> {
         #[builder(into)] entity_type: Option<SelectorTypeBuilder>,
         #[builder(default)] ids: Vec<EntityId>,
         #[builder(into)] id_pattern: Option<IdPattern>,
+        #[builder(default, with = |selectors: impl IntoIterator<Item = impl Into<EntitySelectorDraft>>| selectors.into_iter().map(Into::into).collect())]
+        selectors: Vec<EntitySelectorDraft>,
         #[builder(default)] attrs: Vec<AttributeName>,
         #[builder(into)] q: Option<QueryBuilder>,
         #[builder(into)] geo_q: Option<GeoQueryBuilder>,
@@ -190,10 +195,12 @@ impl<T: Transport, M: Answering> EntityMaps<'_, T, M> {
             lang,
         }
         .build()?;
+        let selectors = selectors_built(selectors)?;
         let create = CreateEntityMap::builder()
             .maybe_entity_type(selection.entity_type.as_ref())
             .ids(&ids)
             .maybe_id_pattern(id_pattern.as_ref())
+            .selectors(&selectors)
             .attrs(&attrs)
             .maybe_q(selection.q.as_ref())
             .maybe_geo_q(selection.geo_q.as_ref())
@@ -221,6 +228,8 @@ impl<T: Transport, M: Answering> EntityMaps<'_, T, M> {
     ///
     /// At least an entity type, attributes, a `q` or a geoquery is needed unless the creation is local (clause
     /// 5.14.5.4); `send()` refuses the request otherwise.
+    /// Further `selectors` (clause 5.2.33) are matched each on its own beside the type, ids and id pattern; only the
+    /// POST binding carries more than one selection, so `send()` refuses several over GET.
     ///
     /// # Errors
     ///
@@ -233,6 +242,8 @@ impl<T: Transport, M: Answering> EntityMaps<'_, T, M> {
         #[builder(into)] entity_type: Option<SelectorTypeBuilder>,
         #[builder(default)] ids: Vec<EntityId>,
         #[builder(into)] id_pattern: Option<IdPattern>,
+        #[builder(default, with = |selectors: impl IntoIterator<Item = impl Into<EntitySelectorDraft>>| selectors.into_iter().map(Into::into).collect())]
+        selectors: Vec<EntitySelectorDraft>,
         #[builder(default)] attrs: Vec<TemporalAttributeName>,
         #[builder(into)] q: Option<QueryBuilder>,
         #[builder(into)] geo_q: Option<GeoQueryBuilder>,
@@ -262,10 +273,12 @@ impl<T: Transport, M: Answering> EntityMaps<'_, T, M> {
             lang,
         }
         .build()?;
+        let selectors = selectors_built(selectors)?;
         let create = CreateTemporalEntityMap::builder()
             .maybe_entity_type(selection.entity_type.as_ref())
             .ids(&ids)
             .maybe_id_pattern(id_pattern.as_ref())
+            .selectors(&selectors)
             .attrs(&attrs)
             .maybe_q(selection.q.as_ref())
             .maybe_geo_q(selection.geo_q.as_ref())

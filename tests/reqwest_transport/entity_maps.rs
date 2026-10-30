@@ -4,8 +4,14 @@ use crate::{fixtures::client, links::context_link};
 use headers::Header;
 use http::header;
 use ngsi_ld::{
-    http::headers::{NgsiLdEntityMap, NgsiLdTenant},
-    model::Tenant,
+    client::ClientError,
+    http::{
+        RequestError,
+        headers::{NgsiLdEntityMap, NgsiLdTenant},
+        operation::{ArgumentError, QueryMethod},
+    },
+    model::{EntityId, OneOrMany, Tenant},
+    query::{EntitySelector, temporal_query},
     registration::EntityMapId,
 };
 use pretty_assertions::assert_eq;
@@ -91,6 +97,95 @@ async fn a_map_is_created_retrieved_updated_and_deleted() {
     assert_eq!(map.entity_map.len(), 2);
     client.entity_maps().update(&id, &T.parse().unwrap()).send().await.unwrap();
     client.entity_maps().delete(&id).send().await.unwrap();
+}
+
+#[tokio::test]
+async fn a_post_creation_sends_every_entity_selector_in_its_body() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/entityMaps"))
+        .and(body_json(json!({
+            "type": "Query",
+            "entities": [
+                {"type": "Vehicle", "id": ["urn:ngsi-ld:Vehicle:A4567"]},
+                {"type": "Car"}
+            ]
+        })))
+        .respond_with(
+            ResponseTemplate::new(201)
+                .insert_header(NgsiLdEntityMap::name(), format!("/ngsi-ld/v1/entityMaps/{M}").as_str())
+                .set_body_json(map()),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let ids = OneOrMany::try_from(vec!["urn:ngsi-ld:Vehicle:A4567".parse::<EntityId>().unwrap()]).unwrap();
+    let created = client
+        .entity_maps()
+        .create()
+        .selectors([
+            EntitySelector::new("Vehicle".parse().unwrap()).with_ids(ids),
+            EntitySelector::new("Car".parse().unwrap()),
+        ])
+        .method(QueryMethod::Post)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(created.body().id.to_string(), M);
+}
+
+#[tokio::test]
+async fn a_post_temporal_creation_sends_every_entity_selector_in_its_body() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/temporal/entityMaps"))
+        .and(body_json(json!({
+            "type": "Query",
+            "entities": [{"type": "Car"}, {"type": "Bus"}],
+            "temporalQ": {"timerel": "after", "timeAt": "2024-05-01T10:00:00Z"}
+        })))
+        .respond_with(
+            ResponseTemplate::new(201)
+                .insert_header(NgsiLdEntityMap::name(), format!("/ngsi-ld/v1/entityMaps/{M}").as_str())
+                .set_body_json(map()),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let created = client
+        .entity_maps()
+        .create_temporal(temporal_query::after("2024-05-01T10:00:00Z".parse().unwrap()))
+        .selectors(["Car", "Bus"])
+        .method(QueryMethod::Post)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(created.body().id.to_string(), M);
+}
+
+#[tokio::test]
+async fn a_get_creation_refuses_several_selectors_and_an_invalid_one_before_sending() {
+    let server = MockServer::start().await;
+    let client = client(&server.uri());
+    let error = client.entity_maps().create().selectors(["Car", "Bus"]).send().await.unwrap_err();
+    assert!(matches!(
+        error,
+        ClientError::Request(RequestError::Argument(ArgumentError::SeveralSelectorsInQueryString))
+    ));
+    let error = client
+        .entity_maps()
+        .create_temporal(temporal_query::after("2024-05-01T10:00:00Z".parse().unwrap()))
+        .selectors(["Car;Bus"])
+        .method(QueryMethod::Post)
+        .send()
+        .await
+        .unwrap_err();
+    assert!(matches!(
+        error,
+        ClientError::Request(RequestError::Argument(ArgumentError::InvalidArgument { .. }))
+    ));
 }
 
 #[tokio::test]
