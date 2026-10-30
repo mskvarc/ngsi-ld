@@ -284,6 +284,7 @@ mod discovery;
 mod entity_format;
 mod entity_map;
 mod entity_ordering;
+mod fragment_target;
 mod geo_json;
 mod geoquery;
 mod linked_entities;

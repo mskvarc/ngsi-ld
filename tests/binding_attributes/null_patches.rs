@@ -153,12 +153,16 @@ fn a_partial_update_body_that_deletes_members_reads_back_as_the_fragment_sent() 
 
 #[test]
 fn a_merge_fragment_deletes_the_unit_code_of_a_property_it_names() {
-    let id = vehicle_id();
     let fragment = EntityFragment::for_entity(iri!("urn:ngsi-ld:Building:1"), "Building")
         .patch("airQualityLevel", air_quality_level().delete_member(PatchMember::UnitCode).unwrap())
         .build()
         .unwrap();
-    let request = MergeEntity::builder().id(&id).fragment(&fragment).build().to_request(&endpoint()).unwrap();
+    let request = MergeEntity::builder()
+        .id(&fragment.id)
+        .fragment(&fragment)
+        .build()
+        .to_request(&endpoint())
+        .unwrap();
     assert_eq!(
         json(request.body()),
         json(
@@ -187,10 +191,14 @@ fn a_request_attribute_never_holds_the_null_as_an_optional_member() {
     assert!(Attribute::from(sensor).into_patch().delete_member(PatchMember::UnitCode).is_err());
 }
 
-/// The Merge Entity of `fragment` into the vehicle, in normalized form.
+/// The Merge Entity of `fragment` into the entity it names, in normalized form.
 fn merge_body(fragment: &EntityFragment<Complete>) -> jstrict::Value {
-    let id = vehicle_id();
-    let request = MergeEntity::builder().id(&id).fragment(fragment).build().to_request(&endpoint()).unwrap();
+    let request = MergeEntity::builder()
+        .id(&fragment.id)
+        .fragment(fragment)
+        .build()
+        .to_request(&endpoint())
+        .unwrap();
     json(request.body())
 }
 

@@ -441,6 +441,23 @@ async fn replace_sends_the_entity_with_its_id_and_without_it_when_omitted() {
 }
 
 #[tokio::test]
+async fn a_merge_whose_fragment_names_another_entity_is_refused_without_a_request() {
+    let server = MockServer::start().await;
+    let id: EntityId = "urn:ngsi-ld:Vehicle:A4567".parse().unwrap();
+    let fragment = EntityFragment::builder()
+        .id("urn:ngsi-ld:Vehicle:B9211".parse::<EntityId>().unwrap())
+        .property("speed", 50)
+        .build()
+        .unwrap();
+    let error = client(&server.uri()).entities().merge(&id, &fragment).send().await.unwrap_err();
+    assert!(
+        matches!(error, ClientError::Request(RequestError::Argument(ArgumentError::FragmentNamesAnotherEntity))),
+        "{error:?}"
+    );
+    assert!(server.received_requests().await.unwrap().is_empty());
+}
+
+#[tokio::test]
 async fn an_invalid_query_argument_is_refused_without_a_request() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))

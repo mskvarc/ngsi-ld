@@ -9,6 +9,7 @@ use crate::{
 };
 use headers::Header;
 use http::{Method, header};
+use iri_rs::iri;
 use jstrict::{Unordered, Value as Json};
 use ngsi_ld::{
     http::{
@@ -16,20 +17,36 @@ use ngsi_ld::{
         RequestError,
         headers::NgsiLdTenant,
         operation::{
+            AppendAttributes,
             ArgumentError,
             CreateEntity,
             DeleteEntity,
             EntityIdMember,
             MergeEntity,
+            MergeSimplifiedEntity,
             Operation,
             QueryEntities,
             QueryMethod,
             ReplaceEntity,
             ResultsCount,
             Simplified,
+            UpdateAttributes,
         },
     },
-    model::{EntityFragment, EntityId, Lossless, Tenant},
+    model::{
+        Entity,
+        EntityFragment,
+        EntityId,
+        LanguageMap,
+        LanguageProperty,
+        LanguageText,
+        ListRelationship,
+        Lossless,
+        Output,
+        Representation,
+        SimplifiedFragment,
+        Tenant,
+    },
     query::{Locality, SelectorType, projection::Projection, q},
 };
 use pretty_assertions::assert_eq;
@@ -61,6 +78,33 @@ fn create_with_ld_json_body_sends_the_context_in_the_body_only() {
     let body = json(request.body());
     let context: Vec<&Json> = body.as_object().unwrap().get("@context").collect();
     assert_eq!(context, [&Json::from("https://example.org/context.jsonld")]);
+}
+
+#[test]
+fn a_concise_create_writes_an_object_list_of_uris_beside_a_language_entry_of_several_strings() {
+    let cities = ["urn:ngsi-ld:City:Antwerp", "urn:ngsi-ld:City:Rotterdam"].map(|id| id.parse::<EntityId>().unwrap());
+    let names = LanguageMap::try_from_pairs([("fr", LanguageText::Multiple(vec!["Grand Place".to_owned(), "Grote Markt".to_owned()]))]).unwrap();
+    let route = Entity::builder()
+        .id(iri!("urn:ngsi-ld:Route:R1"))
+        .entity_type("Route")
+        .list_relationship("passesThrough", ListRelationship::builder(cities.to_vec()).build().unwrap())
+        .language_property("square", LanguageProperty::builder(names).build().unwrap())
+        .build()
+        .unwrap();
+    let request = CreateEntity::builder()
+        .entity(&route)
+        .form(Lossless::Concise)
+        .build()
+        .to_request(&endpoint())
+        .unwrap();
+    let body = concat!(
+        r#"{"id":"urn:ngsi-ld:Route:R1","type":"Route","#,
+        r#""passesThrough":{"objectList":["urn:ngsi-ld:City:Antwerp","urn:ngsi-ld:City:Rotterdam"]},"#,
+        r#""square":{"languageMap":{"fr":["Grand Place","Grote Markt"]}}}"#
+    );
+    assert_eq!(json(request.body()), json(body.as_bytes()));
+    let read = Entity::<Output>::parse(body, Lossless::Concise).unwrap();
+    assert_eq!(read.render(Representation::Concise).to_string(), body);
 }
 
 #[test]
@@ -186,6 +230,53 @@ fn merge_sends_patch_with_the_fragment() {
         Unordered(json(request.body())),
         Unordered(json(br#"{"speed": 0, "isParked": "urn:ngsi-ld:null"}"#))
     );
+}
+
+#[test]
+fn a_fragment_naming_an_entity_other_than_its_target_is_refused_before_sending() {
+    let id = vehicle_id();
+    let other = || "urn:ngsi-ld:Vehicle:B9211".parse::<EntityId>().unwrap();
+    let elsewhere = EntityFragment::builder().id(other()).property("speed", 0).build().unwrap();
+    let named_elsewhere = EntityFragment::for_entity(other(), "Vehicle").property("speed", 0).build().unwrap();
+    let simplified_elsewhere = SimplifiedFragment::builder().id(other()).value("speed", 0).build().unwrap();
+    let refusals = [
+        MergeEntity::builder().id(&id).fragment(&elsewhere).build().to_request(&endpoint()),
+        MergeEntity::builder().id(&id).fragment(&named_elsewhere).build().to_request(&endpoint()),
+        UpdateAttributes::builder().id(&id).fragment(&elsewhere).build().to_request(&endpoint()),
+        AppendAttributes::builder().id(&id).fragment(&named_elsewhere).build().to_request(&endpoint()),
+        MergeSimplifiedEntity::builder()
+            .id(&id)
+            .fragment(&simplified_elsewhere)
+            .build()
+            .to_request(&endpoint()),
+    ];
+    for refusal in refusals {
+        assert!(
+            matches!(refusal, Err(RequestError::Argument(ArgumentError::FragmentNamesAnotherEntity))),
+            "{refusal:?}"
+        );
+    }
+}
+
+#[test]
+fn a_fragment_naming_its_target_or_no_entity_is_sent_with_its_id_as_given() {
+    let id = vehicle_id();
+    let named = EntityFragment::builder().id(vehicle_id()).property("speed", 0).build().unwrap();
+    let unnamed = EntityFragment::builder().property("speed", 0).build().unwrap();
+    let simplified = SimplifiedFragment::builder().id(vehicle_id()).value("speed", 0).build().unwrap();
+    let merge = MergeEntity::builder().id(&id).fragment(&named).build().to_request(&endpoint()).unwrap();
+    assert_eq!(json(merge.body()).as_object().unwrap().get("id").next(), Some(&Json::from(id.as_str())));
+    let update = UpdateAttributes::builder().id(&id).fragment(&unnamed).build().to_request(&endpoint()).unwrap();
+    assert!(!json(update.body()).as_object().unwrap().contains_key("id"));
+    let append = AppendAttributes::builder().id(&id).fragment(&named).build().to_request(&endpoint()).unwrap();
+    assert_eq!(append.uri().path(), "/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567/attrs");
+    let simplified = MergeSimplifiedEntity::builder()
+        .id(&id)
+        .fragment(&simplified)
+        .build()
+        .to_request(&endpoint())
+        .unwrap();
+    assert_eq!(json(simplified.body()).as_object().unwrap().get("id").next(), Some(&Json::from(id.as_str())));
 }
 
 #[test]

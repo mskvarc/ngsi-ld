@@ -73,6 +73,10 @@ pub enum ArgumentError {
     /// `BadRequestData`.
     #[error("a batch operation needs at least one element")]
     EmptyBatch,
+    /// A fragment sent to one entity holds an `id` other than the id of the entity the request path names, which
+    /// clause 5.4 forbids: the `id` of a fragment shall be equal to the id of its target.
+    #[error("the fragment names an entity other than the one the request path names")]
+    FragmentNamesAnotherEntity,
     /// The aggregated temporal representation without aggregation methods, which Tables 6.18.3.2-1 and 6.19.3.1-1
     /// require with `aggregatedValues`.
     #[error("an aggregated temporal representation needs aggregation methods")]

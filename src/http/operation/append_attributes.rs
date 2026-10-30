@@ -11,6 +11,7 @@ use crate::{
         operation::{
             Operation,
             Overwrite,
+            fragment_target::check_fragment_target,
             sealed::{BuildsRequest, Sealed},
         },
         path::ResourcePath,
@@ -20,6 +21,7 @@ use crate::{
     },
     model::{Completeness, EntityFragment, EntityId, Lossless, Projected, representation::write::write_fragment},
     query::type_selection::TypeSelection,
+    seal::Seal,
 };
 use bytes::Bytes;
 use http::{Method, Request, Response};
@@ -67,7 +69,9 @@ pub(super) mod parameters;
 pub struct AppendAttributes<'a, C: Completeness = Projected> {
     /// The entity.
     pub id: &'a EntityId,
-    /// The attributes.
+    /// The attributes. Its `id`, when it has one, is the `id` the path names (clause 5.4); a fragment naming
+    /// another entity is refused with
+    /// [`FragmentNamesAnotherEntity`](crate::http::operation::ArgumentError::FragmentNamesAnotherEntity).
     pub fragment: &'a EntityFragment<C>,
     /// Whether existing attributes are replaced.
     #[builder(default)]
@@ -91,6 +95,7 @@ impl<C: Completeness> Operation for AppendAttributes<'_, C> {
 
 impl<C: Completeness> BuildsRequest for AppendAttributes<'_, C> {
     fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
+        check_fragment_target(self.id, C::get(Seal::new(), &self.fragment.id))?;
         let mut query = QueryString::default();
         self.overwrite.push_query(&mut query);
         query.push_type_selection(QueryParameter::Type, self.entity_type);

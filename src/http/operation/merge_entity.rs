@@ -11,6 +11,7 @@ use crate::{
         ResponseError,
         operation::{
             Operation,
+            fragment_target::check_fragment_target,
             sealed::{BuildsRequest, Sealed},
         },
         path::ResourcePath,
@@ -20,6 +21,7 @@ use crate::{
     },
     model::{Completeness, DateTime, EntityFragment, EntityId, Lossless, Projected, Representation, SimplifiedFragment, representation::write::write_fragment},
     query::type_selection::TypeSelection,
+    seal::Seal,
 };
 use bytes::Bytes;
 use http::{Method, Request, Response};
@@ -62,7 +64,9 @@ use langtag::LangTagBuf;
 pub struct MergeEntity<'a, C: Completeness = Projected> {
     /// The entity.
     pub id: &'a EntityId,
-    /// The changes.
+    /// The changes. Its `id`, when it has one, is the `id` the path names (clause 5.4); a fragment naming another
+    /// entity is refused with
+    /// [`FragmentNamesAnotherEntity`](crate::http::operation::ArgumentError::FragmentNamesAnotherEntity).
     pub fragment: &'a EntityFragment<C>,
     /// Merges only if the entity's type matches (clause 4.17).
     pub entity_type: Option<&'a TypeSelection>,
@@ -85,6 +89,7 @@ impl<C: Completeness> Operation for MergeEntity<'_, C> {
 
 impl<C: Completeness> BuildsRequest for MergeEntity<'_, C> {
     fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
+        check_fragment_target(self.id, C::get(Seal::new(), &self.fragment.id))?;
         let query = merge_query(self.entity_type, self.observed_at);
         RequestParts::resource(Method::PATCH, ResourcePath::entity(self.id), query)
             .with_body(write_fragment(self.fragment, self.form))
@@ -129,7 +134,9 @@ impl<C: Completeness> BuildsRequest for MergeEntity<'_, C> {
 pub struct MergeSimplifiedEntity<'a> {
     /// The entity.
     pub id: &'a EntityId,
-    /// The changes.
+    /// The changes. Its `id`, when it has one, is the `id` the path names (clause 5.4); a fragment naming another
+    /// entity is refused with
+    /// [`FragmentNamesAnotherEntity`](crate::http::operation::ArgumentError::FragmentNamesAnotherEntity).
     pub fragment: &'a SimplifiedFragment,
     /// Merges only if the entity's type matches (clause 4.17).
     pub entity_type: Option<&'a TypeSelection>,
@@ -152,6 +159,7 @@ impl Operation for MergeSimplifiedEntity<'_> {
 
 impl BuildsRequest for MergeSimplifiedEntity<'_> {
     fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
+        check_fragment_target(self.id, self.fragment.id())?;
         let mut query = merge_query(self.entity_type, self.observed_at);
         // `format` is the parameter Table 6.5.3.4-1 defines for this; `options=keyValues` is its deprecated synonym.
         query.push(QueryParameter::Format, Representation::Simplified);

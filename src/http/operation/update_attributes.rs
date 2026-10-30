@@ -10,6 +10,7 @@ use crate::{
         UpdateOutcome,
         operation::{
             Operation,
+            fragment_target::check_fragment_target,
             sealed::{BuildsRequest, Sealed},
         },
         path::ResourcePath,
@@ -19,6 +20,7 @@ use crate::{
     },
     model::{Completeness, EntityFragment, EntityId, Lossless, Projected, representation::write::write_fragment},
     query::type_selection::TypeSelection,
+    seal::Seal,
 };
 use bytes::Bytes;
 use http::{Method, Request, Response};
@@ -61,7 +63,9 @@ use http::{Method, Request, Response};
 pub struct UpdateAttributes<'a, C: Completeness = Projected> {
     /// The entity.
     pub id: &'a EntityId,
-    /// The attributes, with deletions as the NGSI-LD Null (clause 5.5.8).
+    /// The attributes, with deletions as the NGSI-LD Null (clause 5.5.8). Its `id`, when it has one, is the `id`
+    /// the path names (clause 5.4); a fragment naming another entity is refused with
+    /// [`FragmentNamesAnotherEntity`](crate::http::operation::ArgumentError::FragmentNamesAnotherEntity).
     pub fragment: &'a EntityFragment<C>,
     /// Updates only if the entity's type matches (clause 4.17).
     pub entity_type: Option<&'a TypeSelection>,
@@ -82,6 +86,7 @@ impl<C: Completeness> Operation for UpdateAttributes<'_, C> {
 
 impl<C: Completeness> BuildsRequest for UpdateAttributes<'_, C> {
     fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
+        check_fragment_target(self.id, C::get(Seal::new(), &self.fragment.id))?;
         let mut query = QueryString::default();
         query.push_type_selection(QueryParameter::Type, self.entity_type);
         RequestParts::resource(Method::PATCH, ResourcePath::attributes(self.id), query)
