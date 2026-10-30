@@ -12,6 +12,7 @@ use crate::model::{
     Entity,
     EntityFragment,
     Input,
+    Instances,
     Lossless,
     MemberError,
     NullMember,
@@ -286,6 +287,39 @@ fn a_response_entity_holds_the_json_null_literal_spelled_with_the_term_type() {
         let written = entity.render(representation).to_string();
         assert!(written.contains(canonical), "{written}");
     }
+}
+
+#[test]
+fn a_property_value_holding_a_non_null_json_literal_reads_as_an_object_in_both_forms() {
+    let literal = r#"{"@type":"@json","@value":{"a":1,"b":[true]}}"#;
+    for (form, representation, attribute) in [
+        (
+            Lossless::Normalized,
+            Representation::Normalized,
+            format!(r#"{{"type":"Property","value":{literal}}}"#),
+        ),
+        (Lossless::Concise, Representation::Concise, literal.to_owned()),
+    ] {
+        let entity = request_with(&attribute, form).unwrap();
+        let Some(Attribute::Property(x)) = entity.attribute(&"x".parse().unwrap()).map(Instances::first) else {
+            panic!("x is not a Property");
+        };
+        assert!(x.value().is_object());
+        assert_eq!(x.value().to_string(), literal);
+        let text = entity.render(representation).to_string();
+        assert!(text.contains(literal), "{text}");
+        assert_eq!(Entity::<Input>::parse(&text, form).unwrap(), entity);
+    }
+}
+
+#[test]
+fn a_response_property_value_holding_a_non_null_json_literal_spelled_with_the_term_type_is_written_as_received() {
+    let text = concat!(
+        r#"{"id":"urn:ngsi-ld:T:1","type":"T","#,
+        r#""x":{"type":"Property","value":{"@value":{"a":1},"type":"@json"}}}"#
+    );
+    let entity = Entity::<Output>::parse(text, Lossless::Normalized).unwrap();
+    assert_eq!(entity.render(Representation::Normalized).to_string(), text);
 }
 
 #[test]

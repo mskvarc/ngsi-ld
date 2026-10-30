@@ -196,6 +196,48 @@ fn the_json_null_literal_nests_in_an_array_and_an_object() {
 }
 
 #[test]
+fn a_non_null_json_literal_is_an_object_value_and_round_trips_at_any_depth() {
+    for literal in [
+        r#"{"@type":"@json","@value":{"a":1,"b":"urn:ngsi-ld:null"}}"#,
+        r#"{"@type":"@json","@value":[1,2]}"#,
+        r#"{"@type":"@json","@value":"text"}"#,
+        r#"{"@type":"@json","@value":5}"#,
+    ] {
+        let value = parse(literal).unwrap();
+        assert!(value.is_object(), "{literal}");
+        assert_eq!(value.to_string(), literal);
+        let nested = format!(r#"{{"a":[{literal},true]}}"#);
+        assert_eq!(parse(&nested).unwrap().to_string(), nested);
+    }
+}
+
+#[test]
+fn a_non_null_json_literal_is_built_as_an_object_of_its_two_members() {
+    let built = Value::from(IndexMap::from([
+        ("@type".to_owned(), Value::from("@json")),
+        ("@value".to_owned(), Value::from(IndexMap::from([("a".to_owned(), Value::from(1))]))),
+    ]));
+    assert_eq!(built.to_string(), r#"{"@type":"@json","@value":{"a":1}}"#);
+    assert_eq!(parse(r#"{"@type":"@json","@value":{"a":1}}"#).unwrap(), built);
+}
+
+#[test]
+fn a_non_null_json_literal_spelled_with_the_term_type_reads_as_an_object_and_keeps_the_term() {
+    let spelled = r#"{"@value":{"a":1},"type":"@json"}"#;
+    let value = parse(spelled).unwrap();
+    assert!(value.is_object());
+    assert_eq!(value.to_string(), spelled);
+    assert_ne!(value, parse(r#"{"@type":"@json","@value":{"a":1}}"#).unwrap());
+}
+
+#[test]
+fn a_null_inside_a_non_null_json_literal_is_refused() {
+    for literal in [r#"{"@type":"@json","@value":{"a":null}}"#, r#"{"@type":"@json","@value":[1,null]}"#] {
+        assert!(matches!(parse(literal), Err(ValueError::Null)), "{literal}");
+    }
+}
+
+#[test]
 fn a_value_object_spelled_with_the_term_type_reads_as_with_the_keyword_and_writes_the_keyword() {
     for (spelled, canonical) in [
         (r#"{"@value":null,"type":"@json"}"#, r#"{"@type":"@json","@value":null}"#),
