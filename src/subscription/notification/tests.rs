@@ -7,12 +7,14 @@ use crate::{
         DocumentError,
         DocumentErrorKind,
         Entity,
+        EntityId,
         FeatureCollection,
         GeoValue,
         Input,
         Lossless,
         MemberError,
         NullMember,
+        OneOrMany,
         Output,
         PathSegment,
         Projected,
@@ -21,6 +23,7 @@ use crate::{
     },
     subscription::{DocumentType, Notification, ReadErrorKind},
 };
+use iri_rs::iri;
 use pretty_assertions::assert_eq;
 use std::convert::Infallible;
 
@@ -282,6 +285,29 @@ fn a_deleted_entity_carries_only_its_deletion_time() {
         entity.output.deleted_at.as_ref().map(ToString::to_string).as_deref(),
         Some("2024-05-01T10:00:00Z")
     );
+}
+
+#[test]
+fn a_relationship_deleted_without_its_deletion_time_keeps_the_previous_object_show_changes_reports() {
+    let text = notification(concat!(
+        r#"[{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","#,
+        r#""speed":{"type":"Property","value":50,"previousValue":40},"#,
+        r#""owner":{"type":"Relationship","object":"urn:ngsi-ld:null","previousObject":"urn:ngsi-ld:Person:Bob"}}]"#
+    ));
+    let read = round_trip(&text, Lossless::Normalized);
+    let entity = &read.data()[0];
+    let Attribute::Property(speed) = attribute(entity, "speed") else {
+        panic!("expected a Property");
+    };
+    assert_eq!(speed.output().previous_value, Some(Value::from(40)));
+    let owner = attribute(entity, "owner");
+    assert!(owner.is_deleted());
+    let Attribute::Relationship(relationship) = owner else {
+        panic!("expected a Relationship");
+    };
+    let bob = EntityId::from(iri!("urn:ngsi-ld:Person:Bob"));
+    assert_eq!(relationship.output().previous_object, Some(OneOrMany::one(bob)));
+    assert!(owner.meta().output.deleted_at.is_none());
 }
 
 /// The error of reading `text` as a normalized notification.
