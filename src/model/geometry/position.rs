@@ -63,8 +63,38 @@ impl Position {
         Self::in_range(coordinate(longitude)?, coordinate(latitude)?, Some(coordinate(altitude)?))
     }
 
-    /// Checks the WGS 84 ranges RFC 7946 section 4 places positions in, which a position built in code keeps.
+    /// A two-dimensional position from numbers that keep the digits they were written with, such as an ordinate
+    /// with more digits than the nearest `f64` holds.
+    ///
+    /// ```
+    /// use ngsi_ld::model::{Number, geometry::Position};
+    ///
+    /// let longitude: Number = "13.39860000000000000001".parse()?;
+    /// let position = Position::try_from_numbers(longitude, Number::from(52))?;
+    /// assert_eq!(position.to_string(), "[13.39860000000000000001,52]");
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// As [`Position::try_new`]; a number too large for an `f64` is not finite once read as one.
+    pub fn try_from_numbers(longitude: Number, latitude: Number) -> Result<Self, GeometryError> {
+        Self::in_range(longitude, latitude, None)
+    }
+
+    /// A three-dimensional position from numbers that keep the digits they were written with.
+    ///
+    /// # Errors
+    ///
+    /// As [`Position::try_from_numbers`].
+    pub fn try_from_numbers_with_altitude(longitude: Number, latitude: Number, altitude: Number) -> Result<Self, GeometryError> {
+        Self::in_range(longitude, latitude, Some(altitude))
+    }
+
+    /// Checks that every coordinate is finite and inside the WGS 84 ranges RFC 7946 section 4 places positions in,
+    /// which a position built in code keeps.
     pub(crate) fn in_range(longitude: Number, latitude: Number, altitude: Option<Number>) -> Result<Self, GeometryError> {
+        finite(&longitude, &latitude, altitude.as_ref())?;
         if !(-180.0..=180.0).contains(&longitude.as_f64()) {
             return Err(GeometryError::LongitudeOutOfRange { value: longitude });
         }
@@ -77,12 +107,7 @@ impl Position {
     /// A position read from a document: every coordinate must be finite, and the WGS 84 ranges are not checked,
     /// so the position keeps what the document says.
     pub(crate) fn read(longitude: Number, latitude: Number, altitude: Option<Number>) -> Result<Self, GeometryError> {
-        [Some(&longitude), Some(&latitude), altitude.as_ref()]
-            .into_iter()
-            .flatten()
-            .map(Number::as_f64)
-            .find(|value| !value.is_finite())
-            .map_or(Ok(()), |value| Err(GeometryError::InvalidCoordinate { source: NotFinite::of(value) }))?;
+        finite(&longitude, &latitude, altitude.as_ref())?;
         Ok(Self { longitude, latitude, altitude })
     }
 
@@ -141,6 +166,16 @@ pub(crate) const fn at_least(minimum: usize, positions: &[Position]) -> Result<(
     } else {
         Ok(())
     }
+}
+
+/// Checks that every coordinate is finite once read as an `f64`: a JSON number beyond the range of one is not.
+fn finite(longitude: &Number, latitude: &Number, altitude: Option<&Number>) -> Result<(), GeometryError> {
+    [Some(longitude), Some(latitude), altitude]
+        .into_iter()
+        .flatten()
+        .map(Number::as_f64)
+        .find(|value| !value.is_finite())
+        .map_or(Ok(()), |value| Err(GeometryError::InvalidCoordinate { source: NotFinite::of(value) }))
 }
 
 /// Converts a coordinate into a JSON number.

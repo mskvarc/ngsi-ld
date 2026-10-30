@@ -55,13 +55,17 @@ pub enum ResponseError {
     /// representations it offers, in a form the specification does not fix.
     ///
     /// The body is read leniently, as a comma-separated list of media types: the entries that are media types are
-    /// kept in the order the broker wrote them, and every other entry is dropped.
+    /// kept in the order the broker wrote them, and every other entry is dropped. A body in another shape, such as a
+    /// JSON object naming the representations in a member of its own, lists nothing in `available`; `body` keeps it as
+    /// received, so nothing the broker said is lost.
     #[error("the broker answered 406: no acceptable representation")]
     NotAcceptable {
         /// The rest of the head of the response, boxed to keep the error small.
         head: Box<ResponseHead>,
         /// The media types the body lists.
         available: Vec<MediaTypeBuf>,
+        /// The body as received.
+        body: Bytes,
     },
     /// A success status the operation's table in clause 6 does not list.
     #[error("the broker answered {status}, which this operation does not define")]
@@ -258,6 +262,7 @@ pub(crate) fn classify(response: Response<Bytes>) -> Result<Success, ResponseErr
         return Err(ResponseError::NotAcceptable {
             head,
             available: available_representations(&body),
+            body,
         });
     }
     if body.iter().all(u8::is_ascii_whitespace) {
@@ -406,6 +411,20 @@ mod tests {
     #[test]
     fn a_406_whose_body_is_not_utf8_lists_nothing() {
         assert_eq!(available(b"\xFF\xFE"), Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_406_keeps_its_body_as_received_whatever_shape_it_has() {
+        let json: &'static [u8] = br#"{"title":"Not Acceptable","availableRepresentations":["application/json","application/ld+json"]}"#;
+        let ResponseError::NotAcceptable { available, body, .. } = classify(raw_response(406, json)).unwrap_err() else {
+            panic!("expected a 406")
+        };
+        assert_eq!(available, Vec::<MediaTypeBuf>::new());
+        assert_eq!(body.as_ref(), json);
+        let ResponseError::NotAcceptable { body, .. } = classify(raw_response(406, b"text/html garbage, application/json")).unwrap_err() else {
+            panic!("expected a 406")
+        };
+        assert_eq!(body.as_ref(), b"text/html garbage, application/json");
     }
 
     #[test]

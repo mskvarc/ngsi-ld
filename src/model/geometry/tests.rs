@@ -111,6 +111,33 @@ fn a_position_built_in_code_must_lie_within_wgs_84() {
 }
 
 #[test]
+fn a_position_built_from_numbers_keeps_every_digit_written() {
+    let longitude: Number = "13.39860000000000000001".parse().unwrap();
+    let altitude: Number = "100.50".parse().unwrap();
+    let flat = Position::try_from_numbers(longitude.clone(), Number::from(52)).unwrap();
+    assert_eq!(flat.to_string(), "[13.39860000000000000001,52]");
+    let high = Position::try_from_numbers_with_altitude(longitude, Number::from(52), altitude).unwrap();
+    assert_eq!(high.to_string(), "[13.39860000000000000001,52,100.50]");
+    assert_eq!(high.dimension(), Dimension::Three);
+}
+
+#[test]
+fn a_position_built_from_numbers_is_held_to_the_range_and_finiteness_of_one_built_from_floats() {
+    let outside: Number = "180.50".parse().unwrap();
+    assert_eq!(
+        Position::try_from_numbers(outside.clone(), Number::from(0)),
+        Err(GeometryError::LongitudeOutOfRange { value: outside })
+    );
+    let beyond: Number = "1e400".parse().unwrap();
+    assert!(matches!(
+        Position::try_from_numbers_with_altitude(Number::from(0), Number::from(0), beyond),
+        Err(GeometryError::InvalidCoordinate {
+            source: NotFinite::PositiveInfinity
+        })
+    ));
+}
+
+#[test]
 fn a_line_string_needs_two_positions() {
     assert_eq!(
         parse(r#"{"type":"LineString","coordinates":[[1,2]]}"#),
