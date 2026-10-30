@@ -17,7 +17,7 @@ use ngsi_ld::{
         RequestError,
         ResponseError,
         headers::{LinkValue, NgsiLdEntityMap, NgsiLdResultsCount, NgsiLdTenant, OptionalHeader, RelationType},
-        operation::{ArgumentError, EntityMapRequest, InlineJoin, ResultsCount},
+        operation::{ArgumentError, EntityIdMember, EntityMapRequest, InlineJoin, ResultsCount},
     },
     model::{APPLICATION_JSON, EntityFragment, EntityId, ErrorType, Tenant},
     query::{Join, Quality, language_filter, ordering, q},
@@ -374,6 +374,35 @@ async fn merge_with_a_tenant_sends_the_fragment_and_the_tenant_header() {
     let tenant: Tenant = "t1".parse().unwrap();
     let outcome = client(&server.uri()).entities().merge(&id, &fragment).tenant(&tenant).send().await.unwrap();
     assert_eq!(outcome, BatchOutcome::Done);
+}
+
+#[tokio::test]
+async fn replace_sends_the_entity_with_its_id_and_without_it_when_omitted() {
+    let server = MockServer::start().await;
+    let target = "/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567";
+    let brand = json!({"type": "Property", "value": "Mercedes"});
+    Mock::given(method("PUT"))
+        .and(path(target))
+        .and(header(&header::CONTENT_TYPE, "application/json"))
+        .and(body_json(json!({"id": "urn:ngsi-ld:Vehicle:A4567", "type": "Vehicle", "brandName": brand})))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("PUT"))
+        .and(path(target))
+        .and(header(&header::CONTENT_TYPE, "application/json"))
+        .and(body_json(json!({"type": "Vehicle", "brandName": brand})))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let vehicle = vehicle();
+    let written = client.entities().replace(&vehicle).send().await.unwrap();
+    assert_eq!(written, BatchOutcome::Done);
+    let omitted = client.entities().replace(&vehicle).id_member(EntityIdMember::Omitted).send().await.unwrap();
+    assert_eq!(omitted, BatchOutcome::Done);
 }
 
 #[tokio::test]
