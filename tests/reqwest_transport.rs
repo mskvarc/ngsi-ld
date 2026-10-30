@@ -75,6 +75,11 @@ mod fixtures {
 #[path = "reqwest_transport/representations.rs"]
 mod representations;
 
+/// Partial Attribute Update with each body it takes, over the client.
+#[cfg(test)]
+#[path = "reqwest_transport/attributes.rs"]
+mod attributes;
+
 /// Merge Entity with a simplified fragment, over the client.
 #[cfg(test)]
 #[path = "reqwest_transport/merge_simplified.rs"]
