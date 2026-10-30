@@ -24,7 +24,7 @@ use crate::{
         Output,
         RawJson,
         attribute::attributes::check_kind,
-        evolution::{DeletedInstance, TemporalInstanceMembers, read::read_temporal_attributes, write::temporal_attributes_object},
+        evolution::{DeletedInstance, TemporalInstanceMembers, read::read_temporal_attributes, write::temporal_fragment_object},
         reader::parse_json,
     },
     query::temporal_query::TemporalProperty,
@@ -285,7 +285,7 @@ impl TemporalAttributes<Input> {
     /// representation: the body Add Attributes and Modify Attribute Instance take (clauses 5.6.12.3 and 5.6.14.3).
     #[must_use]
     pub fn render(&self, form: Lossless) -> RawJson {
-        RawJson::from_json(Json::Object(temporal_attributes_object(self, form)))
+        RawJson::from_json(Json::Object(temporal_fragment_object(None, None, self, form)))
     }
 
     /// Reads the attributes of a temporal evolution a client could send, in normalized or concise representation:
@@ -320,7 +320,7 @@ impl TemporalAttributes<Output> {
     /// Writes the attributes as one object, each evolution an array of instances, with their output-only members.
     #[must_use]
     pub fn render(&self, form: Lossless) -> RawJson {
-        RawJson::from_json(Json::Object(temporal_attributes_object(self, form)))
+        RawJson::from_json(Json::Object(temporal_fragment_object(None, None, self, form)))
     }
 
     /// Reads the attributes of a temporal evolution a broker returns, in normalized or concise representation, with

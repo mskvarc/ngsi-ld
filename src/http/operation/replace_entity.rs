@@ -23,10 +23,12 @@ use crate::{
 use bytes::Bytes;
 use http::{Method, Request, Response};
 
-/// Whether the body of Replace Entity carries the `id` member.
+/// Whether the body of Replace Entity, or the fragment of Add Attributes to Temporal Evolution, carries the `id`
+/// member.
 ///
-/// The entity is named by the request path (NGSI-LD clause 6.5.3.3), so a body that leaves the `id` out is a complete
-/// representation of that entity all the same (Table 6.5.3.3-2).
+/// The entity is named by the request path (NGSI-LD clauses 6.5.3.3 and 6.20.3.1), so a body that leaves the `id` out
+/// is a complete representation of that entity all the same (Table 6.5.3.3-2), and the `id` of a fragment is optional
+/// where the operation names the target (clause 5.4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum EntityIdMember {
     /// The body holds the `id` of the new representation.

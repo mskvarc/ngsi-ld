@@ -4,11 +4,14 @@
 
 use crate::model::{
     Completeness,
+    EntityId,
+    EntityTypeName,
     Lossless,
+    OneOrMany,
     evolution::{InstanceSpelling, TemporalAttributes, TemporalEntity, scope::write_scope_instance},
     representation::write::{direction::WriteEntityDirection, push_display, write_identity},
 };
-use jstrict::Object;
+use jstrict::{Object, Value as Json};
 
 /// Appends every evolution, in order, each as `spelling` says: the array of Annex C.5.5, which Add Attributes and
 /// Modify Attribute Instance require ("contained by an Array", clauses 5.6.12.3 and 5.6.14.3), or the one object
@@ -22,9 +25,21 @@ fn write_evolutions<D: WriteEntityDirection>(object: &mut Object, attributes: &T
     }
 }
 
-/// Writes the attributes alone, as one object, each evolution an array: the body Add Attributes takes.
-pub(crate) fn temporal_attributes_object<D: WriteEntityDirection>(attributes: &TemporalAttributes<D>, form: Lossless) -> Object {
+/// Writes the fragment of a temporal entity Add Attributes takes: the `id` and `type` the fragment names (clause 5.4)
+/// when it names them, then the attributes, each evolution an array.
+pub(crate) fn temporal_fragment_object<D: WriteEntityDirection>(
+    id: Option<&EntityId>,
+    entity_type: Option<&OneOrMany<EntityTypeName>>,
+    attributes: &TemporalAttributes<D>,
+    form: Lossless,
+) -> Object {
     let mut object = Object::new();
+    if let Some(id) = id {
+        object.push("id".into(), Json::from(id.as_str()));
+    }
+    if let Some(entity_type) = entity_type {
+        object.push("type".into(), entity_type.to_json(|name| Json::from(name.to_string())));
+    }
     write_evolutions(&mut object, attributes, form, InstanceSpelling::Array);
     object
 }

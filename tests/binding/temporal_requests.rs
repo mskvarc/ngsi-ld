@@ -23,6 +23,7 @@ use ngsi_ld::{
             DeleteAttributeInstance,
             DeleteTemporalAttribute,
             DeleteTemporalEvolution,
+            EntityIdMember,
             EntityMapRequest,
             InstanceSelection,
             ModifyAttributeInstance,
@@ -42,8 +43,8 @@ use ngsi_ld::{
         EntityId,
         Input,
         Lossless,
-        Output,
         OneOrMany,
+        Output,
         Projected,
         Property,
         Tenant,
@@ -51,10 +52,10 @@ use ngsi_ld::{
         geometry::{Position, Shape},
     },
     query::{
-        EntitySplitting,
         EntitySelector,
-        Locality,
+        EntitySplitting,
         IdPattern,
+        Locality,
         SelectorType,
         language_filter,
         ordering,
@@ -186,6 +187,37 @@ fn add_attributes_writes_one_instance_as_an_array() {
     assert_eq!(request.method(), Method::POST);
     assert_eq!(request.uri().path(), format!("{B_PATH}/attrs"));
     assert_eq!(body_text(&request), r#"{"speed":[{"value":70,"observedAt":"2018-08-01T12:07:00Z"}]}"#);
+}
+
+#[test]
+fn add_attributes_may_name_its_target_by_id_and_add_entity_types() {
+    let mut attributes = TemporalAttributes::<Input>::new();
+    attributes
+        .insert(speed(), Property::builder(70).observed_at(time(T3)).build().unwrap().into())
+        .unwrap();
+    let id = b();
+    let both_types = OneOrMany::try_from(vec!["Vehicle".parse().unwrap(), "Car".parse().unwrap()]).unwrap();
+    let named = AddTemporalAttributes::builder()
+        .id(&id)
+        .attributes(&attributes)
+        .form(Lossless::Concise)
+        .id_member(EntityIdMember::Written)
+        .entity_type(&both_types)
+        .build();
+    assert_eq!(
+        body_text(&request(&named)),
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":["Vehicle","Car"],"speed":[{"value":70,"observedAt":"2018-08-01T12:07:00Z"}]}"#
+    );
+    let one = OneOrMany::one("Car".parse().unwrap());
+    let retyped = AddTemporalAttributes {
+        id_member: EntityIdMember::Omitted,
+        entity_type: Some(&one),
+        ..named
+    };
+    assert_eq!(
+        body_text(&request(&retyped)),
+        r#"{"type":"Car","speed":[{"value":70,"observedAt":"2018-08-01T12:07:00Z"}]}"#
+    );
 }
 
 #[test]
@@ -427,38 +459,6 @@ fn a_post_query_carries_the_temporal_query_in_the_body() {
 }
 
 #[test]
-fn an_aggregated_query_writes_its_methods() {
-    let entity_type = vehicle_type();
-    let temporal_q = window().with_aggregation_methods("max".parse().unwrap());
-    assert_eq!(
-        query_string(&query(Some(&entity_type), &temporal_q, Aggregated)),
-        Some(format!("type=Vehicle&{WINDOW}&aggrMethods=max&format=aggregatedValues"))
-    );
-}
-
-#[test]
-fn a_temporal_query_refuses_what_the_specification_refuses() {
-    let entity_type = vehicle_type();
-    let window = window();
-    assert!(matches!(
-        refusal(&query(None, &window, Lossless::Normalized)),
-        RequestError::Argument(ArgumentError::UnboundedQuery)
-    ));
-    let zero = QueryTemporalEvolution {
-        limit: Some(0),
-        ..query(Some(&entity_type), &window, Lossless::Normalized)
-    };
-    assert!(matches!(refusal(&zero), RequestError::Argument(ArgumentError::ZeroLimitWithoutCount)));
-    let by_speed = ordering::by("speed").build().unwrap();
-    let nearest = ordering::nearest("location")
-        .origin(Shape::Point(Position::try_new(8.0, 40.0).unwrap()))
-        .build()
-        .unwrap();
-    for ordering in [&by_speed, &nearest] {
-        let ordered = QueryTemporalEvolution {
-            ordering: Some(ordering),
-            ..query(Some(&entity_type), &window, Lossless::Normalized)
-#[test]
 fn a_post_query_carries_several_selectors_each_as_the_caller_spelled_it() {
     let temporal_q = window();
     let pattern: IdPattern = "^urn:ngsi-ld:Car:A.*$".parse().unwrap();
@@ -526,6 +526,38 @@ fn a_get_temporal_query_carries_one_selector_given_alone_and_refuses_more() {
     assert!(posted.to_request(&endpoint()).is_ok());
 }
 
+#[test]
+fn an_aggregated_query_writes_its_methods() {
+    let entity_type = vehicle_type();
+    let temporal_q = window().with_aggregation_methods("max".parse().unwrap());
+    assert_eq!(
+        query_string(&query(Some(&entity_type), &temporal_q, Aggregated)),
+        Some(format!("type=Vehicle&{WINDOW}&aggrMethods=max&format=aggregatedValues"))
+    );
+}
+
+#[test]
+fn a_temporal_query_refuses_what_the_specification_refuses() {
+    let entity_type = vehicle_type();
+    let window = window();
+    assert!(matches!(
+        refusal(&query(None, &window, Lossless::Normalized)),
+        RequestError::Argument(ArgumentError::UnboundedQuery)
+    ));
+    let zero = QueryTemporalEvolution {
+        limit: Some(0),
+        ..query(Some(&entity_type), &window, Lossless::Normalized)
+    };
+    assert!(matches!(refusal(&zero), RequestError::Argument(ArgumentError::ZeroLimitWithoutCount)));
+    let by_speed = ordering::by("speed").build().unwrap();
+    let nearest = ordering::nearest("location")
+        .origin(Shape::Point(Position::try_new(8.0, 40.0).unwrap()))
+        .build()
+        .unwrap();
+    for ordering in [&by_speed, &nearest] {
+        let ordered = QueryTemporalEvolution {
+            ordering: Some(ordering),
+            ..query(Some(&entity_type), &window, Lossless::Normalized)
         };
         assert!(matches!(refusal(&ordered), RequestError::Argument(ArgumentError::TemporalOrdering)));
     }

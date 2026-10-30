@@ -7,6 +7,7 @@ use crate::{
         ResponseContext,
         ResponseError,
         operation::{
+            EntityIdMember,
             Operation,
             no_content::decode_no_content,
             sealed::{BuildsRequest, Sealed},
@@ -17,9 +18,11 @@ use crate::{
     },
     model::{
         EntityId,
+        EntityTypeName,
         Input,
         Lossless,
-        evolution::{TemporalAttributes, write::temporal_attributes_object},
+        OneOrMany,
+        evolution::{TemporalAttributes, write::temporal_fragment_object},
     },
 };
 use bytes::Bytes;
@@ -28,7 +31,9 @@ use http::{Method, Request, Response};
 /// Adds attribute instances to the temporal evolution of an entity.
 ///
 /// Its request is `POST /temporal/entities/{entityId}/attrs` (NGSI-LD clause 6.20.3.1). Each evolution is written as an
-/// array, as clause 5.6.12.3 requires.
+/// array, as clause 5.6.12.3 requires. The body is a fragment of the temporal entity (clause 5.4), which may also name
+/// its target: `id`, equal to the entity of the path, and `type`, the entity type names to add to the target (clause
+/// 5.6.12.4). The body names neither unless asked to.
 ///
 /// ```
 /// use iri_rs::iri;
@@ -72,6 +77,12 @@ pub struct AddTemporalAttributes<'a> {
     pub id: &'a EntityId,
     /// The instances to add.
     pub attributes: &'a TemporalAttributes<Input>,
+    /// The `type` of the fragment: entity type names to add to the target when it has not got them yet (clause
+    /// 5.6.12.4). The body leaves `type` out when there is none.
+    pub entity_type: Option<&'a OneOrMany<EntityTypeName>>,
+    /// Whether the body repeats the `id` the path names (clause 5.4).
+    #[builder(default = EntityIdMember::Omitted)]
+    pub id_member: EntityIdMember,
     /// The representation the body is written in.
     #[builder(default)]
     pub form: Lossless,
@@ -90,8 +101,12 @@ impl Operation for AddTemporalAttributes<'_> {
 
 impl BuildsRequest for AddTemporalAttributes<'_> {
     fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
+        let id = match self.id_member {
+            EntityIdMember::Written => Some(self.id),
+            EntityIdMember::Omitted => None,
+        };
         RequestParts::resource(Method::POST, ResourcePath::temporal_attributes(self.id), QueryString::default())
-            .with_body(temporal_attributes_object(self.attributes, self.form))
+            .with_body(temporal_fragment_object(id, self.entity_type, self.attributes, self.form))
             .into_request(endpoint, scope)
     }
 }
