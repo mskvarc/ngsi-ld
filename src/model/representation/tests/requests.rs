@@ -244,3 +244,21 @@ fn a_request_document_refuses_system_members() {
     .unwrap_err();
     assert!(matches!(error.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { .. })));
 }
+
+#[test]
+fn a_request_holds_the_json_null_literal_as_a_property_value_in_both_forms() {
+    let literal = r#"{"@type":"@json","@value":null}"#;
+    for (form, representation, attribute) in [
+        (
+            Lossless::Normalized,
+            Representation::Normalized,
+            format!(r#"{{"type":"Property","value":{literal}}}"#),
+        ),
+        (Lossless::Concise, Representation::Concise, literal.to_owned()),
+    ] {
+        let entity = request_with(&attribute, form).unwrap();
+        let text = entity.render(representation).to_string();
+        assert!(text.contains(literal), "{text}");
+        assert_eq!(Entity::<Input>::parse(&text, form).unwrap(), entity);
+    }
+}

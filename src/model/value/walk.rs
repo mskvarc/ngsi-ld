@@ -21,6 +21,7 @@ impl Debug for Value {
             Self::Array(items) => formatter.debug_tuple("Array").field(items).finish(),
             Self::Object(members) => formatter.debug_tuple("Object").field(members).finish(),
             Self::Typed(typed) => formatter.debug_tuple("Typed").field(typed).finish(),
+            Self::JsonNull => formatter.write_str("JsonNull"),
         })
     }
 }
@@ -35,6 +36,7 @@ impl Clone for Value {
             Self::Array(items) => Self::Array(items.clone()),
             Self::Object(members) => Self::Object(members.clone()),
             Self::Typed(typed) => Self::Typed(typed.clone()),
+            Self::JsonNull => Self::JsonNull,
         })
     }
 }
@@ -50,9 +52,10 @@ impl PartialEq for Value {
             (Self::Array(left), Self::Array(right)) => left == right,
             (Self::Object(left), Self::Object(right)) => left == right,
             (Self::Typed(left), Self::Typed(right)) => left == right,
+            (Self::JsonNull, Self::JsonNull) => true,
             (
-                Self::Boolean(_) | Self::Number(_) | Self::Text(_) | Self::Array(_) | Self::Object(_) | Self::Typed(_),
-                Self::Boolean(_) | Self::Number(_) | Self::Text(_) | Self::Array(_) | Self::Object(_) | Self::Typed(_),
+                Self::Boolean(_) | Self::Number(_) | Self::Text(_) | Self::Array(_) | Self::Object(_) | Self::Typed(_) | Self::JsonNull,
+                Self::Boolean(_) | Self::Number(_) | Self::Text(_) | Self::Array(_) | Self::Object(_) | Self::Typed(_) | Self::JsonNull,
             ) => false,
         })
     }
@@ -70,7 +73,7 @@ impl Drop for Value {
                 let members = mem::take(members);
                 grow(move || drop(members));
             }
-            Self::Boolean(_) | Self::Number(_) | Self::Text(_) | Self::Typed(_) => {}
+            Self::Boolean(_) | Self::Number(_) | Self::Text(_) | Self::Typed(_) | Self::JsonNull => {}
         }
     }
 }

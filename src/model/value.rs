@@ -1,10 +1,22 @@
 //! The NGSI-LD Value (NGSI-LD clause 3.1): the JSON data a Property holds.
 //!
 //! Clause 3.1 defines a Value as JSON (RFC 8259) minus `null`, which clause 5.2.1 excludes because JSON-LD
-//! expansion drops it. Clause C.6 additionally writes typed values (a `Date` or `DateTime` Property value) as JSON-LD
+//! expansion drops it. Clause 4.4 gives the JSON literal `{"@type": "@json", "@value": null}` for a value that must
+//! be `null`, which [`Value::JsonNull`] models. Clause C.6 additionally writes typed values (a `Date` or `DateTime` Property value) as JSON-LD
 //! value objects, `{"@type": "DateTime", "@value": "2018-12-04T12:00:00Z"}`, which this type models explicitly.
 
-use crate::model::{CoreDatatype, Date, DateTime, NotFinite, Number, Time, TypedValue, TypedValueError, nesting::grow};
+use crate::model::{
+    CoreDatatype,
+    Date,
+    DateTime,
+    NotFinite,
+    Number,
+    Time,
+    TypedValue,
+    TypedValueError,
+    keyword::{JSON, TYPE, VALUE},
+    nesting::grow,
+};
 use indexmap::IndexMap;
 use jstrict::{Object, Print, Value as Json, object::Entry};
 use std::fmt::{self, Display};
@@ -82,6 +94,10 @@ pub enum Value {
     /// A JSON-LD typed value, `{"@type": ..., "@value": ...}` (clause C.6).
     #[from(TypedValue)]
     Typed(TypedValue),
+    /// The JSON null literal, `{"@type": "@json", "@value": null}` (clause 4.4). A bare `null` is not a Value, since
+    /// JSON-LD expansion drops it; a JSON literal is not expanded, so this one is kept.
+    #[from(skip)]
+    JsonNull,
 }
 
 /// Generates the `From` conversions from the clause 4.6.3 types into their typed values. No derive writes a
@@ -158,6 +174,9 @@ impl Value {
 
     /// Reads an object, recognising a JSON-LD value object with a string `@value`.
     fn from_json_object(object: Object) -> Result<Self, ValueError> {
+        if is_json_null_literal(&object) {
+            return Ok(Self::JsonNull);
+        }
         if let Some(typed) = TypedValue::from_object(&object) {
             return Ok(Self::Typed(typed?));
         }
@@ -179,8 +198,30 @@ impl Value {
             Self::Array(items) => Json::Array(items.iter().map(Self::to_json).collect()),
             Self::Object(members) => Json::Object(members.iter().map(|(key, value)| (key.as_str().into(), value.to_json())).collect::<Object>()),
             Self::Typed(typed) => typed.to_json(),
+            Self::JsonNull => json_null_literal(),
         })
     }
+}
+
+/// Whether `object` is exactly `{"@type": "@json", "@value": null}`, in either member order.
+fn is_json_null_literal(object: &Object) -> bool {
+    let [first, second] = object.entries() else {
+        return false;
+    };
+    let (datatype, literal) = match (first.key.as_str(), second.key.as_str()) {
+        (TYPE, VALUE) => (&first.value, &second.value),
+        (VALUE, TYPE) => (&second.value, &first.value),
+        _ => return false,
+    };
+    datatype.as_str() == Some(JSON) && matches!(literal, Json::Null)
+}
+
+/// Writes `{"@type": "@json", "@value": null}`, `@type` first.
+fn json_null_literal() -> Json {
+    let mut object = Object::new();
+    object.push(TYPE.into(), Json::from(JSON));
+    object.push(VALUE.into(), Json::Null);
+    Json::Object(object)
 }
 
 // The text form is the compact JSON form, which only exists once the value is turned into a JSON tree.

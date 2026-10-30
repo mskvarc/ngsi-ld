@@ -170,3 +170,27 @@ fn a_value_nested_100_000_levels_deep_is_read_written_copied_compared_and_droppe
     assert_eq!(copy.to_string(), text);
     assert!(format!("{copy:?}").starts_with("Object"));
 }
+
+#[test]
+fn the_json_null_literal_is_a_value_and_round_trips() {
+    let literal = r#"{"@type":"@json","@value":null}"#;
+    let value = parse(literal).unwrap();
+    assert_eq!(value, Value::JsonNull);
+    assert!(value.is_json_null());
+    assert_eq!(value.to_string(), literal);
+    assert_eq!(parse(r#"{"@value":null,"@type":"@json"}"#).unwrap(), Value::JsonNull);
+}
+
+#[test]
+fn a_bare_null_and_a_null_beside_other_members_stay_refused() {
+    assert!(matches!(parse("null"), Err(ValueError::Null)));
+    assert!(matches!(parse(r#"{"@type":"@json","@value":null,"other":1}"#), Err(ValueError::Null)));
+    assert!(matches!(parse(r#"{"@type":"Other","@value":null}"#), Err(ValueError::Null)));
+}
+
+#[test]
+fn the_json_null_literal_nests_in_an_array_and_an_object() {
+    let literal = r#"{"@type":"@json","@value":null}"#;
+    let json = format!(r#"{{"a":[{literal},1]}}"#);
+    assert_eq!(parse(&json).unwrap().to_string(), json);
+}

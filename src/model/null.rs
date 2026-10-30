@@ -87,7 +87,7 @@ fn is_null(text: &str) -> bool {
 pub(crate) fn is_null_value(value: &Value) -> bool {
     match value {
         Value::Text(text) => is_null(text),
-        Value::Boolean(_) | Value::Number(_) | Value::Array(_) | Value::Object(_) | Value::Typed(_) => false,
+        Value::Boolean(_) | Value::Number(_) | Value::Array(_) | Value::Object(_) | Value::Typed(_) | Value::JsonNull => false,
     }
 }
 
@@ -102,7 +102,7 @@ fn nested_object_holds_null(value: &Value) -> bool {
     grow(|| match value {
         Value::Object(members) => object_holds_null(members),
         Value::Array(items) => items.iter().any(nested_object_holds_null),
-        Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Typed(_) => false,
+        Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Typed(_) | Value::JsonNull => false,
     })
 }
 
@@ -125,7 +125,7 @@ pub(crate) fn check_value(value: &Value) -> Result<(), NullMember> {
     }
     match value {
         Value::Object(members) if object_holds_null(members) => Err(NullMember::ValueMember),
-        Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Array(_) | Value::Object(_) | Value::Typed(_) => Ok(()),
+        Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Array(_) | Value::Object(_) | Value::Typed(_) | Value::JsonNull => Ok(()),
     }
 }
 
@@ -234,7 +234,9 @@ pub(crate) fn is_null_payload<D: Direction>(attribute: &Attribute<D>) -> bool {
 pub(crate) fn is_null_simplified(value: &SimplifiedValue) -> bool {
     match value {
         SimplifiedValue::Value(Value::Array(items)) => check_value_list(items).is_err(),
-        SimplifiedValue::Value(value @ (Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Object(_) | Value::Typed(_))) => is_null_value(value),
+        SimplifiedValue::Value(value @ (Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Object(_) | Value::Typed(_) | Value::JsonNull)) => {
+            is_null_value(value)
+        }
         SimplifiedValue::LanguageMap(map) => check_language_map(map).is_err(),
         SimplifiedValue::Vocab(vocab) => check_vocab(vocab).is_err(),
         SimplifiedValue::Json(json) => json.is_ngsi_ld_null(),
@@ -273,7 +275,9 @@ pub(crate) fn check_temporal_values(values: &TemporalValues) -> Result<(), NullM
 pub(crate) fn check_simplified(value: &SimplifiedValue) -> Result<(), NullMember> {
     match value {
         SimplifiedValue::Value(value @ Value::Array(items)) => check_value(value).and_then(|()| check_value_list(items)),
-        SimplifiedValue::Value(value @ (Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Object(_) | Value::Typed(_))) => check_value(value),
+        SimplifiedValue::Value(value @ (Value::Boolean(_) | Value::Number(_) | Value::Text(_) | Value::Object(_) | Value::Typed(_) | Value::JsonNull)) => {
+            check_value(value)
+        }
         SimplifiedValue::LanguageMap(map) => check_language_map(map),
         SimplifiedValue::Vocab(vocab) => check_vocab(vocab),
         SimplifiedValue::Dataset(instances) => instances.values().try_for_each(check_simplified),
