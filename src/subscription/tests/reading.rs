@@ -287,6 +287,39 @@ fn an_empty_dataset_id_list_round_trips_and_differs_from_none() {
 }
 
 #[test]
+fn an_mqtt_endpoint_round_trips_with_or_without_a_user_a_password_and_a_port() {
+    let endpoints = [
+        "mqtt://broker.example/building/forms/1",
+        "mqtt://broker.example:8085/building/forms/2",
+        "mqtt://user@broker.example/building/forms/3",
+        "mqtt://user:password@broker-auth.example/building/forms/4",
+        "mqtt://user:password@broker-auth.example:8085/building/forms/5",
+        "mqtts://broker.example:8883/building/forms/6",
+    ];
+    for uri in endpoints {
+        let text = vehicles_with("").replace("http://my.endpoint.org/notify", uri);
+        let subscription = round_trip::<Input>(&text);
+        assert_eq!(subscription.notification().endpoint().uri().as_str(), uri);
+    }
+}
+
+#[test]
+fn an_mqtt_endpoint_whose_port_is_not_a_number_is_refused_as_a_url() {
+    let text = vehicles_with("").replace("http://my.endpoint.org/notify", "mqtt://broker.example:{{port}}/building/forms/1");
+    let error = read_error::<Input>(&text);
+    assert!(
+        matches!(
+            error.kind,
+            ReadErrorKind::Member(MemberError::Url {
+                source: url::ParseError::InvalidPort
+            })
+        ),
+        "{error}"
+    );
+    assert_eq!(error.path.to_string(), "notification.endpoint.uri");
+}
+
+#[test]
 fn a_request_may_write_the_keywords_for_its_id_and_type_and_those_of_its_selectors() {
     let aliased = format!(r#"{{"@id":"urn:ngsi-ld:Subscription:s1","@type":"Subscription","entities":[{{"@type":"Vehicle"}}],{NOTIFICATION}}}"#);
     let terms = aliased.replace("@id", "id").replace("@type", "type");
