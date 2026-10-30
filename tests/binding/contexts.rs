@@ -5,8 +5,8 @@ use crate::{
     links::context_link,
 };
 use bytes::Bytes;
-use headers::Header;
-use http::{Method, Request, header};
+use headers::{Header, IfNoneMatch};
+use http::{Method, Request, StatusCode, header};
 use iri_rs::{IriBuf, IriRefBuf};
 use ngsi_ld::{
     http::{
@@ -284,6 +284,46 @@ fn serve_reads_the_context_or_its_metadata_and_a_cached_context_is_a_problem() {
         )
         .unwrap_err();
     assert!(is_problem(&error, &ErrorType::ResourceNotFound, 404), "{error:?}");
+}
+
+#[test]
+fn a_conditional_serve_goes_out_and_its_304_comes_back_as_an_unexpected_status_with_its_head() {
+    // Table 6.30.3.1-2 defines 200, 400, 404 and 422 for Serve @context and no conditional request, so a caller who
+    // adds `If-None-Match` through the endpoint gets the 304 reported as a status the operation does not define,
+    // with the head (and its `ETag`) kept.
+    let id = c();
+    let conditional = endpoint().with_header(IfNoneMatch::any()).unwrap();
+    let request = ServeContext::builder().id(&id).build().to_request(&conditional).unwrap();
+    assert_eq!(request.headers()[&header::IF_NONE_MATCH], "*");
+    let error = ServeContext::builder()
+        .id(&id)
+        .build()
+        .decode(&context(), response(304, &[(&header::ETAG, "\"v1\"")], ""))
+        .unwrap_err();
+    assert!(
+        matches!(
+            error,
+            ResponseError::UnexpectedStatus {
+                status: StatusCode::NOT_MODIFIED,
+                ..
+            }
+        ),
+        "{error:?}"
+    );
+    assert_eq!(error.head().headers()[&header::ETAG], "\"v1\"");
+    let error = ServeContextDetails { id: &id }
+        .decode(&context(), response(304, &[(&header::ETAG, "\"v1\"")], ""))
+        .unwrap_err();
+    assert!(
+        matches!(
+            error,
+            ResponseError::UnexpectedStatus {
+                status: StatusCode::NOT_MODIFIED,
+                ..
+            }
+        ),
+        "{error:?}"
+    );
 }
 
 #[test]
