@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.2.0] - 2026-10-30
+
+### 🚀 Features
+- `model` - read objecttype as a term ⚠️ **BREAKING**
+- `model` - hold the json null literal as a property value ⚠️ **BREAKING**
+- `model,http` - let a value keep the spelling it was built with
+- `model` - let a temporal request record the removal of a scope
+- `http,model` - keep the body of a 406 and build positions from exact numbers
+- `http` - let add attributes to temporal evolution name its target
+- `http` - name several entity selectors in temporal queries and entity map creations
+- `client` - build an unchecked request aimed at a snapshot
+- `model` - add as_str to the name types
+- `query` - convert an entity type name into a type selection builder
+- `model` - convert a boolean, number, object or typed value into a value
+- `subscription` - accept csf on a context source registration subscription ⚠️ **BREAKING**
+- `http` - report the success status a page or retrieval was answered with
+- `http` - read the query strings of the registration, subscription, context and discovery listings
+- `registration` - read the body of update entity map
+- `model` - read the fragments, the clone body and the temporal bodies the crate only wrote
+- `http` - let delete attribute name a dataset by its datasetid ⚠️ **BREAKING**
+- `model` - let a temporal evolution record a deleted instance in a request
+- `model` - let partial attribute update send a fragment that sets no value ⚠️ **BREAKING**
+- `registration` - let a registration fragment leave its type out
+- `http` - let replace entity leave the id out of its body
+- `http` - let a batch upsert send options=replace ⚠️ **BREAKING**
+- `http` - let a deletion of attribute instances send deleteall=false ⚠️ **BREAKING**
+- `subscription` - let a client send keyvalues as the notification format ⚠️ **BREAKING**
+- `evolution` - let a client choose the single-object spelling of a temporal evolution ⚠️ **BREAKING**
+
+### 🐛 Bug Fixes
+- `http` - refuse an update result that leaves out a mandatory list
+- `model` - read the keywords @id and @type of a request as id and type
+- `http` - read an ordering parameter given without orderby as asking for no ordering ⚠️ **BREAKING**
+- `model` - read a null optional member of stored context metadata as left out
+- `model` - read an attribute with no instance in a temporal response
+- `http` - read a comma encoded in a list of names or tokens as the separator
+- `http` - let a purge limited by the attributes it drops or keeps be sent
+
+### 🧪 Tests
+- `http` - pin a conditional serve of a stored context and its 304
+- `http` - pin the unchecked road for requests the specification does not define
+- `http` - cover projected entities in the temporal operations, the query by post and paging
+- `http` - derive deliberately invalid subscription and registration bodies from their typed form
+- `http` - cover the context of a replace attribute body
+- `subscription` - cover mqtt and mqtts notification endpoints
+- `http` - pin that an opaque page continuation is followed verbatim and not read as a parameter
+- `model` - pin a language property with several strings for one language
+
+### 🧹 Chores
+- bump version
+
 ## [v1.1.0] - 2026-10-24
 
 ### 🚀 Features
