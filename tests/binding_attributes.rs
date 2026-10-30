@@ -26,7 +26,22 @@ use ngsi_ld::{
             UpdateAttributes,
         },
     },
-    model::{Attribute, AttributeFragment, AttributeMembers, AttributeName, Change, DatasetId, EntityFragment, Lossless, OneOrMany, Property, ScopeChange},
+    model::{
+        Attribute,
+        AttributeDocument,
+        AttributeFragment,
+        AttributeMembers,
+        AttributeName,
+        Change,
+        DatasetId,
+        EntityFragment,
+        Input,
+        InstanceDeletion,
+        Lossless,
+        OneOrMany,
+        Property,
+        ScopeChange,
+    },
     query::{Locality, SelectorType},
 };
 use pretty_assertions::assert_eq;
@@ -243,6 +258,38 @@ fn replace_attribute_as_ld_json_carries_the_context_at_the_top_of_the_attribute_
         Unordered(json(request.body())),
         Unordered(json(br#"{"@context": "https://example.org/context.jsonld", "type": "Property", "value": 55}"#))
     );
+}
+
+#[test]
+fn an_attribute_body_sent_as_ld_json_reads_back_as_a_document_holding_the_endpoint_context() {
+    let id = vehicle_id();
+    let name = speed();
+    let endpoint = endpoint_with(ContextDelivery::LdJsonBody);
+    let attribute = Attribute::Property(Property::builder(55).build().unwrap());
+    let replace = ReplaceAttribute::builder()
+        .id(&id)
+        .name(&name)
+        .attribute(&attribute)
+        .build()
+        .to_request(&endpoint)
+        .unwrap();
+    let replaced = AttributeDocument::<Attribute<Input>>::parse(str::from_utf8(replace.body()).unwrap(), Lossless::Normalized).unwrap();
+    assert_eq!(replaced.attribute, attribute);
+    assert_eq!(replaced.context.as_ref(), endpoint.context());
+    assert_eq!(replaced.render(Lossless::Normalized).to_string().as_bytes(), replace.body().as_ref());
+    let fragment = Change::Set(AttributeFragment::from(attribute.into_patch()));
+    let update = PartialAttributeUpdate::builder()
+        .id(&id)
+        .name(&name)
+        .attribute(&fragment)
+        .form(Lossless::Concise)
+        .build()
+        .to_request(&endpoint)
+        .unwrap();
+    let updated = AttributeDocument::<Change<AttributeFragment, InstanceDeletion>>::parse(str::from_utf8(update.body()).unwrap(), Lossless::Concise).unwrap();
+    assert_eq!(updated.attribute, fragment);
+    assert_eq!(updated.context.as_ref(), endpoint.context());
+    assert_eq!(updated.render(Lossless::Concise).to_string().as_bytes(), update.body().as_ref());
 }
 
 #[test]

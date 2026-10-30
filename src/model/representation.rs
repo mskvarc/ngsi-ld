@@ -5,30 +5,19 @@ use crate::model::{
     AttributeFragment,
     Change,
     Completeness,
-    Deletion,
     DocumentError,
-    DocumentErrorKind,
     Entity,
     EntityFragment,
     Input,
     InstanceDeletion,
-    MemberError,
-    NullMember,
     Output,
     Patch,
     Projected,
     RawJson,
     SimplifiedEntity,
-    keyword_alias::unalias_attribute,
     reader::parse_json,
     representation::{
-        read::{
-            fragment::read_fragment,
-            members::{FragmentShape, read_members},
-            read_entity,
-            read_instance_list,
-            read_instances,
-        },
+        read::{fragment::read_fragment, read_attribute_body, read_entity, read_lone_instance},
         write::{
             Placement,
             direction::WriteEntityDirection,
@@ -255,19 +244,21 @@ impl Attribute<Output> {
     ///
     /// Returns [`DocumentError`] when the text is not one attribute in `form`.
     pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
-        single(read_instances::<Output>(parse_json(text)?, form)?.into_vec())
+        read_lone_instance::<Output>(parse_json(text)?, form)
     }
 }
 
 impl Attribute<Input> {
-    /// Reads one attribute instance a client could send.
+    /// Reads one attribute instance a client could send. An attribute holds no `@context` of its own; the body of
+    /// Replace Attribute sent as JSON-LD, which carries one (clause 6.3.5), is read with
+    /// [`AttributeDocument`](crate::model::AttributeDocument).
     ///
     /// # Errors
     ///
-    /// Returns [`DocumentError`] when the text is not one attribute in `form`, holds an output-only member, or
-    /// holds the NGSI-LD Null (clause 5.5.4).
+    /// Returns [`DocumentError`] when the text is not one attribute in `form`, holds an output-only member or an
+    /// `@context`, or holds the NGSI-LD Null (clause 5.5.4).
     pub fn parse_input(text: &str, form: Lossless) -> Result<Self, DocumentError> {
-        single(read_instances::<Input>(parse_json(text)?, form)?.into_vec())
+        read_lone_instance::<Input>(parse_json(text)?, form)
     }
 }
 
@@ -336,7 +327,8 @@ impl Change<AttributeFragment, InstanceDeletion> {
     ///
     /// An object that names no payload (`value`, `object`, `languageMap`, ...) is an [`AttributeMembers`](crate::model::AttributeMembers), in either
     /// form: `{"value": 100}` sets the value, `{"observedAt": "2022-03-14T12:51:02Z"}` changes only the `observedAt`,
-    /// and `{}` changes nothing.
+    /// and `{}` changes nothing. The body sent as JSON-LD, which carries an `@context` (clause 6.3.5), is read with
+    /// [`AttributeDocument`](crate::model::AttributeDocument).
     ///
     /// ```
     /// use ngsi_ld::model::{AttributeFragment, AttributeKind, Change, InstanceDeletion, Lossless};
@@ -365,21 +357,7 @@ impl Change<AttributeFragment, InstanceDeletion> {
     /// Returns [`DocumentError`] when the text is not one attribute object in `form`, holds an output-only member,
     /// or is the bare NGSI-LD Null, which deletes a member of an entity and is no attribute object.
     pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
-        let json = match parse_json(text)? {
-            Json::Object(object) => {
-                let object = unalias_attribute(object)?;
-                match FragmentShape::of(&object) {
-                    FragmentShape::Members(kind) => return read_members(kind, object, form).map(|members| Change::Set(members.into())),
-                    FragmentShape::Payload => Json::Object(object),
-                }
-            }
-            other @ (Json::Null | Json::Boolean(_) | Json::Number(_) | Json::String(_) | Json::Array(_)) => other,
-        };
-        match single(read_instance_list::<Patch>(json, form)?)? {
-            Change::Set(attribute) => Ok(Change::Set(attribute.into())),
-            Change::Delete(Deletion::Instance(deletion)) => Ok(Change::Delete(deletion)),
-            Change::Delete(Deletion::Member) => Err(DocumentError::top(DocumentErrorKind::NgsiLdNull { member: NullMember::Value })),
-        }
+        read_attribute_body(parse_json(text)?, form)
     }
 
     /// Writes the body of Partial Attribute Update in normalized or concise representation (clause 6.7.3.1): always
@@ -388,13 +366,6 @@ impl Change<AttributeFragment, InstanceDeletion> {
     pub fn render(&self, form: Lossless) -> RawJson {
         RawJson::from_json(Json::Object(write_attribute_body(self, form)))
     }
-}
-
-/// The only instance of a one-instance document.
-fn single<T>(instances: Vec<T>) -> Result<T, DocumentError> {
-    <[T; 1]>::try_from(instances)
-        .map(|[one]| one)
-        .map_err(|_| DocumentError::top(MemberError::NotAnObject.into()))
 }
 
 #[cfg(test)]

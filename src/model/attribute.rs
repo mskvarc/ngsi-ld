@@ -28,6 +28,7 @@ use crate::{
 
 pub(super) mod attributes;
 pub(super) mod deleted;
+pub(super) mod document;
 pub(super) mod fragment;
 pub(super) mod geo_property;
 pub(super) mod instances;

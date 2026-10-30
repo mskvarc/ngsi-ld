@@ -4,15 +4,22 @@
 
 use crate::model::{
     Attribute,
+    AttributeFragment,
     Attributes,
+    Change,
     Completeness,
+    Deletion,
     DocumentError,
     DocumentErrorKind,
     Entity,
+    InstanceDeletion,
     Instances,
     Lossless,
+    MemberError,
+    NullMember,
+    Patch,
     entity::member::{EntityMember, SystemMember},
-    keyword_alias::unalias_members,
+    keyword_alias::{unalias_attribute, unalias_members},
     nesting::grow,
     reader::{attribute_name, context, date_time, duplicate, entity_types, object, once, scopes},
     representation::{
@@ -21,6 +28,7 @@ use crate::model::{
             concise::read_concise,
             direction::{ReadDirection, ReadEntityDirection},
             instance::read_normalized,
+            members::{FragmentShape, read_members},
         },
         shape::shapes_attribute,
     },
@@ -108,6 +116,38 @@ pub(crate) fn instance_items(json: Json, form: Lossless) -> Vec<Json> {
         (Lossless::Normalized, Json::Array(items)) => items.into(),
         (Lossless::Concise | Lossless::Normalized, json) => vec![json],
     }
+}
+
+/// Reads a document of one attribute instance, the body of an operation on one attribute.
+pub(crate) fn read_lone_instance<D: ReadDirection>(json: Json, form: Lossless) -> Result<D::Slot, DocumentError> {
+    single(read_instances::<D>(json, form)?.into_vec())
+}
+
+/// Reads the body of Partial Attribute Update (clauses 5.6.4 and 6.7.3.1): an attribute fragment, or the deletion of
+/// the instance.
+pub(crate) fn read_attribute_body(json: Json, form: Lossless) -> Result<Change<AttributeFragment, InstanceDeletion>, DocumentError> {
+    let json = match json {
+        Json::Object(object) => {
+            let object = unalias_attribute(object)?;
+            match FragmentShape::of(&object) {
+                FragmentShape::Members(kind) => return read_members(kind, object, form).map(|members| Change::Set(members.into())),
+                FragmentShape::Payload => Json::Object(object),
+            }
+        }
+        other @ (Json::Null | Json::Boolean(_) | Json::Number(_) | Json::String(_) | Json::Array(_)) => other,
+    };
+    match single(read_instance_list::<Patch>(json, form)?)? {
+        Change::Set(attribute) => Ok(Change::Set(attribute.into())),
+        Change::Delete(Deletion::Instance(deletion)) => Ok(Change::Delete(deletion)),
+        Change::Delete(Deletion::Member) => Err(DocumentError::top(DocumentErrorKind::NgsiLdNull { member: NullMember::Value })),
+    }
+}
+
+/// The only instance of a one-instance document.
+fn single<T>(instances: Vec<T>) -> Result<T, DocumentError> {
+    <[T; 1]>::try_from(instances)
+        .map(|[one]| one)
+        .map_err(|_| DocumentError::top(MemberError::NotAnObject.into()))
 }
 
 /// Reads one instance in `form`, and lets the direction admit it.
