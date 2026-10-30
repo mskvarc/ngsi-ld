@@ -8,6 +8,7 @@ use crate::{
         BuildError,
         DocumentError,
         EntityId,
+        EntityTypeName,
         MemberError,
         OneOrMany,
         RawJson,
@@ -74,16 +75,21 @@ impl FromStr for SelectorType {
 /// It is every entity type (`*`), or a type selection whose names are checked when it is built (NGSI-LD clause 4.17,
 /// Table 6.4.3.2-1).
 ///
-/// A string names one entity type, as [`type_selection::entity_type`] does; `*` is not an entity type name, so
-/// every type is asked for with [`SelectorTypeBuilder::All`] or [`SelectorType::All`].
+/// A string or an [`EntityTypeName`] names one entity type, as [`type_selection::entity_type`] does; `*` is not an
+/// entity type name, so every type is asked for with [`SelectorTypeBuilder::All`] or [`SelectorType::All`].
 ///
 /// The enum is exhaustive, as [`SelectorType`] is.
 ///
 /// ```
-/// use ngsi_ld::query::{SelectorType, builders::SelectorTypeBuilder, type_selection};
+/// use ngsi_ld::{
+///     model::EntityTypeName,
+///     query::{SelectorType, builders::SelectorTypeBuilder, type_selection},
+/// };
 ///
 /// let vehicles = SelectorTypeBuilder::from("Vehicle").build()?;
 /// assert_eq!(vehicles.to_string(), "Vehicle");
+/// let name: EntityTypeName = "Vehicle".parse()?;
+/// assert_eq!(SelectorTypeBuilder::from(&name).build()?, vehicles);
 /// let either = SelectorTypeBuilder::from(type_selection::entity_type("Car").or("Bus")).build()?;
 /// assert_eq!(either.to_string(), "Car|Bus");
 /// assert_eq!(SelectorTypeBuilder::All.build()?, SelectorType::All);
@@ -116,6 +122,21 @@ impl SelectorTypeBuilder {
 impl From<&str> for SelectorTypeBuilder {
     fn from(name: &str) -> Self {
         Self::Selection(type_selection::entity_type(name))
+    }
+}
+
+/// A selection of the one entity type `name`. A name holding an operator of the type selection language is reported
+/// by [`build`](SelectorTypeBuilder::build), as for a string.
+impl From<&EntityTypeName> for SelectorTypeBuilder {
+    fn from(name: &EntityTypeName) -> Self {
+        Self::Selection(name.into())
+    }
+}
+
+/// A selection of the one entity type `name`, as for [`&EntityTypeName`](EntityTypeName).
+impl From<EntityTypeName> for SelectorTypeBuilder {
+    fn from(name: EntityTypeName) -> Self {
+        Self::Selection(name.into())
     }
 }
 

@@ -12,7 +12,7 @@ use ngsi_ld::{
         headers::NgsiLdEntityMap,
         operation::{ArgumentError, InlineJoin, QueryMethod, RepresentationSpelling},
     },
-    model::{Attribute, AttributeName, EntityId, Instances, OneOrMany},
+    model::{Attribute, AttributeName, EntityId, EntityTypeName, Instances, OneOrMany},
     query::{EntitySelector, IdPattern, Locality, SelectorType, projection, temporal_query},
 };
 use pretty_assertions::assert_eq;
@@ -70,6 +70,24 @@ async fn a_post_query_sends_every_entity_selector_in_its_body() {
         .await
         .unwrap();
     assert_eq!(page.items().len(), 1);
+}
+
+#[tokio::test]
+async fn a_query_takes_its_type_as_an_entity_type_name_borrowed_or_owned() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(QueryIs(Some("type=Vehicle")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
+        .expect(2)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let vehicle: EntityTypeName = "Vehicle".parse().unwrap();
+    let borrowed = client.entities().query().entity_type(&vehicle).send().await.unwrap();
+    assert_eq!(borrowed.items().first(), None);
+    let owned = client.entities().query().entity_type(vehicle).send().await.unwrap();
+    assert_eq!(owned.items().first(), None);
 }
 
 #[tokio::test]

@@ -1,8 +1,8 @@
 //! Entity selectors (NGSI-LD clause 5.2.33).
 
 use crate::{
-    model::{DocumentError, EntityId, JsonType, MemberError, OneOrMany},
-    query::{EntitySelector, EntitySelectorError, SelectorType},
+    model::{DocumentError, EntityId, EntityTypeName, JsonType, MemberError, OneOrMany},
+    query::{EntitySelector, EntitySelectorError, Problem, SelectorType, builders::SelectorTypeBuilder},
 };
 use pretty_assertions::assert_eq;
 
@@ -48,6 +48,23 @@ fn a_selector_without_type_is_refused() {
 fn the_selector_of_every_type_is_written_as_a_star() {
     assert_eq!(EntitySelector::all().render().to_string(), r#"{"type":"*"}"#);
     assert_eq!(round_trip(r#"{"type":"*"}"#).selector_type(), &SelectorType::All);
+}
+
+#[test]
+fn an_entity_type_name_converts_into_a_selector_type_builder_owned_or_borrowed() {
+    let name: EntityTypeName = "Vehicle".parse().unwrap();
+    assert_eq!(SelectorTypeBuilder::from(&name).build().unwrap().to_string(), "Vehicle");
+    assert_eq!(
+        SelectorTypeBuilder::from(name).build().unwrap(),
+        SelectorTypeBuilder::from("Vehicle").build().unwrap()
+    );
+}
+
+#[test]
+fn an_entity_type_name_holding_an_operator_is_refused_when_the_selector_type_is_built() {
+    let name: EntityTypeName = "https://example.org/a,b".parse().unwrap();
+    let error = SelectorTypeBuilder::from(name).build().unwrap_err();
+    assert!(matches!(error.problems(), [Problem::InvalidEntityType { .. }]), "{error:?}");
 }
 
 /// Whether an error is the one a case expects.
