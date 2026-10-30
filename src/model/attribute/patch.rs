@@ -198,7 +198,6 @@ mod tests {
         AttributeKind,
         Change,
         EntityId,
-        EntityTypeName,
         GeoProperty,
         InstanceDeletion,
         ListProperty,
@@ -210,6 +209,7 @@ mod tests {
         Property,
         Relationship,
         Value,
+        VocabTerm,
         geometry::{Position, Shape},
     };
     use cefact_units::UnitCode;
@@ -228,7 +228,7 @@ mod tests {
     }
 
     fn sensor() -> Attribute<Patch> {
-        let sensor_type: EntityTypeName = "Sensor".parse().unwrap();
+        let sensor_type: VocabTerm = "Sensor".parse().unwrap();
         Attribute::from(
             Relationship::builder(EntityId::from(iri!("urn:ngsi-ld:Sensor:1")))
                 .object_type(sensor_type)

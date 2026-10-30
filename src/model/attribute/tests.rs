@@ -6,7 +6,6 @@ use crate::model::{
     BuildProblem,
     DatasetId,
     EntityId,
-    EntityTypeName,
     GeoProperty,
     InstancesError,
     JsonProperty,
@@ -105,7 +104,7 @@ fn a_json_property_refuses_json_that_is_not_an_object_or_an_array_of_objects() {
 fn the_list_payloads_and_object_types_refuse_an_empty_list() {
     assert_empty(Relationship::builder(Vec::<EntityId>::new()).build(), ReservedMember::Object);
     assert_empty(VocabProperty::builder(Vec::<VocabTerm>::new()).build(), ReservedMember::Vocab);
-    let no_types = Vec::<EntityTypeName>::new();
+    let no_types = Vec::<VocabTerm>::new();
     assert_empty(
         Relationship::builder(EntityId::from(iri!("urn:ngsi-ld:T:1")))
             .object_type(no_types.clone())
@@ -118,7 +117,7 @@ fn the_list_payloads_and_object_types_refuse_an_empty_list() {
 #[test]
 fn a_relationship_accepts_several_objects_and_object_types() {
     let objects = vec![EntityId::from(iri!("urn:ngsi-ld:T:1")), EntityId::from(iri!("urn:ngsi-ld:T:2"))];
-    let types = vec!["T".parse::<EntityTypeName>().unwrap(), "U".parse().unwrap()];
+    let types = vec!["T".parse::<VocabTerm>().unwrap(), "U".parse().unwrap()];
     let relationship = Relationship::builder(objects).object_type(types).build().unwrap();
     assert!(relationship.object().is_many());
     assert_eq!(relationship.object_type().map(|types| types.as_slice().len()), Some(2));

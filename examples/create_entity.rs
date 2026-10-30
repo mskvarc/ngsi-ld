@@ -8,7 +8,7 @@ use iri_rs::iri;
 use ngsi_ld::{
     client::{Client, ReqwestTransport},
     http::CreateOutcome,
-    model::{DateTime, Entity, EntityId, EntityTypeName, ListProperty, ListRelationship, Relationship, Representation, Value, VocabTerm},
+    model::{DateTime, Entity, EntityId, ListProperty, ListRelationship, Relationship, Representation, Value, VocabTerm},
 };
 use std::{env, slice};
 use url::Url;
@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let client = Client::builder().base_url(base_url).transport(ReqwestTransport::try_default()?).build()?;
 
     let is_parked = Relationship::builder(EntityId::from(iri!("urn:ngsi-ld:OffStreetParking:Downtown1")))
-        .object_type("OffStreetParking".parse::<EntityTypeName>()?)
+        .object_type("OffStreetParking".parse::<VocabTerm>()?)
         .observed_at("2017-07-29T12:00:04Z".parse::<DateTime>()?)
         .relationship("providedBy", iri!("urn:ngsi-ld:Person:Bob"));
     let tyre_tread_depths = ListProperty::builder(vec![Value::from(300), Value::from(300), Value::from(120), Value::from(6)])
@@ -31,13 +31,13 @@ async fn main() -> anyhow::Result<()> {
         EntityId::from(iri!("urn:ngsi-ld:Person:Alice")),
         EntityId::from(iri!("urn:ngsi-ld:Person:Bob")),
     ])
-    .object_type("Person".parse::<EntityTypeName>()?);
+    .object_type("Person".parse::<VocabTerm>()?);
     let route = ListRelationship::builder(vec![
         EntityId::from(iri!("urn:ngsi-ld:City:Antwerp")),
         EntityId::from(iri!("urn:ngsi-ld:City:Rotterdam")),
         EntityId::from(iri!("urn:ngsi-ld:City:Amsterdam")),
     ])
-    .object_type("City".parse::<EntityTypeName>()?);
+    .object_type("City".parse::<VocabTerm>()?);
     let vehicle = Entity::builder()
         .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
         .entity_type("Vehicle")

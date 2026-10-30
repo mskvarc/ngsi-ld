@@ -8,7 +8,6 @@ use crate::model::{
     DocumentError,
     DocumentErrorKind,
     EntityId,
-    EntityTypeName,
     GeoProperty,
     JsonProperty,
     LanguageMap,
@@ -93,7 +92,7 @@ pub(super) struct KindMembers<D: ReadDirection> {
     /// `valueType`.
     pub(super) value_type: D::Member<VocabTerm>,
     /// `objectType`.
-    pub(super) object_type: D::Member<OneOrMany<EntityTypeName>>,
+    pub(super) object_type: D::Member<OneOrMany<VocabTerm>>,
     /// The members every kind shares, with their timestamps.
     pub(super) meta: AttributeMeta<D>,
 }
@@ -114,7 +113,7 @@ pub(super) fn read_kind_members<D: ReadDirection>(
             .map_err(|source| DocumentError::top(DocumentErrorKind::UnitCode { source }))
     })?;
     let value_type = D::read_member(value_type, |json| parsed::<VocabTerm, _>(json, "valueType"))?;
-    let object_type = D::read_member(object_type, |json| one_or_many(json, |item| parsed::<EntityTypeName, _>(item, "objectType")))?;
+    let object_type = D::read_member(object_type, |json| one_or_many(json, |item| parsed::<VocabTerm, _>(item, "objectType")))?;
     meta.observed_at = D::read_member(observed_at, |json| date_time(json, "observedAt"))?;
     meta.expires_at = D::read_member(expires_at, |json| date_time(json, "expiresAt"))?;
     Ok(KindMembers {

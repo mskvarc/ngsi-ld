@@ -12,7 +12,6 @@ use ngsi_ld::{
         AttributeName,
         Entity,
         EntityId,
-        EntityTypeName,
         ErrorType,
         Input,
         Instances,
@@ -22,6 +21,7 @@ use ngsi_ld::{
         Property,
         Relationship,
         Value,
+        VocabTerm,
     },
 };
 use std::{env, process, time::SystemTime};
@@ -74,7 +74,7 @@ pub(crate) fn every_kind_vehicle(id: &EntityId) -> Entity<Input> {
         .relationship(
             "isParked",
             Relationship::builder(EntityId::from(iri!("urn:ngsi-ld:OffStreetParking:Downtown1")))
-                .object_type("OffStreetParking".parse::<EntityTypeName>().unwrap())
+                .object_type("OffStreetParking".parse::<VocabTerm>().unwrap())
                 .observed_at("2017-07-29T12:00:04Z".parse().unwrap())
                 .relationship("providedBy", iri!("urn:ngsi-ld:Person:Bob")),
         )
@@ -89,7 +89,7 @@ pub(crate) fn every_kind_vehicle(id: &EntityId) -> Entity<Input> {
                 EntityId::from(iri!("urn:ngsi-ld:Person:Alice")),
                 EntityId::from(iri!("urn:ngsi-ld:Person:Bob")),
             ])
-            .object_type("Person".parse::<EntityTypeName>().unwrap()),
+            .object_type("Person".parse::<VocabTerm>().unwrap()),
         )
         .list_relationship(
             "route",
@@ -98,7 +98,7 @@ pub(crate) fn every_kind_vehicle(id: &EntityId) -> Entity<Input> {
                 EntityId::from(iri!("urn:ngsi-ld:City:Rotterdam")),
                 EntityId::from(iri!("urn:ngsi-ld:City:Amsterdam")),
             ])
-            .object_type("City".parse::<EntityTypeName>().unwrap()),
+            .object_type("City".parse::<VocabTerm>().unwrap()),
         )
         .build()
         .unwrap()

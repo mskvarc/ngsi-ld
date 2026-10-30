@@ -4,7 +4,6 @@ use crate::model::{
     AttributeMembers,
     Change,
     DateTime,
-    EntityTypeName,
     InstanceDeletion,
     Lossless,
     MemberChange,
@@ -20,7 +19,7 @@ fn observed() -> DateTime {
     "2022-03-14T12:51:02Z".parse().unwrap()
 }
 
-fn sensor() -> EntityTypeName {
+fn sensor() -> VocabTerm {
     "Sensor".parse().unwrap()
 }
 
@@ -95,7 +94,7 @@ fn a_fragment_without_a_kind_leaves_the_check_of_its_members_to_the_target() {
 
 #[test]
 fn an_empty_object_type_is_refused() {
-    assert!(AttributeMembers::builder().object_type(Vec::<EntityTypeName>::new()).build().is_err());
+    assert!(AttributeMembers::builder().object_type(Vec::<VocabTerm>::new()).build().is_err());
 }
 
 #[test]

@@ -28,6 +28,7 @@ use crate::{
         Property,
         ScopeChange,
         Value,
+        VocabTerm,
         geometry::Geometry,
         keyword::CONTEXT,
         nesting::grow,
@@ -273,7 +274,7 @@ fn write_payload<D: WriteDirection>(object: &mut Object, attribute: &Attribute<D
 }
 
 /// Writes `objectType` when present, or the NGSI-LD Null a fragment deletes it with.
-fn write_object_type<D: WriteDirection>(object: &mut Object, object_type: &D::Member<OneOrMany<EntityTypeName>>) {
+fn write_object_type<D: WriteDirection>(object: &mut Object, object_type: &D::Member<OneOrMany<VocabTerm>>) {
     if let Some(json) = D::write_member(object_type, |types| types.to_json(|name| Json::from(name.to_string()))) {
         object.push("objectType".into(), json);
     }

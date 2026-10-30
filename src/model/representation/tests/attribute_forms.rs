@@ -4,7 +4,6 @@
 use crate::model::{
     Attribute,
     EntityId,
-    EntityTypeName,
     GeoProperty,
     Input,
     JsonProperty,
@@ -103,7 +102,7 @@ fn a_relationship_drops_its_type_in_concise_form() {
 #[test]
 fn a_relationship_with_two_objects_and_an_object_type() {
     let objects = vec![EntityId::from(iri!("urn:ngsi-ld:Person:Alice")), EntityId::from(iri!("urn:ngsi-ld:Person:Bob"))];
-    let person: EntityTypeName = "Person".parse().unwrap();
+    let person: VocabTerm = "Person".parse().unwrap();
     let (normalized, concise) = both(Relationship::builder(objects).object_type(person).build().unwrap());
     assert_eq!(
         normalized,
@@ -185,7 +184,7 @@ fn a_list_relationship_wraps_objects_in_normalized_form_and_lists_uris_in_concis
         .to_vec();
     let (normalized, concise) = both(
         ListRelationship::builder(cities)
-            .object_type("City".parse::<EntityTypeName>().unwrap())
+            .object_type("City".parse::<VocabTerm>().unwrap())
             .build()
             .unwrap(),
     );

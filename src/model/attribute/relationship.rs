@@ -11,7 +11,6 @@ use crate::{
         Direction,
         Entity,
         EntityId,
-        EntityTypeName,
         Input,
         MemberChange,
         OneOrMany,
@@ -22,6 +21,7 @@ use crate::{
         Projected,
         Proof,
         ReservedMember,
+        VocabTerm,
         attribute::pending::PendingAttributes,
         null,
     },
@@ -55,7 +55,7 @@ pub struct Relationship<D: Direction> {
     /// `object`: the target entity or entities.
     pub(crate) object: OneOrMany<EntityId>,
     /// `objectType`: the type or types of the targets (clause 4.5.23).
-    pub(crate) object_type: D::Member<OneOrMany<EntityTypeName>>,
+    pub(crate) object_type: D::Member<OneOrMany<VocabTerm>>,
     /// The members every kind shares.
     pub(crate) meta: AttributeMeta<D>,
     /// The output-only members of this kind; `()` outside responses.
@@ -76,7 +76,7 @@ impl Relationship<Input> {
     pub fn new(
         #[builder(start_fn, into)] object: OneOrManyDraft<EntityId>,
         #[builder(field)] attributes: PendingAttributes,
-        #[builder(into)] object_type: Option<OneOrManyDraft<EntityTypeName>>,
+        #[builder(into)] object_type: Option<OneOrManyDraft<VocabTerm>>,
         #[builder(into)] dataset_id: Option<DatasetId>,
         observed_at: Option<DateTime>,
         expires_at: Option<DateTime>,
@@ -123,7 +123,7 @@ impl<D: Direction> Relationship<D> {
 impl<D: Plain> Relationship<D> {
     /// Returns the type or types of the targets (`objectType`).
     #[must_use]
-    pub fn object_type(&self) -> Option<&OneOrMany<EntityTypeName>> {
+    pub fn object_type(&self) -> Option<&OneOrMany<VocabTerm>> {
         D::member(Seal::new(), &self.object_type)
     }
 
@@ -143,7 +143,7 @@ impl Relationship<Patch> {
     /// Returns the change the fragment makes to the type or types of the targets (`objectType`): set, deleted with the
     /// NGSI-LD Null, or absent.
     #[must_use]
-    pub fn object_type(&self) -> Option<MemberChange<&OneOrMany<EntityTypeName>>> {
+    pub fn object_type(&self) -> Option<MemberChange<&OneOrMany<VocabTerm>>> {
         self.object_type.as_ref().map(MemberChange::as_ref)
     }
 }

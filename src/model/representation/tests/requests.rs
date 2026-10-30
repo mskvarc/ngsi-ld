@@ -262,3 +262,23 @@ fn a_request_holds_the_json_null_literal_as_a_property_value_in_both_forms() {
         assert_eq!(Entity::<Input>::parse(&text, form).unwrap(), entity);
     }
 }
+
+#[test]
+fn an_object_type_is_a_term_so_it_may_hold_a_hyphen() {
+    for (object_type, written) in [
+        (r#""smart-building""#, r#""smart-building""#),
+        (r#"["smart-building","smart-room"]"#, r#"["smart-building","smart-room"]"#),
+    ] {
+        let attribute = format!(r#"{{"type":"Relationship","object":"urn:ngsi-ld:T:2","objectType":{object_type}}}"#);
+        let entity = request_with(&attribute, Lossless::Normalized).unwrap();
+        let text = entity.render(Representation::Normalized).to_string();
+        assert!(text.contains(&format!(r#""objectType":{written}"#)), "{text}");
+    }
+    assert!(
+        request_with(
+            r#"{"type":"Relationship","object":"urn:ngsi-ld:T:2","objectType":"smart building"}"#,
+            Lossless::Normalized
+        )
+        .is_err()
+    );
+}

@@ -10,7 +10,6 @@ use crate::model::{
     DatasetId,
     DateTime,
     Deletion,
-    EntityTypeName,
     Input,
     MemberChange,
     MemberOfOtherKind,
@@ -95,7 +94,7 @@ pub struct AttributeMembers {
     /// The change to `valueType`.
     pub(crate) value_type: Option<MemberChange<VocabTerm>>,
     /// The change to `objectType`.
-    pub(crate) object_type: Option<MemberChange<OneOrMany<EntityTypeName>>>,
+    pub(crate) object_type: Option<MemberChange<OneOrMany<VocabTerm>>>,
     /// The members every kind shares, and the sub-attributes.
     pub(crate) meta: AttributeMeta<Patch>,
 }
@@ -115,7 +114,7 @@ impl AttributeMembers {
         kind: Option<AttributeKind>,
         unit_code: Option<UnitCode>,
         value_type: Option<VocabTerm>,
-        #[builder(into)] object_type: Option<OneOrManyDraft<EntityTypeName>>,
+        #[builder(into)] object_type: Option<OneOrManyDraft<VocabTerm>>,
         #[builder(into)] dataset_id: Option<DatasetId>,
         observed_at: Option<DateTime>,
         expires_at: Option<DateTime>,
@@ -175,7 +174,7 @@ impl AttributeMembers {
 
     /// Returns the change to the types of the targets (`objectType`).
     #[must_use]
-    pub fn object_type(&self) -> Option<MemberChange<&OneOrMany<EntityTypeName>>> {
+    pub fn object_type(&self) -> Option<MemberChange<&OneOrMany<VocabTerm>>> {
         self.object_type.as_ref().map(MemberChange::as_ref)
     }
 
