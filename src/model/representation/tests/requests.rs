@@ -323,6 +323,31 @@ fn a_response_property_value_holding_a_non_null_json_literal_spelled_with_the_te
 }
 
 #[test]
+fn a_response_property_value_holding_a_json_literal_under_an_expanded_term_is_an_object_read_by_path() {
+    for literal in [
+        r#"{"@value":{"a":1,"b":[true]},"type":"@json"}"#,
+        r#"{"@type":"@json","@value":{"a":1,"b":[true]}}"#,
+    ] {
+        let text = format!(r#"{{"id":"urn:ngsi-ld:T:1","type":"T","x":{{"type":"Property","value":{{"https://example.org/settings":{literal}}}}}}}"#);
+        let entity = Entity::<Output>::parse(&text, Lossless::Normalized).unwrap();
+        let Some(Attribute::Property(x)) = entity.attribute(&"x".parse().unwrap()).map(Instances::first) else {
+            panic!("x is not a Property");
+        };
+        let Value::Object(members) = x.value() else {
+            panic!("the value of x is not an object: {}", x.value());
+        };
+        let Some(Value::Object(held)) = members.get("https://example.org/settings") else {
+            panic!("the value of x holds no literal under the expanded term: {}", x.value());
+        };
+        let Some(Value::Object(content)) = held.get("@value") else {
+            panic!("the literal holds no object under @value: {}", x.value());
+        };
+        assert_eq!(content.get("a"), Some(&Value::from(1)));
+        assert_eq!(entity.render(Representation::Normalized).to_string(), text);
+    }
+}
+
+#[test]
 fn a_concise_attribute_that_is_a_value_object_spelled_with_the_term_type_is_normalized_and_refused() {
     let error = request_with(r#"{"@value":null,"type":"@json"}"#, Lossless::Concise).unwrap_err();
     assert!(
