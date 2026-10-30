@@ -46,6 +46,9 @@ pub struct Position {
 impl Position {
     /// A two-dimensional position.
     ///
+    /// The coordinates pass through `f64`, so they are written in the shortest form that reads back as the same
+    /// `f64` (`52.520` is written `52.52`). [`Position::try_from_numbers`] keeps the digits as written.
+    ///
     /// # Errors
     ///
     /// Returns [`GeometryError::InvalidCoordinate`] when a coordinate is NaN or infinite, and

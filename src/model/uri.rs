@@ -7,7 +7,10 @@
 
 use iri_rs::{Iri, IriBuf};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use std::{
+    hash::{Hash, Hasher},
+    str::FromStr,
+};
 use url::Url;
 use urn_rs::Urn;
 
@@ -41,26 +44,84 @@ pub struct UriError;
 /// assert!("Vehicle A4567".parse::<Uri>().is_err());
 /// # Ok::<(), anyhow::Error>(())
 /// ```
+///
+/// A URI built with [`Uri::verbatim`] writes the text it was given, so a caller can send a spelling the
+/// normalisation would change; it still equals, hashes and orders as the same URI built from the canonical text.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "String")]
-#[display("{_0}")]
+#[display("{}", self.as_str())]
 pub struct Uri(Form);
 
 /// The form a [`Uri`] was recognised as.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display)]
+#[derive(Debug, Clone)]
 enum Form {
     /// A URN.
-    #[display("{_0}")]
     Urn(Urn),
     /// An all-ASCII URL.
-    #[display("{_0}")]
     Url(Url),
     /// A non-ASCII IRI, kept verbatim.
-    #[display("{_0}")]
     Iri(IriBuf),
+    /// A form written as the caller gave it. It is a variant of its own, not a field of the URI, so that the URI
+    /// keeps the size it has without it: URIs travel in the `Err` variant of every reader.
+    Spelled(Box<Spelled>),
+}
+
+/// A form together with the text it was built from.
+#[derive(Debug, Clone)]
+struct Spelled {
+    /// The form the text is recognised as, never itself `Spelled`.
+    form: Form,
+    /// The text, which differs from the form's own.
+    text: Box<str>,
+}
+
+// A spelling is not part of the value: equality, hash and order are those of the form beneath it. No derive can
+// look through the `Spelled` variant.
+impl PartialEq for Form {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.recognised(), other.recognised()) {
+            (Self::Urn(left), Self::Urn(right)) => left == right,
+            (Self::Url(left), Self::Url(right)) => left == right,
+            (Self::Iri(left), Self::Iri(right)) => left == right,
+            (Self::Urn(_) | Self::Url(_) | Self::Iri(_) | Self::Spelled(_), Self::Urn(_) | Self::Url(_) | Self::Iri(_) | Self::Spelled(_)) => false,
+        }
+    }
+}
+
+// Reflexive, symmetric and transitive, as `PartialEq` compares the forms beneath.
+impl Eq for Form {}
+
+// Consistent with `PartialEq`: the form beneath is hashed, so a spelling does not change the hash.
+impl Hash for Form {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self.recognised() {
+            Self::Urn(urn) => urn.hash(state),
+            Self::Url(url) => url.hash(state),
+            Self::Iri(iri) => iri.hash(state),
+            Self::Spelled(spelled) => spelled.form.hash(state),
+        }
+    }
 }
 
 impl Form {
+    /// The form without its spelling.
+    /// The text the form writes.
+    fn text(&self) -> &str {
+        match self {
+            Self::Urn(urn) => urn.as_str(),
+            Self::Url(url) => url.as_str(),
+            Self::Iri(iri) => iri.as_str(),
+            Self::Spelled(spelled) => &spelled.text,
+        }
+    }
+
+    const fn recognised(&self) -> &Self {
+        match self {
+            Self::Spelled(spelled) => &spelled.form,
+            Self::Urn(_) | Self::Url(_) | Self::Iri(_) => self,
+        }
+    }
+
     /// Picks the most specific form for a string the URI or IRI grammar has already accepted.
     fn of_well_formed(iri: Iri<&str>) -> Self {
         let value = iri.as_str();
@@ -77,31 +138,54 @@ impl Form {
 }
 
 impl Uri {
-    /// Returns the URI as written, after the normalisation of its form.
+    /// Parses `text` like [`FromStr`], and keeps the text so that it is written back as given.
+    ///
+    /// The text is validated exactly as a parsed one is. The URI equals, hashes and orders as the one parsed from
+    /// `text`; only its written form differs, where the normalisation would have changed the text (the case of a
+    /// scheme or host, for instance).
+    ///
+    /// ```
+    /// use ngsi_ld::model::Uri;
+    ///
+    /// let verbatim = Uri::verbatim("URN:ngsi-ld:Vehicle:A4567")?;
+    /// assert_eq!(verbatim.as_str(), "URN:ngsi-ld:Vehicle:A4567");
+    /// assert_eq!(verbatim, "urn:ngsi-ld:Vehicle:A4567".parse()?);
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// [`UriError`] when `text` is not a URI or IRI.
+    pub fn verbatim(text: &str) -> Result<Self, UriError> {
+        let Self(form) = text.parse()?;
+        if form.text() == text {
+            Ok(Self(form))
+        } else {
+            Ok(Self(Form::Spelled(Box::new(Spelled { form, text: text.into() }))))
+        }
+    }
+
+    /// Returns the URI as written: the text given to [`Uri::verbatim`], otherwise the form's normalised text.
     #[must_use]
     pub fn as_str(&self) -> &str {
-        match &self.0 {
-            Form::Urn(urn) => urn.as_str(),
-            Form::Url(url) => url.as_str(),
-            Form::Iri(iri) => iri.as_str(),
-        }
+        self.0.text()
     }
 
     /// Returns the URN, when the URI is one.
     #[must_use]
     pub const fn as_urn(&self) -> Option<&Urn> {
-        match &self.0 {
+        match self.0.recognised() {
             Form::Urn(urn) => Some(urn),
-            Form::Url(_) | Form::Iri(_) => None,
+            Form::Url(_) | Form::Iri(_) | Form::Spelled(_) => None,
         }
     }
 
     /// Returns the URL, when the URI was recognised as one.
     #[must_use]
     pub const fn as_url(&self) -> Option<&Url> {
-        match &self.0 {
+        match self.0.recognised() {
             Form::Url(url) => Some(url),
-            Form::Urn(_) | Form::Iri(_) => None,
+            Form::Urn(_) | Form::Iri(_) | Form::Spelled(_) => None,
         }
     }
 }

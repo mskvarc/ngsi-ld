@@ -12,6 +12,7 @@ mod fragments;
 mod notifications;
 mod properties;
 mod reading;
+mod verbatim;
 
 /// The endpoint of Annex C.3, as the crate writes it.
 const ENDPOINT: &str = "http://my.csource.org:1026/";

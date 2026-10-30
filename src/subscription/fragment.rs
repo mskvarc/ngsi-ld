@@ -2,7 +2,19 @@
 //! subscription.
 
 use crate::{
-    model::{AttributeName, ConformanceVersion, DatasetId, DateTime, DocumentError, Input, MemberChange, PositiveNumber, RawJson, reader::parse_json},
+    model::{
+        AttributeName,
+        ConformanceVersion,
+        DatasetId,
+        DateTime,
+        DocumentError,
+        Input,
+        MemberChange,
+        PositiveNumber,
+        RawJson,
+        reader::parse_json,
+        written_url::WrittenUrl,
+    },
     query::{
         EntitySelector,
         EntitySplitting,
@@ -116,7 +128,7 @@ pub struct SubscriptionFragment<K: SubscriptionKind = EntitySubscription> {
     /// `expiresAt`.
     pub(crate) expires_at: Option<MemberChange<DateTime>>,
     /// `jsonldContext`.
-    pub(crate) jsonld_context: Option<MemberChange<Url>>,
+    pub(crate) jsonld_context: Option<MemberChange<WrittenUrl>>,
     /// `ngsildConformance`.
     pub(crate) conformance: Option<MemberChange<ConformanceVersion>>,
     /// The kind of subscription the fragment changes.
@@ -359,7 +371,7 @@ impl<K: SubscriptionKind> SubscriptionFragment<K> {
     /// Returns the change to the `@context` notifications use (`jsonldContext`).
     #[must_use]
     pub fn jsonld_context(&self) -> Option<MemberChange<&Url>> {
-        self.jsonld_context.as_ref().map(MemberChange::as_ref)
+        self.jsonld_context.as_ref().map(|change| change.as_ref().map(WrittenUrl::url))
     }
 
     /// Returns the change to the version of the specification notifications conform to (`ngsildConformance`).

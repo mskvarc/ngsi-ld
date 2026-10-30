@@ -92,6 +92,8 @@ If it is unclear which side a type falls on, treat it as the specification's unt
 
 A document is in canonical form when it is written the way the crate writes it: its members in the crate's order, and each value in its canonical spelling, such as an array where the specification also allows a single object. For an entity, the order is `id`, `type`, `scope`, `expiresAt`, the attributes in their order, `createdAt`, `modifiedAt`, `deletedAt` and then `@context`.
 
+The canonical form is the default everywhere. A value whose spelling the crate normalizes (a URI, an identifier, a URL, a `DateTime` or `Time` fraction) also has a `verbatim` constructor that keeps the text it was given and writes it back; the spelling is not part of the value, so equality, hash and order are those of the canonical form.
+
 Every type on the specification's side round-trips: serializing what was read from a document in canonical form yields the same JSON value, and entity members keep their order.
 
 ## HTTP

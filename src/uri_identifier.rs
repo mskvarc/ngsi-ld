@@ -5,7 +5,7 @@
 /// wrapped [`Uri`](crate::model::Uri).
 ///
 /// `uri_identifier!(/// docs\n Name)` expands to a public tuple struct over `Uri` deriving the common traits,
-/// `Display` and `FromStr`, with `as_uri`, `as_str`, `From<Iri<&str>>` for a literal checked by `iri_rs::iri!`,
+/// `Display` and `FromStr`, with `verbatim`, `as_uri`, `as_str`, `From<Iri<&str>>` for a literal checked by `iri_rs::iri!`,
 /// and `TryFrom<&str>`.
 macro_rules! uri_identifier {
     ($(#[$meta:meta])* $name:ident) => {
@@ -25,6 +25,16 @@ macro_rules! uri_identifier {
         pub struct $name($crate::model::Uri);
 
         impl $name {
+            /// Parses `text` like `FromStr`, and writes it back as given (see
+            /// [`Uri::verbatim`](crate::model::Uri::verbatim)).
+            ///
+            /// # Errors
+            ///
+            /// [`UriError`](crate::model::UriError) when `text` is not a URI or IRI.
+            pub fn verbatim(text: &str) -> Result<Self, $crate::model::UriError> {
+                $crate::model::Uri::verbatim(text).map(Self)
+            }
+
             /// Returns the identifier as a URI.
             #[must_use]
             pub const fn as_uri(&self) -> &$crate::model::Uri {

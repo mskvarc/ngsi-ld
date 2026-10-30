@@ -14,7 +14,8 @@ use ngsi_ld::{
         headers::NgsiLdTenant,
         operation::{DeleteRegistration, Operation, QueryRegistrations, RegisterContextSource, RetrieveRegistration, SystemAttributes, UpdateRegistration},
     },
-    model::Tenant,
+    model::{EntityTypeName, Input, Tenant, UrlDraft},
+    registration::{CSourceRegistration, EntityInfo, RegistrationInfo},
 };
 use pretty_assertions::assert_eq;
 
@@ -33,6 +34,24 @@ fn register_posts_the_registration_with_the_json_headers_and_no_accept() {
     assert_eq!(header_value(&request, &header::CONTENT_LENGTH), Some(request.body().len().to_string().as_str()));
     assert_eq!(header_value(&request, &header::ACCEPT), None);
     assert_eq!(body_text(&request), VEHICLE_SOURCE);
+}
+
+#[test]
+fn register_sends_the_endpoint_a_registration_was_built_with_as_it_was_given() {
+    let registration = CSourceRegistration::<Input>::builder(UrlDraft::verbatim("http://localhost:8080"))
+        .information([RegistrationInfo::builder()
+            .entities([EntityInfo::new("Vehicle".parse::<EntityTypeName>().unwrap())])
+            .property_names(["speed"])
+            .build()
+            .unwrap()])
+        .build()
+        .unwrap();
+    let request = RegisterContextSource { registration: &registration }.to_request(&endpoint()).unwrap();
+    assert!(
+        body_text(&request).ends_with(r#""endpoint":"http://localhost:8080"}"#),
+        "{}",
+        body_text(&request)
+    );
 }
 
 #[test]

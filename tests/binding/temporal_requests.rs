@@ -47,8 +47,9 @@ use ngsi_ld::{
         Output,
         Projected,
         Property,
+        Scope,
         Tenant,
-        evolution::{InstanceSpelling, TemporalAttributes, TemporalEntity},
+        evolution::{InstanceSpelling, ScopeInstance, TemporalAttributes, TemporalEntity},
         geometry::{Position, Shape},
     },
     query::{
@@ -173,6 +174,32 @@ fn create_or_update_writes_an_evolution_of_one_instance_as_an_object_when_asked(
     assert_eq!(
         body_text(&default),
         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"value":120,"observedAt":"2018-08-01T12:03:00Z"}]}"#
+    );
+}
+
+#[test]
+fn create_or_update_writes_a_scope_of_one_instance_as_an_object_when_asked() {
+    let entity = TemporalEntity::<Input>::builder()
+        .id(b())
+        .entity_type("Vehicle")
+        .scope(ScopeInstance::new("/Madrid".parse::<Scope>().unwrap()).with_observed_at(time(T1)))
+        .build()
+        .unwrap();
+    let single = request(
+        &CreateOrUpdateTemporalEvolution::builder()
+            .entity(&entity)
+            .form(Lossless::Concise)
+            .spelling(InstanceSpelling::SingleWhenOne)
+            .build(),
+    );
+    assert_eq!(
+        body_text(&single),
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","scope":{"value":"/Madrid","observedAt":"2018-08-01T12:03:00Z"}}"#
+    );
+    let default = request(&CreateOrUpdateTemporalEvolution::builder().entity(&entity).form(Lossless::Concise).build());
+    assert_eq!(
+        body_text(&default),
+        r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","scope":[{"value":"/Madrid","observedAt":"2018-08-01T12:03:00Z"}]}"#
     );
 }
 

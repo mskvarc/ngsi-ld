@@ -1,7 +1,7 @@
 //! Where and how notifications are delivered (NGSI-LD clauses 5.2.15 and 5.2.22).
 
 use crate::{
-    model::{BuildError, KeyValuePair, NgsiLdMediaType, Number, PositiveNumber, UrlDraft, value::positive_number::resolve_positive},
+    model::{BuildError, KeyValuePair, NgsiLdMediaType, Number, PositiveNumber, UrlDraft, value::positive_number::resolve_positive, written_url::WrittenUrl},
     subscription::{EndpointMember, Problem, SubscriptionField},
 };
 use bon::bon;
@@ -27,7 +27,7 @@ use url::Url;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Endpoint {
     /// `uri`: the dereferenceable URI that receives the notifications.
-    pub(crate) uri: Url,
+    pub(crate) uri: WrittenUrl,
     /// `accept`.
     pub(crate) accept: Option<NgsiLdMediaType>,
     /// `timeout`, in milliseconds.
@@ -94,7 +94,7 @@ impl Endpoint {
     /// Returns the URI that receives the notifications (`uri`).
     #[must_use]
     pub const fn uri(&self) -> &Url {
-        &self.uri
+        self.uri.url()
     }
 
     /// Returns the media type of the notifications (`accept`); `None` means `application/json`.

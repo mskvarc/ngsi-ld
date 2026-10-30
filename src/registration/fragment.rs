@@ -18,6 +18,7 @@ use crate::{
         Value,
         geometry::Geometry,
         reader::parse_json,
+        written_url::WrittenUrl,
     },
     registration::{
         ContextSourceInfo,
@@ -104,7 +105,7 @@ pub struct RegistrationFragment {
     /// The replacement `information`, which can be replaced but not removed.
     pub(crate) information: Option<Vec<RegistrationInfo>>,
     /// The replacement `endpoint`, which can be replaced but not removed.
-    pub(crate) endpoint: Option<Url>,
+    pub(crate) endpoint: Option<WrittenUrl>,
     /// `contextSourceInfo`.
     pub(crate) context_source_info: Option<MemberChange<Vec<ContextSourceInfo>>>,
     /// `contextSourceAlias`.
@@ -317,7 +318,10 @@ impl RegistrationFragment {
     /// Returns the replacement `endpoint`, when the fragment replaces it.
     #[must_use]
     pub const fn endpoint(&self) -> Option<&Url> {
-        self.endpoint.as_ref()
+        match &self.endpoint {
+            Some(endpoint) => Some(endpoint.url()),
+            None => None,
+        }
     }
 
     /// Returns the change to the context source information (`contextSourceInfo`).

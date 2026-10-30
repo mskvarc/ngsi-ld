@@ -23,6 +23,7 @@ use crate::model::{
     Value,
     geometry::Geometry,
     one_or_many::one_or_many_from_json,
+    written_url::WrittenUrl,
 };
 use jstrict::{Object, Value as Json};
 use std::str::FromStr;
@@ -141,6 +142,11 @@ pub(crate) fn attribute_name<K: From<MemberError>>(key: &str) -> Result<Attribut
 /// Reads a URL member.
 pub(crate) fn url<K: From<MemberError>>(json: Json, member: &'static str) -> Result<url::Url, DocumentError<K>> {
     string(json, member)?.parse().map_err(|source| error(MemberError::Url { source }))
+}
+
+/// Reads a URL member that is written back as read.
+pub(crate) fn written_url<K: From<MemberError>>(json: Json, member: &'static str) -> Result<WrittenUrl, DocumentError<K>> {
+    url(json, member).map(WrittenUrl::from)
 }
 
 /// Reads one scope.

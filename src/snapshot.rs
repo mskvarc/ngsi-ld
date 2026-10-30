@@ -169,7 +169,10 @@ impl<D: SnapshotDirection> Snapshot<D> {
     /// Returns the URL snapshot notifications are sent to (`endpoint`, clause 5.16.6).
     #[must_use]
     pub const fn endpoint(&self) -> Option<&Url> {
-        self.settings.endpoint.as_ref()
+        match &self.settings.endpoint {
+            Some(endpoint) => Some(endpoint.url()),
+            None => None,
+        }
     }
 
     /// Returns the information added to the notifications for their receiver (`receiverInfo`).

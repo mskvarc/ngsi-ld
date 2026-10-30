@@ -23,9 +23,9 @@ use crate::{
             scopes,
             token,
             unexpected,
-            url,
             value,
             within,
+            written_url,
         },
     },
     registration::{
@@ -82,7 +82,7 @@ pub(crate) fn read_registration_fragment(json: Json) -> Result<RegistrationFragm
                 RegistrationMandatoryMember::Endpoint => once(
                     &mut fragment.endpoint,
                     key,
-                    within(key, replacement(value, RegistrationField::Endpoint, |value| url(value, key)))?,
+                    within(key, replacement(value, RegistrationField::Endpoint, |value| written_url(value, key)))?,
                 )?,
             }
         } else if key == CONTEXT {

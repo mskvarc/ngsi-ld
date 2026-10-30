@@ -30,8 +30,18 @@ use ngsi_ld::{
             UpdateSubscription,
         },
     },
-    model::{DateTime, DocumentError, ErrorType, Input, MemberError, Output, Tenant},
-    subscription::{Activation, EntitySubscription, Problem as SubscriptionProblem, ReadErrorKind, Subscription, SubscriptionFragment, SubscriptionId},
+    model::{DateTime, DocumentError, ErrorType, Input, MemberError, Output, Tenant, UrlDraft},
+    subscription::{
+        Activation,
+        Endpoint,
+        EntitySubscription,
+        NotificationParams,
+        Problem as SubscriptionProblem,
+        ReadErrorKind,
+        Subscription,
+        SubscriptionFragment,
+        SubscriptionId,
+    },
 };
 use pretty_assertions::assert_eq;
 use std::str;
@@ -112,6 +122,21 @@ fn create_posts_the_subscription_with_the_json_headers_and_no_accept() {
     assert_eq!(header_value(&request, &header::CONTENT_LENGTH), Some(request.body().len().to_string().as_str()));
     assert_eq!(header_value(&request, &header::ACCEPT), None);
     assert_eq!(body_text(&request), VEHICLES);
+}
+
+#[test]
+fn create_sends_the_urls_a_subscription_was_built_with_as_they_were_given() {
+    let endpoint_url = Endpoint::builder(UrlDraft::verbatim("http://localhost:8080")).build().unwrap();
+    let subscription = Subscription::<Input>::builder()
+        .watched_attributes(["speed"])
+        .notification(NotificationParams::builder(endpoint_url).build().unwrap())
+        .jsonld_context(UrlDraft::verbatim("https://example.org"))
+        .build()
+        .unwrap();
+    let request = CreateSubscription { subscription: &subscription }.to_request(&endpoint()).unwrap();
+    let body = body_text(&request);
+    assert!(body.contains(r#""endpoint":{"uri":"http://localhost:8080""#), "{body}");
+    assert!(body.contains(r#""jsonldContext":"https://example.org""#), "{body}");
 }
 
 #[test]

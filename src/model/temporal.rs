@@ -5,7 +5,7 @@
 //! those forms, keep the number of fraction digits that was written (so `12:51:02.000Z` is written back as
 //! `12:51:02.000Z`), and use `jiff` for the calendar arithmetic and range checks.
 
-use crate::model::temporal::lexical::{Cursor, exact_fraction_digits, write_fraction};
+use crate::model::temporal::lexical::{Cursor, FractionMark, exact_fraction_digits, write_fraction};
 use jiff::{Timestamp, civil, tz::Offset};
 use std::{fmt, str::FromStr};
 
@@ -77,19 +77,21 @@ fn civil_date(cursor: &mut Cursor<'_>) -> Result<civil::Date, TemporalError> {
     Ok(civil::Date::new(parts.year, parts.month, parts.day)?)
 }
 
-/// Builds a civil time from its parsed parts, with the number of fraction digits written.
-fn civil_time(cursor: &mut Cursor<'_>) -> Result<(civil::Time, u8), TemporalError> {
+/// Builds a civil time from its parsed parts, with the number of fraction digits written and the character that
+/// opened them.
+fn civil_time(cursor: &mut Cursor<'_>) -> Result<(civil::Time, u8, FractionMark), TemporalError> {
     let parts = cursor.time()?;
     Ok((
         civil::Time::new(parts.hour, parts.minute, parts.second, parts.nanosecond)?,
         parts.fraction_digits,
+        parts.mark,
     ))
 }
 
 /// Writes `hh:mm:ss[.s…]Z`.
-fn write_time(f: &mut fmt::Formatter<'_>, time: civil::Time, fraction_digits: u8) -> fmt::Result {
+fn write_time(f: &mut fmt::Formatter<'_>, time: civil::Time, fraction_digits: u8, mark: FractionMark) -> fmt::Result {
     write!(f, "{:02}:{:02}:{:02}", time.hour(), time.minute(), time.second())?;
-    write_fraction(f, time.subsec_nanosecond(), fraction_digits)?;
+    write_fraction(f, time.subsec_nanosecond(), fraction_digits, mark)?;
     f.write_str("Z")
 }
 
@@ -104,7 +106,8 @@ fn write_date(f: &mut fmt::Formatter<'_>, date: civil::Date) -> fmt::Result {
 ///
 /// The number of fraction digits is part of the value, so equal instants written with a different number of
 /// digits compare unequal: the type represents a lexical value, and a document read and written back keeps its
-/// spelling. A comma before the fraction, which clause 4.6.3 accepts in requests, is read and written as a point.
+/// spelling. A comma before the fraction, which clause 4.6.3 accepts in requests, is read and written as a point;
+/// [`DateTime::verbatim`] keeps the comma, and the value still equals the same instant written with a point.
 ///
 /// ```
 /// use ngsi_ld::model::DateTime;
@@ -121,6 +124,8 @@ pub struct DateTime {
     timestamp: Timestamp,
     /// The number of fraction digits the lexical form writes, kept so that the text round-trips.
     fraction_digits: u8,
+    /// The character that opens the fraction, a spelling that does not distinguish two values.
+    mark: FractionMark,
 }
 
 impl DateTime {
@@ -130,7 +135,11 @@ impl DateTime {
         let now = Timestamp::now();
         let millisecond = now.subsec_nanosecond() / 1_000_000 * 1_000_000;
         let timestamp = Timestamp::new(now.as_second(), millisecond).unwrap_or(now);
-        Self { timestamp, fraction_digits: 3 }
+        Self {
+            timestamp,
+            fraction_digits: 3,
+            mark: FractionMark::Point,
+        }
     }
 
     /// Returns the instant.
@@ -144,6 +153,36 @@ impl DateTime {
     pub const fn fraction_digits(&self) -> u8 {
         self.fraction_digits
     }
+
+    /// Parses `text` like [`FromStr`], and keeps a comma before the fraction so that it is written back as given.
+    ///
+    /// The value equals, hashes and orders as the same instant written with a point.
+    ///
+    /// ```
+    /// use ngsi_ld::model::DateTime;
+    ///
+    /// let observed = DateTime::verbatim("2017-07-29T12:00:04,5Z")?;
+    /// assert_eq!(observed.to_string(), "2017-07-29T12:00:04,5Z");
+    /// assert_eq!(observed, "2017-07-29T12:00:04.5Z".parse()?);
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// [`TemporalError`] when `text` does not follow the lexical form.
+    pub fn verbatim(text: &str) -> Result<Self, TemporalError> {
+        let mut cursor = Cursor::new(text);
+        let date = civil_date(&mut cursor)?;
+        cursor.time_designator()?;
+        let (time, fraction_digits, mark) = civil_time(&mut cursor)?;
+        cursor.end()?;
+        let timestamp = Offset::UTC.to_timestamp(civil::DateTime::from_parts(date, time))?;
+        Ok(Self {
+            timestamp,
+            fraction_digits,
+            mark,
+        })
+    }
 }
 
 // No derive parses the clause 4.6.3 lexical form.
@@ -151,13 +190,10 @@ impl FromStr for DateTime {
     type Err = TemporalError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let mut cursor = Cursor::new(value);
-        let date = civil_date(&mut cursor)?;
-        cursor.time_designator()?;
-        let (time, fraction_digits) = civil_time(&mut cursor)?;
-        cursor.end()?;
-        let timestamp = Offset::UTC.to_timestamp(civil::DateTime::from_parts(date, time))?;
-        Ok(Self { timestamp, fraction_digits })
+        Self::verbatim(value).map(|parsed| Self {
+            mark: FractionMark::Point,
+            ..parsed
+        })
     }
 }
 
@@ -167,7 +203,7 @@ impl fmt::Display for DateTime {
         let civil = Offset::UTC.to_datetime(self.timestamp);
         write_date(f, civil.date())?;
         f.write_str("T")?;
-        write_time(f, civil.time(), self.fraction_digits)
+        write_time(f, civil.time(), self.fraction_digits, self.mark)
     }
 }
 
@@ -177,7 +213,11 @@ impl TryFrom<Timestamp> for DateTime {
 
     fn try_from(timestamp: Timestamp) -> Result<Self, Self::Error> {
         let fraction_digits = exact_fraction_digits(timestamp.subsec_nanosecond()).ok_or(TemporalError::SubMicrosecond)?;
-        Ok(Self { timestamp, fraction_digits })
+        Ok(Self {
+            timestamp,
+            fraction_digits,
+            mark: FractionMark::Point,
+        })
     }
 }
 
@@ -227,7 +267,8 @@ impl fmt::Display for Date {
 ///
 /// NGSI-LD clause 4.6.3.
 ///
-/// Like [`DateTime`], the number of fraction digits written is part of the value.
+/// Like [`DateTime`], the number of fraction digits written is part of the value, and [`Time::verbatim`] keeps a
+/// comma before the fraction.
 ///
 /// ```
 /// use ngsi_ld::model::Time;
@@ -241,16 +282,34 @@ impl fmt::Display for Date {
 #[serde(try_from = "String", into = "String")]
 pub struct Time {
     /// The time of day, in UTC.
-    time: civil::Time,
+    of_day: civil::Time,
     /// The number of fraction digits the lexical form writes, kept so that the text round-trips.
     fraction_digits: u8,
+    /// The character that opens the fraction, a spelling that does not distinguish two values.
+    mark: FractionMark,
 }
 
 impl Time {
     /// Returns the time of day.
     #[must_use]
     pub const fn time(&self) -> civil::Time {
-        self.time
+        self.of_day
+    }
+
+    /// Parses `text` like [`FromStr`], and keeps a comma before the fraction so that it is written back as given.
+    ///
+    /// # Errors
+    ///
+    /// [`TemporalError`] when `text` does not follow the lexical form.
+    pub fn verbatim(text: &str) -> Result<Self, TemporalError> {
+        let mut cursor = Cursor::new(text);
+        let (time, fraction_digits, mark) = civil_time(&mut cursor)?;
+        cursor.end()?;
+        Ok(Self {
+            of_day: time,
+            fraction_digits,
+            mark,
+        })
     }
 }
 
@@ -259,17 +318,17 @@ impl FromStr for Time {
     type Err = TemporalError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let mut cursor = Cursor::new(value);
-        let (time, fraction_digits) = civil_time(&mut cursor)?;
-        cursor.end()?;
-        Ok(Self { time, fraction_digits })
+        Self::verbatim(value).map(|parsed| Self {
+            mark: FractionMark::Point,
+            ..parsed
+        })
     }
 }
 
 // No derive writes the clause 4.6.3 lexical form.
 impl fmt::Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write_time(f, self.time, self.fraction_digits)
+        write_time(f, self.of_day, self.fraction_digits, self.mark)
     }
 }
 
@@ -279,14 +338,18 @@ impl TryFrom<civil::Time> for Time {
 
     fn try_from(time: civil::Time) -> Result<Self, Self::Error> {
         let fraction_digits = exact_fraction_digits(time.subsec_nanosecond()).ok_or(TemporalError::SubMicrosecond)?;
-        Ok(Self { time, fraction_digits })
+        Ok(Self {
+            of_day: time,
+            fraction_digits,
+            mark: FractionMark::Point,
+        })
     }
 }
 
 // No derive projects one field of two; the fraction digits are a spelling the time of day does not carry.
 impl From<Time> for civil::Time {
     fn from(value: Time) -> Self {
-        value.time
+        value.of_day
     }
 }
 

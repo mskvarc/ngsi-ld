@@ -80,7 +80,20 @@ pub use crate::subscription::{
     trigger::{NotificationTrigger, NotificationTriggerIter, NotificationTriggers, NotificationTriggersError},
 };
 use crate::{
-    model::{AttributeName, ConformanceVersion, Context, DatasetId, DateTime, DocumentError, Input, Output, PositiveNumber, RawJson, keyword::CONTEXT},
+    model::{
+        AttributeName,
+        ConformanceVersion,
+        Context,
+        DatasetId,
+        DateTime,
+        DocumentError,
+        Input,
+        Output,
+        PositiveNumber,
+        RawJson,
+        keyword::CONTEXT,
+        written_url::WrittenUrl,
+    },
     query::{
         EntitySelector,
         EntitySplitting,
@@ -205,7 +218,7 @@ pub struct Subscription<D: SubscriptionDirection, K: SubscriptionKind = EntitySu
     /// `expiresAt`.
     pub(crate) expires_at: Option<DateTime>,
     /// `jsonldContext`.
-    pub(crate) jsonld_context: Option<Url>,
+    pub(crate) jsonld_context: Option<WrittenUrl>,
     /// `ngsildConformance`.
     pub(crate) conformance: Option<ConformanceVersion>,
     /// The members only a broker writes; `()` in a request.
@@ -341,7 +354,10 @@ impl<D: SubscriptionDirection, K: SubscriptionKind> Subscription<D, K> {
     /// Returns the `@context` notifications use (`jsonldContext`).
     #[must_use]
     pub const fn jsonld_context(&self) -> Option<&Url> {
-        self.jsonld_context.as_ref()
+        match &self.jsonld_context {
+            Some(context) => Some(context.url()),
+            None => None,
+        }
     }
 
     /// Returns the version of the specification notifications conform to (`ngsildConformance`).

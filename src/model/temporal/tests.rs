@@ -4,6 +4,7 @@ use chrono::{NaiveDate, NaiveTime, Utc};
 use jiff::Timestamp;
 use jstrict::Value as Json;
 use pretty_assertions::assert_eq;
+use std::{cmp::Ordering, collections::HashSet};
 
 #[test]
 fn date_time_accepts_whole_seconds() {
@@ -127,4 +128,29 @@ fn chrono_conversions_round_trip() {
     assert_eq!(Date::try_from(NaiveDate::from(date)).unwrap(), date);
     let time: Time = "12:00:04.5Z".parse().unwrap();
     assert_eq!(Time::try_from(NaiveTime::from(time)).unwrap(), time);
+}
+
+#[test]
+fn a_verbatim_datetime_writes_its_comma_fraction_back() {
+    let verbatim = DateTime::verbatim("2017-07-29T12:00:04,5Z").unwrap();
+    assert_eq!(verbatim.to_string(), "2017-07-29T12:00:04,5Z");
+    assert_eq!("2017-07-29T12:00:04,5Z".parse::<DateTime>().unwrap().to_string(), "2017-07-29T12:00:04.5Z");
+}
+
+#[test]
+fn a_verbatim_datetime_equals_the_same_instant_written_with_a_point() {
+    let comma = DateTime::verbatim("2017-07-29T12:00:04,5Z").unwrap();
+    let point: DateTime = "2017-07-29T12:00:04.5Z".parse().unwrap();
+    assert_eq!(comma, point);
+    assert_eq!(comma.cmp(&point), Ordering::Equal);
+    assert_eq!(HashSet::from([comma, point]).len(), 1);
+}
+
+#[test]
+fn a_verbatim_time_keeps_a_comma_fraction() {
+    let comma = Time::verbatim("12:00:04,250Z").unwrap();
+    assert_eq!(comma.to_string(), "12:00:04,250Z");
+    assert_eq!(comma, "12:00:04.250Z".parse().unwrap());
+    assert!(Time::verbatim("12:00:04,1234567Z").is_err());
+    assert!(Time::verbatim("12:00:04,5+01:00").is_err());
 }

@@ -29,8 +29,8 @@ use crate::{
             string,
             token,
             unexpected,
-            url,
             within,
+            written_url,
         },
     },
     query::{EntitySelector, EntitySplitting, Locality, ParseError, geoquery::GeoQuery, temporal_query::TemporalQuery},
@@ -223,7 +223,7 @@ fn read_subscription_object<D: SubscriptionDirection, K: SubscriptionKind>(
             SubscriptionMember::SplitEntities => once(&mut split_entities, key, within(key, boolean(&value, key)).map(EntitySplitting::from_flag)?)?,
             SubscriptionMember::IsActive => once(&mut activation, key, within(key, boolean(&value, key)).map(Activation::from_flag)?)?,
             SubscriptionMember::ExpiresAt => once(&mut expires_at, key, within(key, date_time(value, key))?)?,
-            SubscriptionMember::JsonldContext => once(&mut jsonld_context, key, within(key, url(value, key))?)?,
+            SubscriptionMember::JsonldContext => once(&mut jsonld_context, key, within(key, written_url(value, key))?)?,
             SubscriptionMember::NgsildConformance => once(&mut conformance, key, within(key, conformance_version(value, key))?)?,
         }
     }

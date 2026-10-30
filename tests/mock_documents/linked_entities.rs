@@ -7,6 +7,7 @@ use ngsi_ld::model::{
     AttributeKind,
     DateTime,
     Entity,
+    EntityId,
     ListRelationship,
     Lossless,
     OneOrMany,
@@ -156,4 +157,22 @@ fn a_deleted_vocab_property_holds_the_null_term() {
     );
     let read = Attribute::<Output>::parse(&deleted.render(Lossless::Concise).to_string(), Lossless::Concise).unwrap();
     assert_eq!(read, deleted);
+}
+
+#[test]
+fn a_relationship_object_written_verbatim_keeps_its_scheme_and_host_case() {
+    let entity = Entity::output_builder()
+        .id(iri!("urn:ngsi-ld:Vehicle:A4567"))
+        .entity_type("Vehicle")
+        .relationship("owner", EntityId::verbatim("HTTP://Example.ORG/x").unwrap())
+        .build()
+        .unwrap();
+    assert_eq!(
+        entity.render(Representation::Normalized).to_string(),
+        r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","owner":{"type":"Relationship","object":"HTTP://Example.ORG/x"}}"#
+    );
+    assert_eq!(
+        entity.render(Representation::Concise).to_string(),
+        r#"{"id":"urn:ngsi-ld:Vehicle:A4567","type":"Vehicle","owner":{"object":"HTTP://Example.ORG/x"}}"#
+    );
 }

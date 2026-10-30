@@ -5,10 +5,66 @@
 //! representations are rejected. Range checks (month 13, February 30) are left to `jiff`.
 
 use crate::model::{TemporalError, TemporalToken};
-use std::fmt;
+use std::{
+    cmp::Ordering,
+    fmt,
+    hash::{Hash, Hasher},
+};
 
 /// The maximum number of fractional second digits clause 4.6.3 allows.
 pub(super) const MAX_FRACTION_DIGITS: u8 = 6;
+
+/// The character that opens the fraction of a second: clause 4.6.3 writes a point and accepts a comma in requests.
+///
+/// It is a spelling, not part of a value: every mark compares equal to every other, hashes to nothing and orders
+/// as equal, so a time written with a comma equals the same time written with a point.
+#[derive(Debug, Clone, Copy, Default)]
+pub(super) enum FractionMark {
+    /// `.`, the form clause 4.6.3 fixes.
+    #[default]
+    Point,
+    /// `,`, accepted for compatibility reasons.
+    Comma,
+}
+
+// No derive can say "equal whatever it holds"; `derive_where` would have to be repeated on both holders.
+impl PartialEq for FractionMark {
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
+}
+
+// Reflexive and transitive, since every pair is equal.
+impl Eq for FractionMark {}
+
+// Consistent with `PartialEq`: equal values must hash alike, so nothing is hashed.
+impl Hash for FractionMark {
+    fn hash<H: Hasher>(&self, _state: &mut H) {}
+}
+
+// No derive orders every pair as equal.
+impl PartialOrd for FractionMark {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+// No derive orders every pair as equal.
+impl Ord for FractionMark {
+    fn cmp(&self, _other: &Self) -> Ordering {
+        Ordering::Equal
+    }
+}
+
+impl FractionMark {
+    /// The character written before the digits.
+    const fn character(self) -> char {
+        match self {
+            Self::Point => '.',
+            Self::Comma => ',',
+        }
+    }
+}
 
 /// A calendar date as written: year, month, day.
 pub(super) struct DateParts {
@@ -32,6 +88,8 @@ pub(super) struct TimeParts {
     pub(super) nanosecond: i32,
     /// The number of fraction digits written, at most `MAX_FRACTION_DIGITS`.
     pub(super) fraction_digits: u8,
+    /// The character that opened the fraction; a point when none is written.
+    pub(super) mark: FractionMark,
 }
 
 /// A read position over the input.
@@ -101,7 +159,7 @@ impl<'a> Cursor<'a> {
         let minute = self.digits(2)?;
         self.literal(b':')?;
         let second = self.digits(2)?;
-        let (nanosecond, fraction_digits) = self.fraction()?;
+        let (nanosecond, fraction_digits, mark) = self.fraction()?;
         self.zone()?;
         Ok(TimeParts {
             hour: narrow(hour)?,
@@ -109,14 +167,17 @@ impl<'a> Cursor<'a> {
             second: narrow(second)?,
             nanosecond,
             fraction_digits,
+            mark,
         })
     }
 
     /// Reads the optional fraction. Clause 4.6.3 accepts a comma in requests "for compatibility reasons".
-    fn fraction(&mut self) -> Result<(i32, u8), TemporalError> {
-        if !matches!(self.input.get(self.position), Some(b'.' | b',')) {
-            return Ok((0, 0));
-        }
+    fn fraction(&mut self) -> Result<(i32, u8, FractionMark), TemporalError> {
+        let mark = match self.input.get(self.position) {
+            Some(b'.') => FractionMark::Point,
+            Some(b',') => FractionMark::Comma,
+            Some(_) | None => return Ok((0, 0, FractionMark::Point)),
+        };
         self.position += 1;
         let start = self.position;
         let mut nanosecond = 0_i32;
@@ -132,7 +193,7 @@ impl<'a> Cursor<'a> {
         if count == 0 {
             return Err(self.unexpected(TemporalToken::Digit));
         }
-        Ok((nanosecond * 10_i32.pow(9 - u32::from(count)), count))
+        Ok((nanosecond * 10_i32.pow(9 - u32::from(count)), count, mark))
     }
 
     /// Reads the zone designator, which clause 4.6.3 fixes to `Z`.
@@ -167,13 +228,13 @@ fn narrow<T: TryFrom<i32>>(value: i32) -> Result<T, TemporalError> {
     T::try_from(value).map_err(|_| TemporalError::ComponentOutOfRange)
 }
 
-/// Writes the fraction of `nanosecond` with exactly `digits` digits, or nothing when `digits` is zero.
-pub(super) fn write_fraction(f: &mut fmt::Formatter<'_>, nanosecond: i32, digits: u8) -> fmt::Result {
+/// Writes the fraction of `nanosecond` with exactly `digits` digits after `mark`, or nothing when `digits` is zero.
+pub(super) fn write_fraction(f: &mut fmt::Formatter<'_>, nanosecond: i32, digits: u8, mark: FractionMark) -> fmt::Result {
     if digits == 0 {
         return Ok(());
     }
     let scaled = nanosecond / 10_i32.pow(9 - u32::from(digits));
-    write!(f, ".{scaled:0width$}", width = usize::from(digits))
+    write!(f, "{}{scaled:0width$}", mark.character(), width = usize::from(digits))
 }
 
 /// The smallest number of fraction digits, at most six, that writes `nanosecond` exactly; `None` when the value

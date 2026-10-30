@@ -37,6 +37,23 @@ use std::str::FromStr;
 pub struct EntityId(Uri);
 
 impl EntityId {
+    /// Parses `text` like [`FromStr`], and writes it back as given (see [`Uri::verbatim`]).
+    ///
+    /// ```
+    /// use ngsi_ld::model::EntityId;
+    ///
+    /// let id = EntityId::verbatim("URN:NGSI-LD:Vehicle:B9211")?;
+    /// assert_eq!(id.to_string(), "URN:NGSI-LD:Vehicle:B9211");
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// [`UriError`] when `text` is not a URI or IRI.
+    pub fn verbatim(text: &str) -> Result<Self, UriError> {
+        Uri::verbatim(text).map(Self)
+    }
+
     /// Returns the identifier as a URI.
     #[must_use]
     pub const fn as_uri(&self) -> &Uri {
@@ -110,6 +127,21 @@ impl From<Uri> for DatasetId {
     }
 }
 
+impl DatasetId {
+    /// Parses `text` like [`FromStr`], and writes a named instance back as given (see [`Uri::verbatim`]).
+    ///
+    /// # Errors
+    ///
+    /// [`UriError`] when `text` is neither `@none` nor a URI or IRI.
+    pub fn verbatim(text: &str) -> Result<Self, UriError> {
+        if text == NONE {
+            Ok(Self::DefaultInstance)
+        } else {
+            Uri::verbatim(text).map(Self::Named)
+        }
+    }
+}
+
 /// A literal checked at compile time by `iri_rs::iri!`. No derive converts through the wrapped [`Uri`].
 impl From<Iri<&str>> for DatasetId {
     fn from(iri: Iri<&str>) -> Self {
@@ -170,6 +202,17 @@ impl From<DatasetId> for String {
 )]
 #[serde(transparent)]
 pub struct InstanceId(Uri);
+
+impl InstanceId {
+    /// Parses `text` like [`FromStr`], and writes it back as given (see [`Uri::verbatim`]).
+    ///
+    /// # Errors
+    ///
+    /// [`UriError`] when `text` is not a URI or IRI.
+    pub fn verbatim(text: &str) -> Result<Self, UriError> {
+        Uri::verbatim(text).map(Self)
+    }
+}
 
 /// A literal checked at compile time by `iri_rs::iri!`. No derive converts through the wrapped [`Uri`].
 impl From<Iri<&str>> for InstanceId {

@@ -20,6 +20,7 @@ mod building;
 mod fragments;
 mod kinds;
 mod reading;
+mod verbatim;
 
 /// The endpoint of Annex C.4.
 fn endpoint() -> Endpoint {

@@ -11,7 +11,8 @@ use crate::{
         KeyValuePair,
         MemberError,
         UrlDraft,
-        reader::{duration, number, once, url as read_url, within},
+        reader::{duration, number, once, within, written_url},
+        written_url::WrittenUrl,
     },
     snapshot::{Problem, SnapshotField, SnapshotMember, SnapshotPriority},
     subscription::{
@@ -22,7 +23,6 @@ use crate::{
     },
 };
 use jstrict::{Object, Value as Json};
-use url::Url;
 
 /// The settings of a snapshot, in the order Table 5.2.41-1 lists them.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -32,7 +32,7 @@ pub(crate) struct Settings {
     /// `snapshotPriority`.
     pub(crate) priority: Option<SnapshotPriority>,
     /// `endpoint`.
-    pub(crate) endpoint: Option<Url>,
+    pub(crate) endpoint: Option<WrittenUrl>,
     /// `receiverInfo`; `Some` of an empty list when the document wrote an empty array.
     pub(crate) receiver_info: Option<Vec<KeyValuePair>>,
 }
@@ -63,7 +63,7 @@ impl Settings {
         match member {
             SnapshotMember::SnapshotLifetime => once(&mut self.lifetime, key, within(key, duration(json, key))?)?,
             SnapshotMember::SnapshotPriority => once(&mut self.priority, key, within(key, read_priority(json))?)?,
-            SnapshotMember::Endpoint => once(&mut self.endpoint, key, within(key, read_url(json, key))?)?,
+            SnapshotMember::Endpoint => once(&mut self.endpoint, key, within(key, written_url(json, key))?)?,
             SnapshotMember::ReceiverInfo => once(&mut self.receiver_info, key, within(key, key_value_pairs(json))?)?,
         }
         Ok(None)

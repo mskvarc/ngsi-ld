@@ -28,9 +28,9 @@ use crate::{
             string,
             token,
             unexpected,
-            url,
             value,
             within,
+            written_url,
         },
     },
     query::Locality,
@@ -197,7 +197,7 @@ fn read_registration_object<D: RegistrationDirection>(object: Object) -> Result<
                     RegistrationMandatoryMember::Id => once(&mut id, key, within(key, identifier(value, key))?)?,
                     RegistrationMandatoryMember::Type => once(&mut typed, key, within(key, expect_type(value, DocumentType::ContextSourceRegistration))?)?,
                     RegistrationMandatoryMember::Information => once(&mut information_list, key, within(key, information(value))?)?,
-                    RegistrationMandatoryMember::Endpoint => once(&mut endpoint, key, within(key, url(value, key))?)?,
+                    RegistrationMandatoryMember::Endpoint => once(&mut endpoint, key, within(key, written_url(value, key))?)?,
                 }
             } else if key == CONTEXT {
                 once(&mut registration_context, key, within(key, context(value))?)?;

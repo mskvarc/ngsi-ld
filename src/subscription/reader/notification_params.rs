@@ -8,7 +8,7 @@ use crate::{
         Number,
         Representation,
         SimplifiedSpelling,
-        reader::{boolean, count, object, once, required, string, token, unexpected, url, within},
+        reader::{boolean, count, object, once, required, string, token, unexpected, within, written_url},
     },
     query::{Join, projection::Projection},
     seal::Seal,
@@ -138,7 +138,7 @@ fn read_endpoint<P: Error>(json: Json) -> Result<Endpoint, DocumentError<ReadErr
         };
         let key = member.into();
         match member {
-            EndpointMember::Uri => once(&mut uri, key, within(key, url(value, key))?)?,
+            EndpointMember::Uri => once(&mut uri, key, within(key, written_url(value, key))?)?,
             EndpointMember::Accept => once(&mut accept, key, within(key, token(value, key))?)?,
             EndpointMember::Timeout => once(&mut timeout, key, within(key, positive(value, key))?)?,
             EndpointMember::Cooldown => once(&mut cooldown, key, within(key, positive(value, key))?)?,

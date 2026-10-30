@@ -10,6 +10,7 @@ use std::fmt::Debug;
 mod changes;
 mod documents;
 mod notifications;
+mod verbatim;
 
 /// The id of `SNAP`.
 const S: &str = "urn:ngsi-ld:Snapshot:1";

@@ -121,6 +121,7 @@ use crate::{
         Value,
         geometry::Geometry,
         keyword::CONTEXT,
+        written_url::WrittenUrl,
     },
     registration::{reader::read_registration, writer::registration_object},
     subscription::ReadErrorKind,
@@ -193,7 +194,7 @@ pub struct CSourceRegistration<D: RegistrationDirection> {
     /// `information`; never empty.
     pub(crate) information: Vec<RegistrationInfo>,
     /// `endpoint`.
-    pub(crate) endpoint: Url,
+    pub(crate) endpoint: WrittenUrl,
     /// `contextSourceInfo`; an empty array is kept, as no rule of Table 5.2.9-1 refuses it.
     pub(crate) context_source_info: Option<Vec<ContextSourceInfo>>,
     /// `contextSourceAlias`.
@@ -254,7 +255,7 @@ impl<D: RegistrationDirection> CSourceRegistration<D> {
     /// Returns the endpoint through which the context source exposes its NGSI-LD interface (`endpoint`).
     #[must_use]
     pub const fn endpoint(&self) -> &Url {
-        &self.endpoint
+        self.endpoint.url()
     }
 
     /// Returns the pairs a broker conveys when it contacts the context source (`contextSourceInfo`, clause

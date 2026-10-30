@@ -456,3 +456,9 @@ fn geojson_bounding_boxes_are_held_to_rfc_7946() {
         Err(GeometryError::LongitudeOutOfRange { value: Number::from(200) })
     );
 }
+
+#[test]
+fn a_position_read_from_a_document_keeps_every_digit_and_the_f64_constructor_does_not() {
+    round_trips(r#"{"type":"Point","coordinates":[13.3986,52.520]}"#);
+    assert_eq!(point(13.3986, 52.520).to_string(), "[13.3986,52.52]");
+}

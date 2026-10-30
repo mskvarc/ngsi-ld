@@ -9,7 +9,7 @@ use crate::{
         keyword::CONTEXT,
         keyword_alias::unalias_members,
         member_change::read_change,
-        reader::{boolean, context, date_time, identifier, object, once, string, unexpected, url, within},
+        reader::{boolean, context, date_time, identifier, object, once, string, unexpected, within, written_url},
     },
     query::{EntitySplitting, Locality},
     seal::Seal,
@@ -138,7 +138,11 @@ fn read_optional<K: SubscriptionKind>(
             within(key, read_change(value, |value| boolean(&value, key).map(Activation::from_flag)))?,
         ),
         SubscriptionMember::ExpiresAt => once(&mut fragment.expires_at, key, within(key, read_change(value, |value| date_time(value, key)))?),
-        SubscriptionMember::JsonldContext => once(&mut fragment.jsonld_context, key, within(key, read_change(value, |value| url(value, key)))?),
+        SubscriptionMember::JsonldContext => once(
+            &mut fragment.jsonld_context,
+            key,
+            within(key, read_change(value, |value| written_url(value, key)))?,
+        ),
         SubscriptionMember::NgsildConformance => once(
             &mut fragment.conformance,
             key,
