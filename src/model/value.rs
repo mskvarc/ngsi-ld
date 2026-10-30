@@ -70,6 +70,10 @@ pub enum ValueError {
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 ///
+/// The enum is exhaustive, so a caller matches it without a wildcard: RFC 8259 closes the JSON types, and the JSON
+/// null literal (clause 4.4) and the typed values (clause C.6) are the only JSON-LD value objects the specification
+/// gives a Value. A form a later version of the specification adds is a new variant, and a breaking change.
+///
 /// A value nests as deep as the document that carries it, so cloning, comparing, debug-printing and dropping it run
 /// on a stack that grows with the depth. Because the type implements `Drop`, a caller takes a member out of an
 /// array or object by borrowing it, not by destructuring the value.
