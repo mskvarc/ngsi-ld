@@ -6,7 +6,7 @@ use crate::{
     registration_fixtures::{R, id, postpone, vehicle_source},
 };
 use bytes::Bytes;
-use http::{Method, header};
+use http::{HeaderName, HeaderValue, Method, header};
 use jstrict::Value as Json;
 use ngsi_ld::{
     http::{
@@ -14,9 +14,19 @@ use ngsi_ld::{
         ResponseError,
         UncheckedDocument,
         UncheckedRequest,
-        operation::{CreateEntity, CreateSubscription, Operation, RegisterContextSource, UpdateRegistration, UpdateSubscription},
+        operation::{
+            BatchCreate,
+            CreateEntity,
+            CreateSubscription,
+            Operation,
+            QueryTemporalEvolution,
+            RegisterContextSource,
+            UpdateRegistration,
+            UpdateSubscription,
+        },
     },
     model::{ErrorType, Input, Lossless, RawJson},
+    query::{SelectorType, temporal_query::TemporalQuery},
     subscription::{Activation, Subscription, SubscriptionFragment, SubscriptionId},
 };
 use pretty_assertions::assert_eq;
@@ -179,5 +189,76 @@ fn a_document_sent_as_is_drops_the_context_and_one_with_its_own_context_keeps_it
     assert_eq!(
         json(with_own.body()).as_object().unwrap().get("@context").collect::<Vec<_>>(),
         [&Json::from("https://example.org/other.jsonld")]
+    );
+}
+
+#[test]
+fn a_temporal_query_without_its_temporal_query_is_sent_with_the_headers_of_the_query() {
+    let vehicles: SelectorType = "Vehicle".parse().unwrap();
+    let since = TemporalQuery::after("2018-08-01T12:00:00Z".parse().unwrap());
+    let query = QueryTemporalEvolution::builder()
+        .entity_type(&vehicles)
+        .temporal_q(&since)
+        .format(Lossless::Normalized)
+        .build();
+    let without_timerel = "http://broker.test/ngsi-ld/v1/temporal/entities?type=Vehicle".parse().unwrap();
+    let request = UncheckedRequest::try_from_operation(&query, &endpoint())
+        .unwrap()
+        .uri(without_timerel)
+        .into_request();
+    assert_eq!(request.method(), Method::GET);
+    assert_eq!(request.uri().query(), Some("type=Vehicle"));
+    assert_eq!(header_value(&request, &header::ACCEPT), Some("application/json"));
+    assert_eq!(link_of(&request), Some(context_link()));
+}
+
+#[test]
+fn a_preference_the_specification_does_not_define_is_sent_beside_the_typed_ones() {
+    let vehicles: SelectorType = "Vehicle".parse().unwrap();
+    let since = TemporalQuery::after("2018-08-01T12:00:00Z".parse().unwrap());
+    let query = QueryTemporalEvolution::builder()
+        .entity_type(&vehicles)
+        .temporal_q(&since)
+        .format(Lossless::Normalized)
+        .build();
+    let request = UncheckedRequest::try_from_operation(&query, &endpoint())
+        .unwrap()
+        .append_header(HeaderName::from_static("prefer"), HeaderValue::from_static("respond-async"))
+        .into_request();
+    assert_eq!(header_value(&request, &HeaderName::from_static("prefer")), Some("respond-async"));
+    assert_eq!(link_of(&request), Some(context_link()));
+}
+
+#[test]
+fn a_batch_whose_documents_each_carry_a_context_of_their_own_is_sent_as_given() {
+    let vehicle = vehicle();
+    let entities = [vehicle.clone()];
+    let create = BatchCreate::builder().entities(&entities).build();
+    let first: RawJson = r#""https://example.org/first.jsonld""#.parse().unwrap();
+    let second: RawJson = r#"["https://example.org/second.jsonld","https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"]"#
+        .parse()
+        .unwrap();
+    let document = UncheckedDocument::from_entity(&vehicle, Lossless::Normalized);
+    let request = UncheckedRequest::try_from_operation(&create, &endpoint_with(ContextDelivery::LdJsonBody))
+        .unwrap()
+        .documents(&[document.clone().set_member("@context", &first), document.set_member("@context", &second)])
+        .into_request();
+    assert_eq!(header_value(&request, &header::CONTENT_TYPE), Some("application/ld+json"));
+    assert_eq!(link_of(&request), None);
+    let body = json(request.body());
+    let contexts: Vec<_> = body
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|document| document.as_object().unwrap().get("@context").collect::<Vec<_>>())
+        .collect();
+    assert_eq!(
+        contexts,
+        [
+            vec![&Json::from("https://example.org/first.jsonld")],
+            vec![&json(
+                br#"["https://example.org/second.jsonld","https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"]"#
+            )]
+        ]
     );
 }

@@ -16,6 +16,7 @@ use ngsi_ld::{
         CreateOutcome,
         ResponseContext,
         ResponseError,
+        UncheckedRequest,
         headers::{LinkValue, NgsiLdResultsCount, NgsiLdTenant, OptionalHeader, PreferenceApplied, RelationType},
         operation::{CreateEntity, DeleteEntity, MergeEntity, Operation, QueryEntities, Simplified},
     },
@@ -194,6 +195,30 @@ fn a_page_link_carrying_an_opaque_continuation_is_requested_exactly_as_the_broke
         prev.uri().to_string(),
         "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&format=simplified&cursor=YmFy&limit=2"
     );
+}
+
+#[test]
+fn a_page_link_followed_with_a_parameter_of_the_callers_own_is_sent_through_the_unchecked_path() {
+    // The page request is the link as the broker wrote it (clause 5.5.9.1); a parameter of the caller's own, such as
+    // `count`, is added to the unchecked request built from it.
+    let entity_type: SelectorType = "Vehicle".parse().unwrap();
+    let query = query_vehicles(Some(&entity_type), None, Simplified);
+    let request = query.to_request(&endpoint()).unwrap();
+    let link = link_field([link_value(
+        "/ngsi-ld/v1/entities?type=Vehicle&format=simplified&limit=2&offset=2",
+        RelationType::Next,
+    )]);
+    let page = query
+        .decode(&ResponseContext::new(&request), response(200, &[(&header::LINK, &link)], "[]"))
+        .unwrap();
+    let next = page.next_page().unwrap();
+    let counted = format!("{}&count=true", next.to_request(&endpoint()).unwrap().uri()).parse().unwrap();
+    let request = UncheckedRequest::try_from_operation(&next, &endpoint()).unwrap().uri(counted).into_request();
+    assert_eq!(
+        request.uri().to_string(),
+        "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&format=simplified&limit=2&offset=2&count=true"
+    );
+    assert_eq!(link_of(&request), Some(context_link()));
 }
 
 #[test]
