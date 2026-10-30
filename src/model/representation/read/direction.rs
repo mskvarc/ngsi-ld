@@ -3,6 +3,7 @@
 use crate::model::{
     Attribute,
     AttributeName,
+    DateTime,
     Direction,
     DocumentError,
     DocumentErrorKind,
@@ -11,9 +12,11 @@ use crate::model::{
     Input,
     Lossless,
     Output,
+    Property,
+    Value,
     entity::member::SystemMember,
-    evolution::{TemporalAttributes, TemporalInstanceMembers},
-    null,
+    evolution::{ScopeValue, TemporalAttributes, TemporalInstanceMembers},
+    null::{self, NGSI_LD_NULL},
     reader::{date_time, duplicate, empty, identifier, once, unexpected},
     representation::{
         kind_output::{KindOutputMember, KindOutputRepresentation},
@@ -67,6 +70,16 @@ pub(crate) trait ReadEntityDirection: ReadDirection + EntityDirection {
     /// Reads `createdAt`, `modifiedAt` or `deletedAt`, or refuses it.
     fn read_entity_output(output: &mut Self::EntityOutput, member: SystemMember, json: Json) -> Result<(), DocumentError>;
 
+    /// Reads `createdAt`, `modifiedAt` or `deletedAt` of one instance of the evolution of `scope`. A request records
+    /// the `deletedAt` of a removed scope in `removal` and refuses the other two; a response keeps all three in
+    /// `output`.
+    fn read_scope_member(output: &mut Self::EntityOutput, removal: &mut Self::ScopeRemoval, member: SystemMember, json: Json) -> Result<(), DocumentError>;
+
+    /// Admits the value of one instance of the evolution of `scope`. A request holds the NGSI-LD Null, which clause
+    /// 5.5.4 otherwise keeps out of it, only for a removed scope that records its `deletedAt` (clauses 4.5.6 and
+    /// 4.18); a response admits both.
+    fn admit_scope_value(value: &ScopeValue, removal: &Self::ScopeRemoval) -> Result<(), DocumentError>;
+
     /// Reads one instance of a temporal evolution. A request may name its `instanceId` and record a deletion with
     /// `deletedAt` (clauses 4.5.7 and 4.5.8), which are taken out of the instance before it is read as an attribute;
     /// a response leaves them among the instance's output-only members.
@@ -107,6 +120,23 @@ impl ReadDirection for Input {
 impl ReadEntityDirection for Input {
     fn read_entity_output((): &mut Self::EntityOutput, member: SystemMember, _: Json) -> Result<(), DocumentError> {
         Err(unexpected(member.as_str()))
+    }
+
+    fn read_scope_member((): &mut Self::EntityOutput, removal: &mut Option<DateTime>, member: SystemMember, json: Json) -> Result<(), DocumentError> {
+        match member {
+            SystemMember::Deleted => once(removal, member.as_str(), date_time(json, "deletedAt")?),
+            SystemMember::Created | SystemMember::Modified => Err(unexpected(member.as_str())),
+        }
+    }
+
+    /// A removed scope is the NGSI-LD Null, so it must record its `deletedAt`, and `deletedAt` beside scopes is not a
+    /// member of the instance.
+    fn admit_scope_value(value: &ScopeValue, removal: &Option<DateTime>) -> Result<(), DocumentError> {
+        match (value, removal) {
+            (ScopeValue::Removed, None) => Self::admit(&Attribute::Property(Property::plain(Value::Text(NGSI_LD_NULL.as_str().to_owned())))),
+            (ScopeValue::Scopes(_), Some(_)) => Err(unexpected(SystemMember::Deleted.as_str())),
+            (ScopeValue::Removed, Some(_)) | (ScopeValue::Scopes(_), None) => Ok(()),
+        }
     }
 
     /// An instance whose `deletedAt` is given records a deletion, so its payload must be the NGSI-LD Null of its kind
@@ -187,6 +217,14 @@ impl ReadEntityDirection for Output {
             SystemMember::Modified => once(&mut output.modified_at, name, date_time(json, "modifiedAt")?),
             SystemMember::Deleted => once(&mut output.deleted_at, name, date_time(json, "deletedAt")?),
         }
+    }
+
+    fn read_scope_member(output: &mut EntityOutputMembers, (): &mut (), member: SystemMember, json: Json) -> Result<(), DocumentError> {
+        Self::read_entity_output(output, member, json)
+    }
+
+    fn admit_scope_value(_: &ScopeValue, (): &()) -> Result<(), DocumentError> {
+        Ok(())
     }
 
     fn read_temporal_instance(instance: Json, form: Lossless) -> Result<(Attribute<Output>, ()), DocumentError> {

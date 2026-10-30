@@ -18,7 +18,8 @@ use ngsi_ld::model::{
     NullMember,
     ProblemKind,
     Property,
-    evolution::{DeletedInstance, TemporalAttributes, TemporalEntity},
+    Scope,
+    evolution::{DeletedInstance, ScopeInstance, TemporalAttributes, TemporalEntity},
 };
 use strum::IntoEnumIterator;
 
@@ -258,6 +259,55 @@ fn a_null_with_no_deleted_at_and_a_deleted_at_beside_a_value_are_still_refused()
     let nested =
         read(r#"{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","accuracy":{"type":"Property","value":"urn:ngsi-ld:null"}}"#);
     assert!(matches!(nested.kind, DocumentErrorKind::NgsiLdNull { .. }));
+}
+
+#[test]
+fn a_temporal_request_records_the_removal_of_a_scope_with_its_deletion_time_and_reads_it_back() {
+    let entity = TemporalEntity::builder()
+        .id(iri!("urn:ngsi-ld:Vehicle:B9211"))
+        .entity_type("Vehicle")
+        .scope(ScopeInstance::new("/Madrid/Centro".parse::<Scope>().unwrap()).with_observed_at(at("2018-08-01T11:00:00Z")))
+        .scope(ScopeInstance::removed(at("2018-08-01T12:00:00Z")).with_observed_at(at("2018-08-01T12:00:00Z")))
+        .build()
+        .unwrap();
+    assert_eq!(
+        entity.render(Lossless::Normalized).to_string(),
+        vehicle_with(concat!(
+            r#""scope":[{"type":"Property","value":"/Madrid/Centro","observedAt":"2018-08-01T11:00:00Z"},"#,
+            r#"{"type":"Property","value":"urn:ngsi-ld:null","observedAt":"2018-08-01T12:00:00Z","deletedAt":"2018-08-01T12:00:00Z"}]"#
+        ))
+    );
+    for form in [Lossless::Normalized, Lossless::Concise] {
+        let text = entity.render(form).to_string();
+        assert_eq!(TemporalEntity::<Input>::parse(&text, form).unwrap(), entity, "{text}");
+    }
+    assert_eq!(entity.scope[1].deleted_at(), Some(&at("2018-08-01T12:00:00Z")));
+    assert!(entity.scope[0].deleted_at().is_none());
+}
+
+#[test]
+fn a_removed_scope_with_no_deletion_time_and_a_deletion_time_beside_scopes_are_refused_in_a_request() {
+    let read = |instance: &str| TemporalEntity::<Input>::parse(&vehicle_with(&format!(r#""scope":[{instance}]"#)), Lossless::Normalized).unwrap_err();
+    let bare_null = read(r#"{"type":"Property","value":"urn:ngsi-ld:null"}"#);
+    assert!(matches!(bare_null.kind, DocumentErrorKind::NgsiLdNull { .. }));
+    let beside_scopes = read(r#"{"type":"Property","value":"/Madrid","deletedAt":"2024-01-02T00:00:00Z"}"#);
+    assert!(matches!(beside_scopes.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "deletedAt"));
+}
+
+#[test]
+fn the_system_times_of_a_removed_scope_stay_out_of_a_request() {
+    let read = |instance: &str| TemporalEntity::<Input>::parse(&vehicle_with(&format!(r#""scope":[{instance}]"#)), Lossless::Normalized).unwrap_err();
+    for member in ["createdAt", "modifiedAt"] {
+        let error = read(&format!(
+            r#"{{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","{member}":"2024-01-02T00:00:00Z"}}"#
+        ));
+        assert!(
+            matches!(error.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member: ref found }) if found == member),
+            "{member}"
+        );
+    }
+    let twice = read(r#"{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2024-01-02T00:00:00Z","deletedAt":"2024-01-03T00:00:00Z"}"#);
+    assert!(matches!(twice.kind, DocumentErrorKind::Member(MemberError::DuplicateMember { .. })));
 }
 
 #[test]

@@ -64,6 +64,16 @@ pub trait EntityDirection: Direction<Slot = Attribute<Self>> + sealed::Sealed {
     /// cannot.
     type TemporalMembers: Debug + Clone + PartialEq + Eq + Default + Send + Sync;
 
+    /// The `deletedAt` of a removed scope an instance of the evolution of `scope` records (clauses 4.5.6 and 4.18): an
+    /// `Option<DateTime>` in a request, which must hold it exactly when the scope is removed, and `()` in a response,
+    /// whose instances hold it among their output-only members.
+    ///
+    /// The NGSI-LD Null "shall be only used and only appear in case of deleted scopes" (clause 4.18), and the
+    /// temporal representation of a scope may hold `deletedAt` (clause 4.5.6), so the temporal evolution a client
+    /// sends may record the removal of a scope as it may record the deletion of an attribute instance. `createdAt` and
+    /// `modifiedAt` are system generated and stay out of a request.
+    type ScopeRemoval: Debug + Clone + PartialEq + Eq + Default + Send + Sync;
+
     /// The `instanceId` the members name.
     #[doc(hidden)]
     fn instance_id(seal: Seal, members: &Self::TemporalMembers) -> Option<&InstanceId>;
@@ -74,6 +84,7 @@ impl sealed::Sealed for Output {}
 
 impl EntityDirection for Input {
     type TemporalMembers = TemporalInstanceMembers;
+    type ScopeRemoval = Option<DateTime>;
 
     fn instance_id(_: Seal, members: &TemporalInstanceMembers) -> Option<&InstanceId> {
         members.instance_id()
@@ -82,6 +93,7 @@ impl EntityDirection for Input {
 
 impl EntityDirection for Output {
     type TemporalMembers = ();
+    type ScopeRemoval = ();
 
     fn instance_id(_: Seal, (): &()) -> Option<&InstanceId> {
         None

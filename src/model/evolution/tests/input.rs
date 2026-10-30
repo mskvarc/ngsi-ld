@@ -134,7 +134,7 @@ fn into_input_drops_what_only_a_broker_writes() {
 }
 
 #[test]
-fn into_input_keeps_a_recorded_deletion_and_refuses_a_removed_scope() {
+fn into_input_keeps_a_recorded_deletion_and_refuses_a_removed_scope_with_no_deletion_time() {
     let read = TemporalEntity::<Output>::parse(
         concat!(
             r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
@@ -156,6 +156,27 @@ fn into_input_keeps_a_recorded_deletion_and_refuses_a_removed_scope() {
     assert_eq!(
         without_scope.into_input().unwrap().render(Lossless::Normalized).to_string(),
         r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","speed":[{"type":"Property","value":"urn:ngsi-ld:null","deletedAt":"2018-08-01T12:03:00Z"}]}"#
+    );
+}
+
+#[test]
+fn into_input_keeps_a_removed_scope_with_its_deletion_time_and_drops_the_system_times() {
+    let read = TemporalEntity::<Output>::parse(
+        concat!(
+            r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+            r#""scope":[{"type":"Property","value":"/Madrid","observedAt":"2018-08-01T11:00:00Z","createdAt":"2018-08-01T11:00:01Z","modifiedAt":"2018-08-01T11:00:01Z"},"#,
+            r#"{"type":"Property","value":"urn:ngsi-ld:null","observedAt":"2018-08-01T12:00:00Z","deletedAt":"2018-08-01T12:00:01Z"}]}"#
+        ),
+        Lossless::Normalized,
+    )
+    .unwrap();
+    assert_eq!(
+        read.into_input().unwrap().render(Lossless::Normalized).to_string(),
+        concat!(
+            r#"{"id":"urn:ngsi-ld:Vehicle:B9211","type":"Vehicle","#,
+            r#""scope":[{"type":"Property","value":"/Madrid","observedAt":"2018-08-01T11:00:00Z"},"#,
+            r#"{"type":"Property","value":"urn:ngsi-ld:null","observedAt":"2018-08-01T12:00:00Z","deletedAt":"2018-08-01T12:00:01Z"}]}"#
+        )
     );
 }
 

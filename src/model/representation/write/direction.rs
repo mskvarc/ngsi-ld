@@ -3,6 +3,7 @@
 use crate::model::{
     Attribute,
     Change,
+    DateTime,
     Direction,
     EntityDirection,
     EntityOutputMembers,
@@ -99,6 +100,9 @@ pub(crate) trait WriteEntityDirection: EntityDirection + WriteDirection {
     /// Appends the system members.
     fn write_entity_output(output: &Self::EntityOutput, object: &mut Object);
 
+    /// Appends the `deletedAt` a request records for a removed scope; a response writes it among its system members.
+    fn write_scope_removal(removal: &Self::ScopeRemoval, object: &mut Object);
+
     /// Writes one instance of a temporal evolution, always as an object (clauses 4.5.7 and 4.5.8), with the
     /// `instanceId` a request names for it and the `deletedAt` of a deletion it records.
     fn write_temporal_instance(attribute: &Attribute<Self>, members: &Self::TemporalMembers, form: Lossless) -> Json;
@@ -106,6 +110,10 @@ pub(crate) trait WriteEntityDirection: EntityDirection + WriteDirection {
 
 impl WriteEntityDirection for Input {
     fn write_entity_output((): &Self::EntityOutput, _: &mut Object) {}
+
+    fn write_scope_removal(removal: &Option<DateTime>, object: &mut Object) {
+        push_display(object, "deletedAt", removal.as_ref());
+    }
 
     /// `deletedAt` and `instanceId` take the place a response gives them: after the members of the instance itself,
     /// before its `ngsildproof` and its sub-attributes, which close the object (see the canonical order of
@@ -137,6 +145,8 @@ impl WriteEntityDirection for Output {
         push_display(object, "modifiedAt", output.modified_at.as_ref());
         push_display(object, "deletedAt", output.deleted_at.as_ref());
     }
+
+    fn write_scope_removal((): &(), _: &mut Object) {}
 
     fn write_temporal_instance(attribute: &Attribute<Self>, (): &(), form: Lossless) -> Json {
         write_attribute(attribute, form, Placement::AmongInstances)

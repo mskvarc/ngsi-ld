@@ -383,8 +383,9 @@ impl TemporalEntity<Output> {
     /// # Errors
     ///
     /// Returns [`BuildError`] listing every instance that holds the NGSI-LD Null without a `deletedAt`, which a
-    /// request cannot carry (clause 5.5.4), under its attribute's name, and every removed scope. An instance that
-    /// records a deletion with its `deletedAt` is kept (clauses 4.5.7 and 4.5.8).
+    /// request cannot carry (clause 5.5.4), under its attribute's name, and every removed scope without one. An
+    /// instance that records a deletion with its `deletedAt`, and a removed scope that records its `deletedAt`, are kept
+    /// (clauses 4.5.6 to 4.5.8).
     pub fn into_input(self) -> Result<TemporalEntity<Input>, BuildError> {
         let mut problems = Vec::new();
         let attributes = self.attributes.into_input(&mut problems);

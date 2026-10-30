@@ -2,7 +2,6 @@
 //! sub-Properties are `observedAt`, `createdAt`, `modifiedAt` and `deletedAt`.
 
 use crate::model::{
-    Attribute,
     BuildProblem,
     DateTime,
     DocumentError,
@@ -15,9 +14,7 @@ use crate::model::{
     OneOrMany,
     Output,
     ProblemKind,
-    Property,
     Scope,
-    Value,
     entity::member::SystemMember,
     keyword_alias::unalias_attribute,
     null::NGSI_LD_NULL,
@@ -37,8 +34,8 @@ use jstrict::{Object, Value as Json, object::Entry};
 pub enum ScopeValue {
     /// One scope, or several (clause 4.18).
     Scopes(OneOrMany<Scope>),
-    /// The scope was removed: the NGSI-LD Null a broker records for it (clause 4.5.0), which only a response
-    /// holds.
+    /// The scope was removed: the NGSI-LD Null a broker records for it (clause 4.5.0). A request holds it only
+    /// beside the `deletedAt` of the removal (clauses 4.5.6 and 4.18).
     Removed,
 }
 
@@ -63,7 +60,8 @@ impl ScopeValue {
 /// One instance of the temporal evolution of an entity's scope.
 ///
 /// It holds the scope or scopes it held, when that was observed, and, in a response, when the broker created, modified
-/// or deleted the instance (NGSI-LD clause 4.5.6).
+/// or deleted the instance (NGSI-LD clause 4.5.6). A request may record the removal of a scope with the time it
+/// happened, as it may record the deletion of an attribute instance (clause 4.18).
 ///
 /// ```
 /// use ngsi_ld::model::{
@@ -75,6 +73,10 @@ impl ScopeValue {
 ///     .with_observed_at("2018-08-01T11:00:00Z".parse()?);
 /// assert!(matches!(centre.value(), ScopeValue::Scopes(_)));
 /// assert!(centre.observed_at().is_some());
+///
+/// let removed = ScopeInstance::removed("2018-08-01T12:00:00Z".parse()?);
+/// assert!(removed.value().is_removed());
+/// assert!(removed.deleted_at().is_some());
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -85,6 +87,9 @@ pub struct ScopeInstance<D: EntityDirection> {
     observed_at: Option<DateTime>,
     /// `createdAt`, `modifiedAt` and `deletedAt`; `()` in a request.
     output: D::EntityOutput,
+    /// The `deletedAt` of a removal a request records, set exactly when the value is [`ScopeValue::Removed`]; `()`
+    /// in a response.
+    removal: D::ScopeRemoval,
 }
 
 impl ScopeInstance<Input> {
@@ -95,7 +100,27 @@ impl ScopeInstance<Input> {
             value: ScopeValue::Scopes(scopes.into()),
             observed_at: None,
             output: (),
+            removal: None,
         }
+    }
+
+    /// An instance recording that the scope was removed at `deleted_at` (clauses 4.5.6 and 4.18): the NGSI-LD Null
+    /// with the `deletedAt` of the removal, which a request may carry although it carries no other Null (clause
+    /// 5.5.4).
+    #[must_use]
+    pub const fn removed(deleted_at: DateTime) -> Self {
+        Self {
+            value: ScopeValue::Removed,
+            observed_at: None,
+            output: (),
+            removal: Some(deleted_at),
+        }
+    }
+
+    /// Returns when the scope was removed (`deletedAt`), for an instance made by [`removed`](Self::removed).
+    #[must_use]
+    pub const fn deleted_at(&self) -> Option<&DateTime> {
+        self.removal.as_ref()
     }
 
     /// Records when the scope was observed (`observedAt`).
@@ -140,21 +165,30 @@ impl ScopeInstance<Output> {
                 modified_at,
                 deleted_at,
             },
+            removal: (),
         }
     }
 }
 
 impl ScopeInstance<Output> {
-    /// Drops the members only a broker writes; a removed scope, which holds the NGSI-LD Null a request cannot carry
-    /// (clause 5.5.4), is recorded among `problems` and dropped.
+    /// Drops the members only a broker writes. A removed scope keeps the `deletedAt` the broker recorded for it; one
+    /// without it holds the NGSI-LD Null a request cannot carry (clause 5.5.4), so it is recorded among `problems`
+    /// and dropped.
     pub(crate) fn into_input(self, problems: &mut Vec<BuildProblem>) -> Option<ScopeInstance<Input>> {
-        match self.value {
-            ScopeValue::Scopes(scopes) => Some(ScopeInstance {
+        match (self.value, self.output.deleted_at) {
+            (ScopeValue::Scopes(scopes), _) => Some(ScopeInstance {
                 value: ScopeValue::Scopes(scopes),
                 observed_at: self.observed_at,
                 output: (),
+                removal: None,
             }),
-            ScopeValue::Removed => {
+            (ScopeValue::Removed, Some(deleted_at)) => Some(ScopeInstance {
+                value: ScopeValue::Removed,
+                observed_at: self.observed_at,
+                output: (),
+                removal: Some(deleted_at),
+            }),
+            (ScopeValue::Removed, None) => {
                 problems.push(BuildProblem::top(ProblemKind::NgsiLdNull { member: NullMember::Scope }));
                 None
             }
@@ -192,6 +226,7 @@ pub(crate) fn write_scope_instance<D: WriteEntityDirection>(instance: &ScopeInst
     object.push("value".into(), instance.value.to_json());
     push_display(&mut object, "observedAt", instance.observed_at.as_ref());
     D::write_entity_output(&instance.output, &mut object);
+    D::write_scope_removal(&instance.removal, &mut object);
     Json::Object(object)
 }
 
@@ -214,6 +249,7 @@ fn read_scope_instance<D: ReadEntityDirection>(json: Json, form: Lossless) -> Re
     let mut value = None;
     let mut observed_at = None;
     let mut output = D::EntityOutput::default();
+    let mut removal = D::ScopeRemoval::default();
     for Entry { key, value: member } in object {
         let key = key.as_str();
         match key {
@@ -221,7 +257,7 @@ fn read_scope_instance<D: ReadEntityDirection>(json: Json, form: Lossless) -> Re
             "value" => once(&mut value, key, ScopeValue::from_json(member)?)?,
             "observedAt" => once(&mut observed_at, key, date_time(member, "observedAt")?)?,
             other => match other.parse::<SystemMember>() {
-                Ok(system) => D::read_entity_output(&mut output, system, member)?,
+                Ok(system) => D::read_scope_member(&mut output, &mut removal, system, member)?,
                 Err(_) => return Err(unexpected(other)),
             },
         }
@@ -230,12 +266,15 @@ fn read_scope_instance<D: ReadEntityDirection>(json: Json, form: Lossless) -> Re
         return Err(DocumentError::top(DocumentErrorKind::MissingType));
     }
     let value = required(value, "value")?;
-    if value.is_removed() {
-        // A removed scope is the NGSI-LD Null of a Property value, which the direction admits or refuses, as it does
-        // for any attribute (clause 5.5.4).
-        D::admit(&Attribute::Property(Property::plain(Value::Text(NGSI_LD_NULL.as_str().to_owned()))))?;
-    }
-    Ok(ScopeInstance { value, observed_at, output })
+    // A removed scope is the NGSI-LD Null of a Property value, which the direction admits or refuses, as it does for
+    // any attribute (clause 5.5.4); a request admits it beside the `deletedAt` of the removal.
+    D::admit_scope_value(&value, &removal)?;
+    Ok(ScopeInstance {
+        value,
+        observed_at,
+        output,
+        removal,
+    })
 }
 
 /// Reads the `type` of a scope instance, which clause 4.5.6 makes a Property.
