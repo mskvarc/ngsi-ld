@@ -8,6 +8,7 @@ use crate::{
 use headers::{Allow, CacheControl, ContentEncoding, ContentType, ETag, Header, IfNoneMatch, StrictTransportSecurity, Vary};
 use http::{HeaderName, HeaderValue, Method, StatusCode, Version, header};
 use iri_rs::{IriBuf, IriRefBuf, iri};
+use mediatype::MediaTypeBuf;
 use ngsi_ld::{
     client::ClientError,
     http::{
@@ -21,6 +22,7 @@ use ngsi_ld::{
             Link,
             LinkValue,
             Location,
+            MediaRange,
             NgsiLdResultsCount,
             NgsiLdTenant,
             Prefer,
@@ -147,6 +149,28 @@ async fn a_derived_client_sends_a_weighted_accept_and_a_via_hop() {
     let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"));
     let retrieved = client.entities().retrieve(&id).send().await.unwrap();
     assert_eq!(retrieved.body().id.as_str(), "urn:ngsi-ld:Vehicle:A4567");
+}
+
+#[tokio::test]
+async fn a_406_to_a_replaced_accept_keeps_the_object_the_broker_answers() {
+    let server = MockServer::start().await;
+    let refusal = r#"{"title":"Not Acceptable","availableRepresentations":["application/json","application/ld+json"]}"#;
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567"))
+        .and(header(&header::ACCEPT, "application/xml"))
+        .respond_with(ResponseTemplate::new(406).set_body_raw(refusal, "application/json"))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let xml = Accept::try_from_entries([Weighted::new("application/xml".parse::<MediaRange>().unwrap())]).unwrap();
+    let client = client(&server.uri()).with_accept(xml);
+    let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"));
+    let error = client.entities().retrieve(&id).send().await.unwrap_err();
+    let ClientError::Response(ResponseError::NotAcceptable { available, body, .. }) = error else {
+        panic!("expected a 406, got {error:?}")
+    };
+    assert_eq!(available, Vec::<MediaTypeBuf>::new());
+    assert_eq!(body.as_ref(), refusal.as_bytes());
 }
 
 /// A header of the client's own, which no NGSI-LD rule names.

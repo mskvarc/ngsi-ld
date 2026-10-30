@@ -18,6 +18,7 @@ use ngsi_ld::{
     model::{
         APPLICATION_JSON,
         Attribute,
+        AttributeKind,
         AttributeName,
         DateTime,
         EntityId,
@@ -25,7 +26,7 @@ use ngsi_ld::{
         InstanceId,
         OneOrMany,
         Property,
-        evolution::{TemporalAttributes, TemporalEntity},
+        evolution::{DeletedInstance, TemporalAttributes, TemporalEntity},
     },
     query::{
         EntitySelector,
@@ -107,6 +108,58 @@ async fn create_or_update_sends_the_evolution_and_reads_created() {
         .await;
     let outcome = client(&server.uri()).temporal().create_or_update(&evolution()).send().await.unwrap();
     assert!(matches!(outcome, TemporalUpsertOutcome::Created { .. }));
+}
+
+#[tokio::test]
+async fn a_recorded_deletion_is_sent_as_an_instance_and_read_back_from_the_answer() {
+    let server = MockServer::start().await;
+    let deleted = json!({"type": "Property", "value": "urn:ngsi-ld:null", "observedAt": "2018-08-01T12:07:00Z", "deletedAt": "2018-08-01T12:07:00Z"});
+    let history = json!({
+        "id": "urn:ngsi-ld:Vehicle:B9211",
+        "type": "Vehicle",
+        "speed": [{"type": "Property", "value": 120, "observedAt": "2018-08-01T12:03:00Z"}, deleted]
+    });
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/temporal/entities"))
+        .and(body_json(&history))
+        .respond_with(ResponseTemplate::new(201).insert_header(&header::LOCATION, B_PATH))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .respond_with(ResponseTemplate::new(200).set_body_json(&history))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let replayed = TemporalEntity::builder()
+        .id(b())
+        .entity_type("Vehicle")
+        .property("speed", Property::builder(120).observed_at(time("2018-08-01T12:03:00Z")))
+        .deleted(
+            "speed",
+            DeletedInstance::builder(AttributeKind::Property, time("2018-08-01T12:07:00Z"))
+                .observed_at(time("2018-08-01T12:07:00Z"))
+                .build(),
+        )
+        .build()
+        .unwrap();
+    client.temporal().create_or_update(&replayed).send().await.unwrap();
+    let retrieved = client.temporal().retrieve(&b()).send().await.unwrap();
+    let expected = TemporalEntity::output_builder()
+        .id(b())
+        .entity_type("Vehicle")
+        .property("speed", Property::builder(120).observed_at(time("2018-08-01T12:03:00Z")))
+        .output_attribute(
+            "speed",
+            Attribute::deleted(AttributeKind::Property)
+                .observed_at(time("2018-08-01T12:07:00Z"))
+                .deleted_at(time("2018-08-01T12:07:00Z")),
+        )
+        .build()
+        .unwrap();
+    assert_eq!(retrieved.body(), &expected);
 }
 
 #[tokio::test]
@@ -338,6 +391,27 @@ async fn the_operations_that_change_an_evolution_reach_their_resources() {
     temporal.modify_instance(&id, &name, &instance_id, &instance).send().await.unwrap();
     temporal.delete_instance(&id, &name, &instance_id).send().await.unwrap();
     temporal.delete(&id).send().await.unwrap();
+}
+
+#[tokio::test]
+async fn deleting_an_attribute_evolution_sends_delete_all_false_without_a_dataset() {
+    let server = MockServer::start().await;
+    Mock::given(method("DELETE"))
+        .and(path(format!("{B_PATH}/attrs/speed").as_str()))
+        .and(query_param("deleteAll", "false"))
+        .and(query_param_is_missing("datasetId"))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let name: AttributeName = "speed".parse().unwrap();
+    client(&server.uri())
+        .temporal()
+        .delete_attribute(&b(), &name)
+        .instances(InstanceSelection::Selected(None))
+        .send()
+        .await
+        .unwrap();
 }
 
 #[tokio::test]

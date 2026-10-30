@@ -18,6 +18,7 @@ use crate::model::{
     Output,
     ProblemKind,
     Representation,
+    Value,
     representation::write::{write_entity, write_fragment},
 };
 use iri_rs::{IriRefBuf, iri};
@@ -261,6 +262,19 @@ fn a_request_holds_the_json_null_literal_as_a_property_value_in_both_forms() {
         assert!(text.contains(literal), "{text}");
         assert_eq!(Entity::<Input>::parse(&text, form).unwrap(), entity);
     }
+}
+
+#[test]
+fn a_property_built_with_the_json_null_literal_writes_it_and_reads_it_back() {
+    let entity = Entity::builder()
+        .id(iri!("urn:ngsi-ld:T:1"))
+        .entity_type("T")
+        .property("x", Value::JsonNull)
+        .build()
+        .unwrap();
+    let normalized = r#"{"id":"urn:ngsi-ld:T:1","type":"T","x":{"type":"Property","value":{"@type":"@json","@value":null}}}"#;
+    assert_eq!(entity.render(Representation::Normalized).to_string(), normalized);
+    assert_eq!(Entity::<Input>::parse(normalized, Lossless::Normalized).unwrap(), entity);
 }
 
 #[test]

@@ -3,12 +3,14 @@
 use crate::{fixtures::client, links::context_link};
 use http::header;
 use ngsi_ld::{
-    http::operation::ContextDeletion,
-    model::{AttributeName, Context, ContextEntry, ContextId, InlineContext},
+    client::ClientError,
+    http::{ResponseError, operation::ContextDeletion},
+    model::{AttributeName, Context, ContextEntry, ContextId, ContextMetadata, InlineContext, StoredContextKind},
     query::Locality,
 };
 use pretty_assertions::assert_eq;
 use serde_json::json;
+use url::Url;
 use wiremock::{
     Mock,
     MockServer,
@@ -111,4 +113,60 @@ async fn a_context_is_added_served_and_reloaded() {
     let requests = server.received_requests().await.unwrap();
     let add = requests.iter().find(|request| request.method.as_str() == "POST").unwrap();
     assert!(add.headers.get(&header::LINK).is_none(), "{:?}", add.headers);
+}
+
+#[tokio::test]
+async fn the_details_of_stored_contexts_are_read_and_a_member_outside_their_table_is_refused() {
+    let server = MockServer::start().await;
+    let url = format!("{}/ngsi-ld/v1/jsonldContexts/{C}", server.uri());
+    let hosted = json!({"URL": url, "localId": C, "kind": "Hosted", "createdAt": "2024-05-01T10:00:00Z"});
+    let cached = json!({
+        "URL": "https://example.org/context.jsonld",
+        "localId": C,
+        "kind": "Cached",
+        "createdAt": "2024-05-01T10:00:00Z",
+        "numberOfHits": 3,
+        "extraInfo": {"etag": "x1"}
+    });
+    let unknown = json!({"URL": url, "localId": C, "kind": "Hosted", "createdAt": "2024-05-01T10:00:00Z", "foo": 1});
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/jsonldContexts"))
+        .and(query_param("details", "true"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([hosted])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(format!("/ngsi-ld/v1/jsonldContexts/{C}")))
+        .and(query_param("details", "true"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(cached))
+        .up_to_n_times(1)
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(format!("/ngsi-ld/v1/jsonldContexts/{C}")))
+        .and(query_param("details", "true"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(unknown))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let id: ContextId = C.parse().unwrap();
+    let listed = client.contexts().list_details().send().await.unwrap();
+    let created_at = "2024-05-01T10:00:00Z".parse().unwrap();
+    assert_eq!(
+        listed,
+        [ContextMetadata::new(
+            Url::parse(&url).unwrap(),
+            C.parse().unwrap(),
+            StoredContextKind::Hosted,
+            created_at
+        )]
+    );
+    let cached_details = client.contexts().serve_details(&id).send().await.unwrap();
+    assert_eq!((cached_details.kind, cached_details.number_of_hits), (StoredContextKind::Cached, Some(3)));
+    assert_eq!(cached_details.extra_info.map(|info| info.to_string()).as_deref(), Some(r#"{"etag":"x1"}"#));
+    let refused = client.contexts().serve_details(&id).send().await.unwrap_err();
+    assert!(matches!(refused, ClientError::Response(ResponseError::Body { .. })), "{refused:?}");
 }

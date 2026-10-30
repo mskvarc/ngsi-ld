@@ -1,7 +1,20 @@
 //! Entities read and written whole: their types, `location`, attribute names and order, `scope`, and the simplified
 //! representation.
 
-use crate::model::{AttributeName, AttributesError, Entity, Lossless, NameError, Output, ProblemKind, Representation, SimplifiedEntity, SimplifiedValue};
+use crate::model::{
+    AttributeName,
+    AttributesError,
+    Entity,
+    Lossless,
+    NameError,
+    Number,
+    Output,
+    ProblemKind,
+    Representation,
+    SimplifiedEntity,
+    SimplifiedValue,
+    geometry::{Geometry, Position, Shape},
+};
 use iri_rs::iri;
 use pretty_assertions::assert_eq;
 
@@ -25,6 +38,30 @@ fn location_must_be_a_geo_property() {
         &error.problems()[0].kind,
         ProblemKind::Attributes { name, source: AttributesError::GeoPropertyRequired } if name.to_string() == "location"
     ));
+}
+
+#[test]
+fn a_location_whose_ordinates_hold_more_digits_than_a_double_keeps_them_written_and_read() {
+    let longitude: Number = "13.39860000000000000001".parse().unwrap();
+    let latitude: Number = "52.520".parse().unwrap();
+    let point = Geometry::from(Shape::Point(Position::try_from_numbers(longitude, latitude).unwrap()));
+    let entity = Entity::builder()
+        .id(iri!("urn:ngsi-ld:Building:B1"))
+        .entity_type("Building")
+        .geo_property("location", point)
+        .build()
+        .unwrap();
+    let normalized = concat!(
+        r#"{"id":"urn:ngsi-ld:Building:B1","type":"Building","#,
+        r#""location":{"type":"GeoProperty","value":{"type":"Point","coordinates":[13.39860000000000000001,52.520]}}}"#
+    );
+    assert_eq!(entity.render(Representation::Normalized).to_string(), normalized);
+    let concise = r#"{"id":"urn:ngsi-ld:Building:B1","type":"Building","location":{"type":"Point","coordinates":[13.39860000000000000001,52.520]}}"#;
+    assert_eq!(entity.render(Representation::Concise).to_string(), concise);
+    for (text, form) in [(normalized, Lossless::Normalized), (concise, Lossless::Concise)] {
+        let read = Entity::<Output>::parse(text, form).unwrap();
+        assert_eq!(read.render(Representation::Normalized).to_string(), normalized);
+    }
 }
 
 #[test]

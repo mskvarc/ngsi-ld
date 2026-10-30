@@ -99,6 +99,11 @@ fn a_purge_limited_only_by_the_attributes_it_drops_or_keeps_is_bounded() {
         dropping_by_id.to_request(&endpoint()).unwrap().uri().query(),
         Some("id=urn%3Angsi-ld%3AVehicle%3AA4567&drop=speed")
     );
+    let keeping_by_id = PurgeEntities::builder().ids(&ids).keep(&names).build();
+    assert_eq!(
+        keeping_by_id.to_request(&endpoint()).unwrap().uri().query(),
+        Some("id=urn%3Angsi-ld%3AVehicle%3AA4567&keep=speed")
+    );
 }
 
 #[test]

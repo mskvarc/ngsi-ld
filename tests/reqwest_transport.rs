@@ -19,7 +19,7 @@ use ngsi_ld::{
         headers::{LinkValue, NgsiLdEntityMap, NgsiLdResultsCount, NgsiLdTenant, OptionalHeader, RelationType},
         operation::{ArgumentError, EntityIdMember, EntityMapRequest, InlineJoin, ResultsCount},
     },
-    model::{APPLICATION_JSON, EntityFragment, EntityId, ErrorType, Tenant},
+    model::{APPLICATION_JSON, Entity, EntityFragment, EntityId, ErrorType, Tenant},
     query::{Join, Quality, language_filter, ordering, q},
 };
 use pretty_assertions::assert_eq;
@@ -374,6 +374,41 @@ async fn merge_with_a_tenant_sends_the_fragment_and_the_tenant_header() {
     let tenant: Tenant = "t1".parse().unwrap();
     let outcome = client(&server.uri()).entities().merge(&id, &fragment).tenant(&tenant).send().await.unwrap();
     assert_eq!(outcome, BatchOutcome::Done);
+}
+
+#[tokio::test]
+async fn an_id_written_verbatim_keeps_its_upper_case_scheme_in_the_path_and_every_body() {
+    const ID: &str = "URN:NGSI-LD:Vehicle:B9211";
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(body_json(json!({"id": ID, "type": "Vehicle", "speed": {"type": "Property", "value": 0}})))
+        .respond_with(ResponseTemplate::new(201).insert_header(&header::LOCATION, format!("/ngsi-ld/v1/entities/{ID}").as_str()))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("PATCH"))
+        .and(path(format!("/ngsi-ld/v1/entities/{ID}").as_str()))
+        .and(body_json(json!({"id": ID, "speed": {"type": "Property", "value": 50}})))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/entityOperations/update"))
+        .and(body_json(json!([{"id": ID, "type": "Vehicle", "speed": {"type": "Property", "value": 90}}])))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let id = || EntityId::verbatim(ID).unwrap();
+    let vehicle = Entity::builder().id(id()).entity_type("Vehicle").property("speed", 0).build().unwrap();
+    client.entities().create(&vehicle).send().await.unwrap();
+    let fragment = EntityFragment::builder().id(id()).property("speed", 50).build().unwrap();
+    assert_eq!(client.entities().merge(&id(), &fragment).send().await.unwrap(), BatchOutcome::Done);
+    let batch = [EntityFragment::for_entity(id(), "Vehicle").property("speed", 90).build().unwrap()];
+    assert_eq!(client.entities().batch_update(&batch).send().await.unwrap(), BatchOutcome::Done);
 }
 
 #[tokio::test]

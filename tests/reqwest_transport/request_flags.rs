@@ -1,5 +1,6 @@
 //! The flags and inputs a client may state explicitly, over the client: `timeproperty` without a time window, the
-//! entity map of Retrieve Temporal Evolution and Purge Entities, the temporal representation parameter,
+//! entity map of Retrieve Temporal Evolution and Purge Entities, the ids and `keep` of Purge Entities, the temporal
+//! representation parameter,
 //! `details=false`, `reload=false`, the members beside an added context, and Context Source Properties (clauses
 //! 4.9, 5.7.3.3, 5.13.2.3, 6.3.12, Tables 6.4.3.3-2, 6.19.3.1-1, 6.25.3.1-1, 6.29.3.2-1 and 6.30.3.2-1).
 
@@ -165,6 +166,26 @@ async fn purge_entities_names_its_entity_map_in_the_header() {
         .purge()
         .entity_type("Vehicle")
         .entity_map(&map)
+        .send()
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn purge_entities_by_ids_limited_by_keep_sends_both() {
+    let server = MockServer::start().await;
+    Mock::given(method("DELETE"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(ExactQuery(Some("id=urn%3Angsi-ld%3AVehicle%3AB9211&keep=location,name")))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    client(&server.uri())
+        .entities()
+        .purge()
+        .ids(vec![b()])
+        .keep(vec!["location".parse().unwrap(), "name".parse().unwrap()])
         .send()
         .await
         .unwrap();

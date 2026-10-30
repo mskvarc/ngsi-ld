@@ -14,7 +14,7 @@ use ngsi_ld::{
         operation::{ArgumentError, SystemAttributes},
     },
     model::{DateTime, Input},
-    registration::{CSourceRegistration, RegistrationFragment, RegistrationId},
+    registration::{CSourceRegistration, RegistrationFragment, RegistrationId, RegistrationTypeMember},
     subscription::{RegistrationSubscription, Subscription, SubscriptionId},
 };
 use pretty_assertions::assert_eq;
@@ -57,11 +57,12 @@ fn retrieved(id: &str) -> Value {
     })
 }
 
-/// A Context Source Registration Subscription for the registrations of vehicles, as JSON.
+/// A Context Source Registration Subscription for the inclusive registrations of vehicles, as JSON.
 fn watch_json() -> Value {
     json!({
         "type": "Subscription",
         "entities": [{"type": "Vehicle"}],
+        "csf": "mode==\"inclusive\"",
         "notification": {"endpoint": {"uri": "http://my.endpoint.org/registrations"}}
     })
 }
@@ -171,7 +172,28 @@ async fn retrieve_update_and_delete_a_registration() {
 }
 
 #[tokio::test]
-async fn a_registration_subscription_is_created_and_retrieved_on_csource_subscriptions() {
+async fn an_update_sends_a_fragment_that_leaves_its_type_out() {
+    let server = MockServer::start().await;
+    Mock::given(method("PATCH"))
+        .and(path(format!("/ngsi-ld/v1/csourceRegistrations/{R}").as_str()))
+        .and(header(header::CONTENT_TYPE, "application/json"))
+        .and(body_json(json!({"expiresAt": "2030-01-01T00:00:00Z"})))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let id: RegistrationId = R.parse().unwrap();
+    let postpone = RegistrationFragment::builder()
+        .type_member(RegistrationTypeMember::Omitted)
+        .expires_at("2030-01-01T00:00:00Z".parse::<DateTime>().unwrap())
+        .build()
+        .unwrap();
+    client.registrations().update(&id, &postpone).send().await.unwrap();
+}
+
+#[tokio::test]
+async fn a_registration_subscription_is_created_and_retrieved_on_csource_subscriptions_with_its_csf() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/ngsi-ld/v1/csourceSubscriptions"))
@@ -195,6 +217,8 @@ async fn a_registration_subscription_is_created_and_retrieved_on_csource_subscri
     assert_eq!(id, RS.parse::<SubscriptionId>().unwrap());
     let read = client.registration_subscriptions().retrieve(&id).send().await.unwrap();
     assert_eq!(read.id(), &id);
+    assert_eq!(read.csf(), watch.csf());
+    assert_eq!(read.csf().map(ToString::to_string).as_deref(), Some(r#"mode=="inclusive""#));
 }
 
 #[tokio::test]
