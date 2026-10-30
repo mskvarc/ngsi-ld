@@ -2,7 +2,7 @@
 //! (clause 5.5.4).
 
 use crate::{
-    http::{Endpoint, RequestError, operation::Operation},
+    http::{Endpoint, RequestError, operation::Operation, request::scope::RequestScope},
     model::{Entity, Input, Lossless, RawJson, keyword::CONTEXT, null::NGSI_LD_NULL, representation::write::write_entity},
 };
 use bytes::Bytes;
@@ -174,7 +174,12 @@ impl UncheckedRequest {
     ///
     /// Returns [`RequestError`] when the operation itself refuses its parameters.
     pub fn try_from_operation<O: Operation>(operation: &O, endpoint: &Endpoint) -> Result<UncheckedRequest, RequestError> {
-        let request = operation.to_request(endpoint)?;
+        Self::try_from_scoped(operation, endpoint, RequestScope::on_tenant(endpoint.tenant()))
+    }
+
+    /// Builds the request `operation` would send to `endpoint` aimed at `scope`: its tenant and its snapshot.
+    pub(crate) fn try_from_scoped<O: Operation>(operation: &O, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<UncheckedRequest, RequestError> {
+        let request = operation.scoped_request(endpoint, scope)?;
         let context = body_context(request.body());
         Ok(UncheckedRequest { request, context })
     }

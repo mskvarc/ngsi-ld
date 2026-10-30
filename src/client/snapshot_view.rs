@@ -1,7 +1,20 @@
 //! The handles of a client aimed at a snapshot (NGSI-LD clauses 5.5.15 and 6.3.22).
 
 use crate::{
-    client::{AvailableAttributes, AvailableEntityTypes, Client, Entities, OutcomeOnly, Subscriptions, Temporal, route::Route},
+    client::{
+        Answering,
+        AvailableAttributes,
+        AvailableEntityTypes,
+        Client,
+        ClientError,
+        Entities,
+        OutcomeOnly,
+        Subscriptions,
+        Temporal,
+        Transport,
+        route::Route,
+    },
+    http::{UncheckedRequest, operation::Operation},
     snapshot::SnapshotId,
     subscription::EntitySubscription,
 };
@@ -89,5 +102,20 @@ impl<'c, T, M> SnapshotView<'c, T, M> {
     #[must_use]
     pub const fn subscriptions(&self) -> Subscriptions<'c, T, EntitySubscription, M> {
         Subscriptions::new(self.route(), EntitySubscription)
+    }
+}
+
+impl<T: Transport, M: Answering> SnapshotView<'_, T, M> {
+    /// Builds the request `operation` would send on the client's tenant, aimed at the snapshot, for breaking on purpose
+    /// (see [`UncheckedRequest`]). The client sends it with [`send_unchecked`](Client::send_unchecked).
+    ///
+    /// Any operation can be built, including one the view has no handle of, so a negative test can aim at a
+    /// snapshot a request that clause 5.5.15 does not allow.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::Request`] when the operation itself refuses its parameters.
+    pub fn unchecked<O: Operation>(&self, operation: &O) -> Result<UncheckedRequest, ClientError<T::Error>> {
+        self.client.unchecked_on(operation, Some(self.snapshot))
     }
 }

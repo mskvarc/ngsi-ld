@@ -9,11 +9,15 @@ use headers::Header;
 use http::header;
 use iri_rs::iri;
 use ngsi_ld::{
+    client::ClientError,
     http::{
         BatchOutcome,
+        ResponseError,
+        UncheckedDocument,
         headers::{NgsiLdSnapshot, RelationType},
+        operation::CreateEntity,
     },
-    model::{EntityId, Input},
+    model::{Entity, EntityId, ErrorType, Input, Lossless},
     query::q,
     snapshot::{SettledStatus, Snapshot, SnapshotClone, SnapshotFragment, SnapshotId, SnapshotMember, SnapshotStatus},
 };
@@ -170,4 +174,29 @@ async fn the_snapshot_view_aims_every_call_and_every_page_at_the_snapshot() {
         .await
         .unwrap();
     assert_eq!(evolution.body().id.as_str(), "urn:ngsi-ld:Vehicle:A4567");
+}
+
+#[tokio::test]
+async fn an_unchecked_request_of_the_snapshot_view_carries_the_snapshot_and_its_rejection_decodes() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(header(NgsiLdSnapshot::name(), S))
+        .and(body_json(json!({"id": "urn:ngsi-ld:Vehicle:A4567"})))
+        .respond_with(ResponseTemplate::new(400).set_body_json(json!({"type": "https://uri.etsi.org/ngsi-ld/errors/BadRequestData", "title": "missing type"})))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let snapshot = s();
+    let vehicle = Entity::builder().id(iri!("urn:ngsi-ld:Vehicle:A4567")).entity_type("Vehicle").build().unwrap();
+    let create = CreateEntity::builder().entity(&vehicle).build();
+    let broken = UncheckedDocument::from_entity(&vehicle, Lossless::Normalized).remove_member("type");
+    let request = client.on_snapshot(&snapshot).unchecked(&create).unwrap().document(&broken);
+    assert_eq!(request.as_request().headers()[NgsiLdSnapshot::name()], S);
+    let error = client.send_unchecked(request).await.unwrap_err();
+    assert!(
+        matches!(&error, ClientError::Response(ResponseError::Problem { details, .. }) if details.error_type == Some(ErrorType::BadRequestData)),
+        "{error:?}"
+    );
 }
