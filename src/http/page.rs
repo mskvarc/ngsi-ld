@@ -29,7 +29,7 @@ use url::Url;
 ///
 /// The links are resolved against the URL of the request that returned the page, the default context of a link (RFC
 /// 8288 section 3.2), so they can be requested as they are. The page remembers the tenant that request addressed, the
-/// snapshot it was aimed at and the entity map the query used: the neighbouring pages belong to the same query, so
+/// snapshot it was aimed at and the entity map the query used: the pages it links belong to the same query, so
 /// their requests address that tenant, aim at that snapshot (clause 6.3.22) and name that map, which keeps the
 /// pagination consistent across distributed sources (clause 4.3.6.7).
 ///
@@ -125,7 +125,7 @@ impl<T> Page<T> {
         &self.headers.entity_map
     }
 
-    /// The entity map the requests for the neighbouring pages name (`NGSILD-EntityMap`, clause 4.3.6.7): the map
+    /// The entity map the requests for the pages this page links name (`NGSILD-EntityMap`, clause 4.3.6.7): the map
     /// the broker said it used for this page, or else the map the request for this page named; `None` when the
     /// query uses no entity map.
     #[must_use]
@@ -161,7 +161,7 @@ impl<T> Page<T> {
     }
 
     /// The snapshot the request for this page was aimed at (`NGSILD-Snapshot`, clause 6.3.22), which the
-    /// neighbouring pages are aimed at too.
+    /// pages it links are aimed at too.
     #[must_use]
     pub const fn snapshot(&self) -> Option<&SnapshotId> {
         self.snapshot.as_ref()

@@ -223,6 +223,20 @@ fn a_page_reads_its_first_and_last_links() {
 }
 
 #[test]
+fn a_page_linking_only_its_neighbours_has_no_first_or_last_page_request() {
+    // Clauses 5.5.9.1 and 6.3.10 oblige a broker to link the next and previous pages only.
+    let entity_type: SelectorType = "Vehicle".parse().unwrap();
+    let query = query_vehicles(Some(&entity_type), None, Simplified);
+    let request = query.to_request(&endpoint()).unwrap();
+    let link = r#"<?type=Vehicle&offset=4>; rel="next", <?type=Vehicle&offset=0>; rel="prev""#;
+    let page = query
+        .decode(&ResponseContext::new(&request), response(200, &[(&header::LINK, link)], "[]"))
+        .unwrap();
+    assert!(page.next_page().is_some() && page.prev_page().is_some());
+    assert_eq!((page.first_page(), page.last_page()), (None, None));
+}
+
+#[test]
 fn a_context_profile_is_sent_on_the_context_link_and_refused_where_no_link_travels() {
     let profile = IriBuf::new("https://uri.etsi.org/ngsi-ld/profile/version").unwrap();
     let id = vehicle_id();

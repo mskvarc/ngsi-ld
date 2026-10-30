@@ -270,6 +270,51 @@ async fn the_next_page_is_requested_from_its_link() {
 }
 
 #[tokio::test]
+async fn the_first_and_last_pages_are_requested_from_their_links_on_the_tenant_of_the_query() {
+    let server = MockServer::start().await;
+    for (offset, id) in [("0", "urn:ngsi-ld:Vehicle:B9211"), ("4", "urn:ngsi-ld:Vehicle:A456")] {
+        Mock::given(method("GET"))
+            .and(path("/ngsi-ld/v1/entities"))
+            .and(query_param("offset", offset))
+            .and(header(NgsiLdTenant::name(), "fleet"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!([{"id": id, "type": "Vehicle"}])))
+            .expect(1)
+            .mount(&server)
+            .await;
+    }
+    Mock::given(method("GET"))
+        .and(path("/ngsi-ld/v1/entities"))
+        .and(query_param("offset", "2"))
+        .and(header(NgsiLdTenant::name(), "fleet"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])).insert_header(
+            &header::LINK,
+            link_field([
+                link_value("/ngsi-ld/v1/entities?type=Vehicle&format=simplified&limit=2&offset=0", RelationType::First),
+                link_value("/ngsi-ld/v1/entities?type=Vehicle&format=simplified&limit=2&offset=4", RelationType::Last),
+            ]),
+        ))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let tenant: Tenant = "fleet".parse().unwrap();
+    let middle = client
+        .entities()
+        .query_simplified()
+        .entity_type("Vehicle")
+        .limit(2)
+        .offset(2)
+        .tenant(&tenant)
+        .send()
+        .await
+        .unwrap();
+    let first = client.send(&middle.first_page().unwrap()).await.unwrap();
+    let last = client.send(&middle.last_page().unwrap()).await.unwrap();
+    assert_eq!(first.items()[0].id.as_str(), "urn:ngsi-ld:Vehicle:B9211");
+    assert_eq!(last.items()[0].id.as_str(), "urn:ngsi-ld:Vehicle:A456");
+}
+
+#[tokio::test]
 async fn every_page_is_walked_on_the_tenant_of_the_query_and_its_items_collected() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))

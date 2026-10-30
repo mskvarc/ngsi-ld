@@ -58,6 +58,19 @@ fn the_following_page_names_the_map_the_broker_used() {
 }
 
 #[test]
+fn the_first_and_last_pages_name_the_map_the_broker_used() {
+    let link = link_field([
+        link_value("?type=Vehicle&format=simplified&offset=0", RelationType::First),
+        link_value("?type=Vehicle&format=simplified&offset=4", RelationType::Last),
+    ]);
+    let page = page(Some(QUERY_MAP), &[(&header::LINK, &link), (NgsiLdEntityMap::name(), BROKER_MAP)]);
+    for linked in [page.first_page(), page.last_page()] {
+        let request = linked.unwrap().to_request(&endpoint()).unwrap();
+        assert_eq!(header_value(&request, NgsiLdEntityMap::name()), Some(BROKER_MAP));
+    }
+}
+
+#[test]
 fn without_a_map_from_the_broker_the_following_page_names_the_map_of_the_query() {
     let page = page(Some(QUERY_MAP), &[(&header::LINK, &next())]);
     assert_eq!(next_map(&page).as_deref(), Some(QUERY_MAP));

@@ -331,6 +331,32 @@ fn the_next_page_of_a_query_on_a_snapshot_stays_on_it() {
 }
 
 #[test]
+fn the_first_and_last_pages_of_a_query_on_a_snapshot_stay_on_it_and_on_its_tenant() {
+    let tenant: Tenant = "t1".parse().unwrap();
+    let snapshot = id(S);
+    let entity_type: SelectorType = "Vehicle".parse().unwrap();
+    let query = query_vehicles(Some(&entity_type), None, Simplified);
+    let aimed = OnSnapshot::new(&snapshot, &query);
+    let request = aimed.to_request(&endpoint().with_tenant(tenant)).unwrap();
+    let link = link_field([
+        link_value("/ngsi-ld/v1/entities?type=Vehicle&offset=0", RelationType::First),
+        link_value("/ngsi-ld/v1/entities?type=Vehicle&offset=40", RelationType::Last),
+    ]);
+    let page = aimed
+        .decode(&ResponseContext::new(&request), response(200, &[(&header::LINK, &link)], "[]"))
+        .unwrap();
+    let first = page.first_page().unwrap().to_request(&endpoint()).unwrap();
+    let last = page.last_page().unwrap().to_request(&endpoint()).unwrap();
+    assert_eq!(first.uri(), "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&offset=0");
+    assert_eq!(last.uri(), "http://broker.test/ngsi-ld/v1/entities?type=Vehicle&offset=40");
+    for request in [&first, &last] {
+        assert_eq!(request.method(), Method::GET);
+        assert_eq!(header_value(request, NgsiLdSnapshot::name()), Some(S));
+        assert_eq!(header_value(request, NgsiLdTenant::name()), Some("t1"));
+    }
+}
+
+#[test]
 fn create_reads_the_id_of_the_snapshot_from_its_location() {
     let snapshot = snap();
     let create = CreateSnapshot { snapshot: &snapshot };

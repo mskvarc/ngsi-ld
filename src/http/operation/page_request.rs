@@ -1,4 +1,4 @@
-//! Requests for the neighbouring pages of a query (NGSI-LD clause 6.3.10).
+//! Requests for the pages a page of a query links (NGSI-LD clause 6.3.10).
 
 use crate::{
     http::{
@@ -92,15 +92,36 @@ impl<T> Page<T> {
     /// The request for the next page, if there is one.
     #[must_use]
     pub fn next_page(&self) -> Option<PageRequest<'_, T>> {
-        self.next()
-            .map(|url| PageRequest::new(url, self.tenant(), self.snapshot(), self.following_entity_map()))
+        self.page_at(self.next())
     }
 
     /// The request for the previous page, if there is one.
     #[must_use]
     pub fn prev_page(&self) -> Option<PageRequest<'_, T>> {
-        self.prev()
-            .map(|url| PageRequest::new(url, self.tenant(), self.snapshot(), self.following_entity_map()))
+        self.page_at(self.prev())
+    }
+
+    /// The request for the first page, when the broker links it (`rel="first"`, RFC 8288 section 6.2.2).
+    ///
+    /// Clauses 5.5.9.1 and 6.3.10 oblige a broker to link the next and previous pages only; a broker may link the first
+    /// page as well, and the link belongs to the same query as theirs.
+    #[must_use]
+    pub fn first_page(&self) -> Option<PageRequest<'_, T>> {
+        self.page_at(self.first())
+    }
+
+    /// The request for the last page, when the broker links it (`rel="last"`, RFC 8288 section 6.2.2).
+    ///
+    /// Clauses 5.5.9.1 and 6.3.10 oblige a broker to link the next and previous pages only; a broker may link the last
+    /// page as well, and the link belongs to the same query as theirs.
+    #[must_use]
+    pub fn last_page(&self) -> Option<PageRequest<'_, T>> {
+        self.page_at(self.last())
+    }
+
+    /// The request for the page at `url`, a link of this page, on this page's tenant, snapshot and entity map.
+    fn page_at<'a>(&'a self, url: Option<&'a Url>) -> Option<PageRequest<'a, T>> {
+        url.map(|url| PageRequest::new(url, self.tenant(), self.snapshot(), self.following_entity_map()))
     }
 }
 
