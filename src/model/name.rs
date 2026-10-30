@@ -223,12 +223,17 @@ name_as_str!(Name, Term, AttributeName, EntityTypeName);
 /// examples use `non-commercial`), so the only restrictions are the ones that make a string unusable as a
 /// term: it is not empty, holds no whitespace and is not a JSON-LD keyword.
 ///
+/// It is also the `objectType` of a Relationship (clause 5.2.6). Every [`EntityTypeName`] is a term, so a type name
+/// converts into one without a check.
+///
 /// ```
-/// use ngsi_ld::model::VocabTerm;
+/// use ngsi_ld::model::{EntityTypeName, VocabTerm};
 ///
 /// let term: VocabTerm = "non-commercial".parse()?;
 /// assert_eq!(term.to_string(), "non-commercial");
 /// assert!("@id".parse::<VocabTerm>().is_err());
+/// let parking: EntityTypeName = "OffStreetParking".parse()?;
+/// assert_eq!(VocabTerm::from(&parking).to_string(), "OffStreetParking");
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 //
@@ -289,6 +294,26 @@ impl TryFrom<&str> for VocabTerm {
 
     fn try_from(term: &str) -> Result<Self, NameError> {
         Self::try_new(term)
+    }
+}
+
+/// The term naming an entity type, as the `objectType` of a Relationship names the types of its target (clause
+/// 5.2.6).
+///
+/// No check is needed: a name of clause 4.6.2 starts with a letter and holds no whitespace, and an absolute IRI holds
+/// no whitespace and starts with its scheme, so every entity type name is a term.
+// No derive converts one checked name into another.
+impl From<EntityTypeName> for VocabTerm {
+    fn from(name: EntityTypeName) -> Self {
+        Self(name.into_inner())
+    }
+}
+
+/// The term naming an entity type the caller keeps, such as one it also creates the target entity with.
+// No derive converts one checked name into another; the term owns its text, so the name is copied.
+impl From<&EntityTypeName> for VocabTerm {
+    fn from(name: &EntityTypeName) -> Self {
+        Self(name.as_str().to_owned())
     }
 }
 

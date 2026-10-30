@@ -141,3 +141,13 @@ fn names_round_trip_through_serde() {
     assert_eq!(jstrict::to_value(&name).unwrap(), jstrict::json!("brandName"));
     assert!(jstrict::from_value::<AttributeName>(jstrict::json!("datasetId")).is_err());
 }
+
+#[test]
+fn every_kind_of_entity_type_name_converts_into_the_term_with_the_same_text() {
+    for text in ["Vehicle", "ex:Vehicle", "Fahrzeug2", "https://example.org/Vehicle", "urn:ngsi-ld:Vehicle"] {
+        let name: EntityTypeName = text.parse().unwrap();
+        let expected: VocabTerm = text.parse().unwrap();
+        assert_eq!(VocabTerm::from(&name), expected, "{text}");
+        assert_eq!(VocabTerm::from(name), expected, "{text}");
+    }
+}
