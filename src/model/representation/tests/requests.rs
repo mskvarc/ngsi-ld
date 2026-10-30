@@ -228,6 +228,14 @@ fn into_input_drops_system_members() {
 }
 
 #[test]
+fn a_single_request_attribute_holds_no_context_in_either_representation() {
+    for form in [Lossless::Normalized, Lossless::Concise] {
+        let error = Attribute::<Input>::parse_input(r#"{"@context":"https://example.org/context.jsonld","type":"Property","value":1}"#, form).unwrap_err();
+        assert!(matches!(error.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { ref member }) if member == "@context"));
+    }
+}
+
+#[test]
 fn a_request_document_refuses_system_members() {
     let error = Entity::<Input>::parse(
         r#"{"id":"urn:ngsi-ld:T:1","type":"T","createdAt":"2020-01-01T00:00:00Z"}"#,

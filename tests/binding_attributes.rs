@@ -2,12 +2,13 @@
 //! pure binding.
 #![cfg(feature = "http")]
 
-use crate::fixtures::{context, endpoint, json, response, speed, vehicle_id};
-use http::{Method, StatusCode};
+use crate::fixtures::{context, endpoint, endpoint_with, json, response, speed, vehicle_id};
+use http::{HeaderValue, Method, StatusCode, header};
 use jstrict::Unordered;
 use ngsi_ld::{
     http::{
         BatchOutcome,
+        ContextDelivery,
         RequestError,
         ResponseError,
         UpdateOutcome,
@@ -42,7 +43,7 @@ mod fixtures {
     use iri_rs::IriRefBuf;
     use jstrict::Value as Json;
     use ngsi_ld::{
-        http::{Endpoint, ResponseContext},
+        http::{ContextDelivery, Endpoint, ResponseContext},
         model::{AttributeName, EntityId},
     };
     use std::str;
@@ -53,6 +54,16 @@ mod fixtures {
         Endpoint::builder()
             .base_url(Url::parse("http://broker.test/ngsi-ld/v1/").unwrap())
             .context(IriRefBuf::new("https://example.org/context.jsonld").unwrap())
+            .build()
+            .unwrap()
+    }
+
+    /// The test endpoint, delivering its context as `delivery`.
+    pub(crate) fn endpoint_with(delivery: ContextDelivery) -> Endpoint {
+        Endpoint::builder()
+            .base_url(Url::parse("http://broker.test/ngsi-ld/v1/").unwrap())
+            .context(IriRefBuf::new("https://example.org/context.jsonld").unwrap())
+            .context_delivery(delivery)
             .build()
             .unwrap()
     }
@@ -188,6 +199,49 @@ fn replace_attribute_sends_put_to_the_attribute() {
     assert_eq!(request.method(), Method::PUT);
     assert_eq!(request.uri().path(), "/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:A4567/attrs/speed");
     assert_eq!(Unordered(json(request.body())), Unordered(json(br#"{"type": "Property", "value": 55}"#)));
+}
+
+#[test]
+fn replace_attribute_as_json_names_the_context_in_a_link_and_leaves_it_out_of_the_body() {
+    let id = vehicle_id();
+    let name = speed();
+    let attribute = Attribute::Property(Property::builder(55).build().unwrap());
+    let request = ReplaceAttribute::builder()
+        .id(&id)
+        .name(&name)
+        .attribute(&attribute)
+        .build()
+        .to_request(&endpoint_with(ContextDelivery::JsonWithLink))
+        .unwrap();
+    assert_eq!(
+        request.headers().get(header::CONTENT_TYPE).map(HeaderValue::as_bytes),
+        Some(b"application/json".as_slice())
+    );
+    assert!(request.headers().contains_key(header::LINK));
+    assert!(json(request.body()).as_object().unwrap().get("@context").next().is_none());
+}
+
+#[test]
+fn replace_attribute_as_ld_json_carries_the_context_at_the_top_of_the_attribute_and_sends_no_link() {
+    let id = vehicle_id();
+    let name = speed();
+    let attribute = Attribute::Property(Property::builder(55).build().unwrap());
+    let request = ReplaceAttribute::builder()
+        .id(&id)
+        .name(&name)
+        .attribute(&attribute)
+        .build()
+        .to_request(&endpoint_with(ContextDelivery::LdJsonBody))
+        .unwrap();
+    assert_eq!(
+        request.headers().get(header::CONTENT_TYPE).map(HeaderValue::as_bytes),
+        Some(b"application/ld+json".as_slice())
+    );
+    assert!(!request.headers().contains_key(header::LINK));
+    assert_eq!(
+        Unordered(json(request.body())),
+        Unordered(json(br#"{"@context": "https://example.org/context.jsonld", "type": "Property", "value": 55}"#))
+    );
 }
 
 #[test]
