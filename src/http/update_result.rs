@@ -11,6 +11,9 @@ use serde::{Deserialize, Serialize};
 /// Error and partial-success bodies carry no `@context` (clause 6.3.6), so the names are usually fully
 /// qualified IRIs.
 ///
+/// Both lists are mandatory (Table 5.2.18-1): a body that leaves one out is not read, rather than read as an
+/// empty list, which would report that no attribute failed.
+///
 /// ```
 /// use ngsi_ld::http::UpdateResult;
 ///
@@ -30,10 +33,8 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct UpdateResult {
     /// The attributes that were appended or updated.
-    #[serde(default)]
     pub updated: Vec<AttributeName>,
     /// The attributes that were not, each with the reason.
-    #[serde(default)]
     pub not_updated: Vec<NotUpdatedDetails>,
 }
 
@@ -130,7 +131,13 @@ mod tests {
     }
 
     #[test]
-    fn a_result_missing_both_lists_reads_as_empty() {
-        assert_eq!(serde_json::from_str::<UpdateResult>("{}").unwrap(), UpdateResult::default());
+    fn a_result_missing_either_mandatory_list_is_refused() {
+        for text in ["{}", r#"{"updated":[]}"#, r#"{"notUpdated":[]}"#] {
+            assert!(serde_json::from_str::<UpdateResult>(text).is_err(), "{text}");
+        }
+        assert_eq!(
+            serde_json::from_str::<UpdateResult>(r#"{"updated":[],"notUpdated":[]}"#).unwrap(),
+            UpdateResult::default()
+        );
     }
 }

@@ -239,6 +239,9 @@ fn invalid_names_identifiers_and_shapes_are_refused_at_their_member() {
     let name = EntityTypeList::parse(r#"{"id":"urn:ngsi-ld:EntityTypeList:1","type":"EntityTypeList","typeList":["1Vehicle"]}"#).unwrap_err();
     assert!(matches!(name.kind, DocumentErrorKind::Member(MemberError::Name { .. })));
     assert_eq!(path(&name), "typeList");
+    let proof = AttributeList::parse(r#"{"id":"urn:ngsi-ld:AttributeList:1","type":"AttributeList","attributeList":["speed","ngsildproof"]}"#).unwrap_err();
+    assert!(matches!(proof.kind, DocumentErrorKind::Member(MemberError::Name { .. })));
+    assert_eq!(path(&proof), "attributeList");
     let id = EntityTypeList::parse(r#"{"id":"not a uri","type":"EntityTypeList","typeList":[]}"#).unwrap_err();
     assert!(matches!(id.kind, DocumentErrorKind::Member(MemberError::Identifier { .. })));
     assert_eq!(path(&id), "id");

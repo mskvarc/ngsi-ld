@@ -328,6 +328,20 @@ fn a_207_to_an_attribute_operation_is_a_partial_update_result() {
 }
 
 #[test]
+fn a_207_to_an_attribute_operation_without_a_mandatory_list_is_refused() {
+    let id = vehicle_id();
+    let fragment = EntityFragment::builder().property("speed", 55).build().unwrap();
+    let update = UpdateAttributes::builder().id(&id).fragment(&fragment).build();
+    for body in [
+        r#"{"notUpdated": [{"attributeName": "speed", "reason": "the attribute does not exist"}]}"#,
+        r#"{"updated": []}"#,
+    ] {
+        let error = update.decode(&context(), response(207, body)).unwrap_err();
+        assert!(matches!(error, ResponseError::Body { .. }), "{error:?}");
+    }
+}
+
+#[test]
 fn a_204_to_an_attribute_operation_is_done() {
     let id = vehicle_id();
     let name = speed();

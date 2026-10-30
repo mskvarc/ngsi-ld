@@ -70,8 +70,20 @@ fn the_aggregated_reader_refuses_every_member_out_of_shape() {
             found: AttributeKind::GeoProperty
         }
     ));
+    let json = refusal(r#""payload":{"type":"JsonProperty","max":[]}"#);
+    assert_eq!(json.path.to_string(), "payload");
+    assert!(matches!(
+        json.kind,
+        DocumentErrorKind::AggregatedKind {
+            found: AttributeKind::JsonProperty
+        }
+    ));
     let median = refusal(r#""speed":{"type":"Property","median":[]}"#);
     assert!(matches!(median.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "median"));
+    let dataset = refusal(r#""speed":{"type":"Property","datasetId":"urn:ngsi-ld:Dataset:1","max":[]}"#);
+    assert!(matches!(dataset.kind, DocumentErrorKind::Member(MemberError::UnexpectedMember { member }) if member == "datasetId"));
+    let null = refusal(r#""speed":{"type":"Property","avg":[[null,"2018-08-01T12:00:00Z","2018-08-01T12:04:00Z"]]}"#);
+    assert_eq!(null.path.to_string(), "speed.avg.0");
     let pair = refusal(r#""speed":{"type":"Property","max":[[120,"2018-08-01T12:00:00Z"]]}"#);
     assert_eq!(pair.path.to_string(), "speed.max.0");
     assert!(matches!(pair.kind, DocumentErrorKind::TemporalEntry { expected: 3, found: 2 }));
