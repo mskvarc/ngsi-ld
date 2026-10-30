@@ -3,9 +3,10 @@
 use crate::{
     fixtures::{context, endpoint, endpoint_with, header_value, json, link_of, response, vehicle},
     links::context_link,
+    registration_fixtures::{R, id, postpone, vehicle_source},
 };
 use bytes::Bytes;
-use http::header;
+use http::{Method, header};
 use jstrict::Value as Json;
 use ngsi_ld::{
     http::{
@@ -13,11 +14,13 @@ use ngsi_ld::{
         ResponseError,
         UncheckedDocument,
         UncheckedRequest,
-        operation::{CreateEntity, Operation},
+        operation::{CreateEntity, CreateSubscription, Operation, RegisterContextSource, UpdateRegistration, UpdateSubscription},
     },
-    model::{ErrorType, Lossless, RawJson},
+    model::{ErrorType, Input, Lossless, RawJson},
+    subscription::{Activation, Subscription, SubscriptionFragment, SubscriptionId},
 };
 use pretty_assertions::assert_eq;
+use std::str;
 
 #[test]
 fn an_entity_without_type_is_sent_with_the_headers_of_create() {
@@ -86,6 +89,81 @@ fn a_document_replacing_an_ld_json_body_keeps_its_context() {
     assert!(object.get("type").next().is_none());
     assert_eq!(object.get("@context").collect::<Vec<_>>(), [&Json::from("https://example.org/context.jsonld")]);
     assert_eq!(header_value(&request, &header::CONTENT_LENGTH), Some(request.body().len().to_string().as_str()));
+}
+
+#[test]
+fn a_subscription_without_its_notification_is_sent_with_the_headers_of_create() {
+    let subscription: Subscription<Input> =
+        Subscription::parse(r#"{"type":"Subscription","entities":[{"type":"Vehicle"}],"notification":{"endpoint":{"uri":"http://my.endpoint.org/notify"}}}"#)
+            .unwrap();
+    let create = CreateSubscription { subscription: &subscription };
+    let broken = UncheckedDocument::try_from(subscription.render()).unwrap().remove_member("notification");
+    let request = UncheckedRequest::try_from_operation(&create, &endpoint_with(ContextDelivery::LdJsonBody))
+        .unwrap()
+        .document(&broken)
+        .into_request();
+    assert_eq!(request.method(), Method::POST);
+    assert_eq!(request.uri().path(), "/ngsi-ld/v1/subscriptions");
+    assert_eq!(header_value(&request, &header::CONTENT_TYPE), Some("application/ld+json"));
+    assert_eq!(
+        str::from_utf8(request.body()).unwrap(),
+        r#"{"type":"Subscription","entities":[{"type":"Vehicle"}],"@context":"https://example.org/context.jsonld"}"#
+    );
+}
+
+#[test]
+fn a_subscription_fragment_with_a_member_of_the_wrong_kind_is_sent_with_the_headers_of_update() {
+    let fragment = SubscriptionFragment::builder().activation(Activation::Paused).build().unwrap();
+    let id: SubscriptionId = "urn:ngsi-ld:Subscription:mySubscription".parse().unwrap();
+    let update = UpdateSubscription { id: &id, fragment: &fragment };
+    let broken = UncheckedDocument::try_from(fragment.render()).unwrap().set_text("isActive", "no");
+    let request = UncheckedRequest::try_from_operation(&update, &endpoint())
+        .unwrap()
+        .document(&broken)
+        .into_request();
+    assert_eq!(request.method(), Method::PATCH);
+    assert_eq!(request.uri().path(), "/ngsi-ld/v1/subscriptions/urn:ngsi-ld:Subscription:mySubscription");
+    assert_eq!(link_of(&request), Some(context_link()));
+    assert_eq!(str::from_utf8(request.body()).unwrap(), r#"{"type":"Subscription","isActive":"no"}"#);
+}
+
+#[test]
+fn a_registration_without_its_endpoint_is_sent_with_the_headers_of_register() {
+    let registration = vehicle_source();
+    let register = RegisterContextSource { registration: &registration };
+    let broken = UncheckedDocument::try_from(registration.render()).unwrap().remove_member("endpoint");
+    let request = UncheckedRequest::try_from_operation(&register, &endpoint())
+        .unwrap()
+        .document(&broken)
+        .into_request();
+    assert_eq!(request.method(), Method::POST);
+    assert_eq!(request.uri().path(), "/ngsi-ld/v1/csourceRegistrations");
+    assert_eq!(link_of(&request), Some(context_link()));
+    assert_eq!(
+        str::from_utf8(request.body()).unwrap(),
+        r#"{"type":"ContextSourceRegistration","information":[{"entities":[{"type":"Vehicle"}],"propertyNames":["speed"]}]}"#
+    );
+}
+
+#[test]
+fn a_registration_fragment_with_an_expiry_that_is_not_a_timestamp_is_sent_with_the_headers_of_update() {
+    let fragment = postpone();
+    let target = id(R);
+    let update = UpdateRegistration {
+        id: &target,
+        fragment: &fragment,
+    };
+    let broken = UncheckedDocument::try_from(fragment.render()).unwrap().set_text("expiresAt", "tomorrow");
+    let request = UncheckedRequest::try_from_operation(&update, &endpoint())
+        .unwrap()
+        .document(&broken)
+        .into_request();
+    assert_eq!(request.method(), Method::PATCH);
+    assert_eq!(request.uri().path(), format!("/ngsi-ld/v1/csourceRegistrations/{R}"));
+    assert_eq!(
+        str::from_utf8(request.body()).unwrap(),
+        r#"{"type":"ContextSourceRegistration","expiresAt":"tomorrow"}"#
+    );
 }
 
 #[test]
