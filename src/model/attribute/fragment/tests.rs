@@ -166,3 +166,31 @@ fn a_fragment_that_names_no_payload_reads_back_in_both_forms() {
         assert_eq!(read, Change::Set(members().into()), "{text}");
     }
 }
+
+#[test]
+fn a_fragment_that_sets_a_sub_attribute_alone_writes_and_reads_it_in_both_forms() {
+    let members = || AttributeMembers::builder().property("accuracy", 3).build().unwrap();
+    for (form, expected) in [
+        (Lossless::Normalized, r#"{"accuracy":{"type":"Property","value":3}}"#),
+        (Lossless::Concise, r#"{"accuracy":3}"#),
+    ] {
+        assert_eq!(render(members(), form), expected);
+        let read = Change::<AttributeFragment, InstanceDeletion>::parse(expected, form).unwrap();
+        assert_eq!(read, Change::Set(members().into()), "{expected}");
+    }
+}
+
+#[test]
+fn a_concise_fragment_without_a_type_infers_a_language_map_or_json_payload_and_writes_it_back() {
+    for (text, kind) in [
+        (r#"{"languageMap":{"fr":"Grand Place","nl":"Grote Markt"}}"#, AttributeKind::LanguageProperty),
+        (r#"{"json":{"id":"85a6cc52-0589-45f9"}}"#, AttributeKind::JsonProperty),
+    ] {
+        let read = Change::<AttributeFragment, InstanceDeletion>::parse(text, Lossless::Concise).unwrap();
+        let Change::Set(AttributeFragment::WithPayload(patch)) = read else {
+            panic!("expected a fragment with a payload, got {read:?}")
+        };
+        assert_eq!(patch.kind(), kind);
+        assert_eq!(patch.render(Lossless::Concise).to_string(), text);
+    }
+}
