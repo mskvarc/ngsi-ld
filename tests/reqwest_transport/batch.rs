@@ -8,7 +8,13 @@ use http::header;
 use iri_rs::iri;
 use ngsi_ld::{
     client::ClientError,
-    http::{BatchCreateOutcome, BatchOutcome, RequestError, operation::ArgumentError},
+    http::{
+        BatchCreateOutcome,
+        BatchOutcome,
+        RequestError,
+        UpsertOutcome,
+        operation::{ArgumentError, UpsertMode},
+    },
     model::{EntityId, ErrorType},
 };
 use pretty_assertions::assert_eq;
@@ -17,7 +23,7 @@ use wiremock::{
     Mock,
     MockServer,
     ResponseTemplate,
-    matchers::{body_json, header, method, path},
+    matchers::{body_json, header, method, path, query_param, query_param_is_missing},
 };
 
 #[tokio::test]
@@ -85,4 +91,37 @@ async fn an_empty_batch_is_refused_without_a_request() {
         matches!(error, ClientError::Request(RequestError::Argument(ArgumentError::EmptyBatch))),
         "{error:?}"
     );
+}
+
+#[tokio::test]
+async fn a_batch_upsert_sends_no_options_by_default_and_options_replace_when_spelled_out() {
+    let server = MockServer::start().await;
+    let body = json!([{
+        "id": "urn:ngsi-ld:Vehicle:A4567",
+        "type": "Vehicle",
+        "brandName": {"type": "Property", "value": "Mercedes"}
+    }]);
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/entityOperations/upsert"))
+        .and(query_param_is_missing("options"))
+        .and(header(&header::CONTENT_TYPE, "application/json"))
+        .and(body_json(&body))
+        .respond_with(ResponseTemplate::new(201).set_body_json(json!(["urn:ngsi-ld:Vehicle:A4567"])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/entityOperations/upsert"))
+        .and(query_param("options", "replace"))
+        .and(body_json(&body))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let entities = [vehicle()];
+    let created = client.entities().batch_upsert(&entities).send().await.unwrap();
+    assert_eq!(created, UpsertOutcome::Created(vec![EntityId::from(iri!("urn:ngsi-ld:Vehicle:A4567"))]));
+    let replaced = client.entities().batch_upsert(&entities).mode(UpsertMode::Replace).send().await.unwrap();
+    assert_eq!(replaced, UpsertOutcome::Updated);
 }

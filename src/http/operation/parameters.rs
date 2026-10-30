@@ -185,6 +185,9 @@ impl Overwrite {
 /// What Batch Entity Upsert does with an entity that already exists.
 ///
 /// An entity that does not exist is created in either mode (NGSI-LD clauses 5.6.8.3 and 6.15.3.1).
+///
+/// The enum is exhaustive: clause 6.15.3.1 closes the values of `options` at `replace` and `update`, and a request
+/// either names one of them or leaves `options` out.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum UpsertMode {
     /// No `options`: the broker applies its default mode, which replaces the existing entity (clause 6.15.3.1).
