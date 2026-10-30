@@ -13,8 +13,8 @@ use ngsi_ld::{
         headers::{LinkValue, RelationType},
         operation::{ArgumentError, SystemAttributes},
     },
-    model::{APPLICATION_JSON, DateTime, Input},
-    subscription::{Activation, Subscription, SubscriptionFragment, SubscriptionId},
+    model::{APPLICATION_JSON, DateTime, Input, Representation, SimplifiedSpelling},
+    subscription::{Activation, Endpoint, NotificationParams, Subscription, SubscriptionFragment, SubscriptionId},
 };
 use pretty_assertions::assert_eq;
 use serde_json::{Value, json};
@@ -171,4 +171,63 @@ async fn a_query_with_a_limit_of_zero_and_no_count_is_refused_without_a_request(
         matches!(error, ClientError::Request(RequestError::Argument(ArgumentError::ZeroLimitWithoutCount))),
         "{error:?}"
     );
+}
+
+/// Notification parameters asking for the simplified representation spelled `keyValues`.
+fn key_values_notification() -> NotificationParams<Input> {
+    NotificationParams::builder(Endpoint::builder("http://my.endpoint.org/notify").build().unwrap())
+        .format(Representation::Simplified)
+        .simplified_spelling(SimplifiedSpelling::KeyValues)
+        .build()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn the_key_values_format_is_sent_on_create_and_update_and_read_back_on_retrieve() {
+    let server = MockServer::start().await;
+    let notification = json!({"format": "keyValues", "endpoint": {"uri": "http://my.endpoint.org/notify"}});
+    let target = format!("/ngsi-ld/v1/subscriptions/{S}");
+    Mock::given(method("POST"))
+        .and(path("/ngsi-ld/v1/subscriptions"))
+        .and(body_json(json!({
+            "type": "Subscription",
+            "entities": [{"type": "Vehicle"}],
+            "notification": notification
+        })))
+        .respond_with(ResponseTemplate::new(201).insert_header(&header::LOCATION, target.as_str()))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("PATCH"))
+        .and(path(target.as_str()))
+        .and(body_json(json!({"id": S, "type": "Subscription", "notification": notification})))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(target.as_str()))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "id": S,
+            "type": "Subscription",
+            "entities": [{"type": "Vehicle"}],
+            "notification": {"format": "keyValues", "endpoint": {"uri": "http://my.endpoint.org/notify"}, "status": "ok"},
+            "status": "active"
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = client(&server.uri());
+    let subscription = Subscription::builder()
+        .entities(["Vehicle"])
+        .notification(key_values_notification())
+        .build()
+        .unwrap();
+    let created = client.subscriptions().create(&subscription).send().await.unwrap();
+    let id = created.id().unwrap();
+    let fragment = SubscriptionFragment::builder().notification(key_values_notification()).build().unwrap();
+    client.subscriptions().update(&id, &fragment).send().await.unwrap();
+    let read = client.subscriptions().retrieve(&id).send().await.unwrap();
+    assert_eq!(read.notification().format(), Some(Representation::Simplified));
+    assert_eq!(read.notification().simplified_spelling(), SimplifiedSpelling::KeyValues);
 }

@@ -1,7 +1,7 @@
 //! Subscription fragments.
 
 use crate::{
-    model::{MemberChange, MemberError, MemberProblem},
+    model::{MemberChange, MemberError, MemberProblem, Representation, SimplifiedSpelling},
     query::{q::Query, temporal_query},
     subscription::{
         Activation,
@@ -49,6 +49,28 @@ fn a_fragment_replaces_the_notification_whole() {
     assert_eq!(
         fragment.render().to_string(),
         r#"{"type":"Subscription","notification":{"endpoint":{"uri":"http://example.org/newNotificationEndPoint"}}}"#
+    );
+}
+
+#[test]
+fn a_fragment_replaces_the_notification_with_the_key_values_format_and_reads_it_back() {
+    let endpoint = Endpoint::builder("http://my.endpoint.org/notify").build().unwrap();
+    let notification = NotificationParams::builder(endpoint)
+        .format(Representation::Simplified)
+        .simplified_spelling(SimplifiedSpelling::KeyValues)
+        .build()
+        .unwrap();
+    let fragment = SubscriptionFragment::builder().notification(notification).build().unwrap();
+    let text = fragment.render().to_string();
+    assert_eq!(
+        text,
+        r#"{"type":"Subscription","notification":{"format":"keyValues","endpoint":{"uri":"http://my.endpoint.org/notify"}}}"#
+    );
+    let read = SubscriptionFragment::<EntitySubscription>::parse(&text).unwrap();
+    assert_eq!(read, fragment);
+    assert_eq!(
+        read.notification().map(NotificationParams::simplified_spelling),
+        Some(SimplifiedSpelling::KeyValues)
     );
 }
 
