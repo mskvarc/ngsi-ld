@@ -14,7 +14,7 @@ use crate::model::{
     Time,
     TypedValue,
     TypedValueError,
-    keyword::{JSON, TYPE, VALUE},
+    keyword::{JSON, TYPE, TYPE_TERM, VALUE},
     nesting::grow,
 };
 use indexmap::IndexMap;
@@ -91,11 +91,13 @@ pub enum Value {
     /// An object. Member names are free-form user data, so they are plain strings; their order is kept.
     #[from(IndexMap<String, Value>)]
     Object(IndexMap<String, Value>),
-    /// A JSON-LD typed value, `{"@type": ..., "@value": ...}` (clause C.6).
+    /// A JSON-LD typed value, `{"@type": ..., "@value": ...}` (clause C.6). It is also read with the term `type` in
+    /// place of `@type`, the spelling of a response (clause 4.4), and always written with `@type`.
     #[from(TypedValue)]
     Typed(TypedValue),
     /// The JSON null literal, `{"@type": "@json", "@value": null}` (clause 4.4). A bare `null` is not a Value, since
-    /// JSON-LD expansion drops it; a JSON literal is not expanded, so this one is kept.
+    /// JSON-LD expansion drops it; a JSON literal is not expanded, so this one is kept. Like a typed value, it is also
+    /// read with the term `type`, `{"type": "@json", "@value": null}`, and always written with `@type`.
     #[from(skip)]
     JsonNull,
 }
@@ -172,13 +174,15 @@ impl Value {
         })
     }
 
-    /// Reads an object, recognising a JSON-LD value object with a string `@value`.
+    /// Reads an object, recognising the JSON null literal and a JSON-LD value object with a string `@value`.
     fn from_json_object(object: Object) -> Result<Self, ValueError> {
-        if is_json_null_literal(&object) {
-            return Ok(Self::JsonNull);
-        }
-        if let Some(typed) = TypedValue::from_object(&object) {
-            return Ok(Self::Typed(typed?));
+        if let Some((datatype, literal)) = value_object_members(&object) {
+            if datatype.as_str() == Some(JSON) && matches!(literal, Json::Null) {
+                return Ok(Self::JsonNull);
+            }
+            if let Some(typed) = TypedValue::from_members(datatype, literal) {
+                return Ok(Self::Typed(typed?));
+            }
         }
         let mut members = IndexMap::with_capacity(object.len());
         for Entry { key, value } in object {
@@ -203,17 +207,22 @@ impl Value {
     }
 }
 
-/// Whether `object` is exactly `{"@type": "@json", "@value": null}`, in either member order.
-fn is_json_null_literal(object: &Object) -> bool {
+/// The datatype and the `@value` of an object that holds exactly those two members, in either order; `None` for any
+/// other object, whose member names are free-form user data.
+///
+/// The datatype is read under `@type` or under `type`, the term the core `@context` maps to `@type`. Clause 4.4 lets a
+/// request use either and a response only the term, so a response holds the JSON null literal as
+/// `{"type": "@json", "@value": null}`. An object that holds `@value` is a value object, never an attribute, whose
+/// value member is `value`.
+fn value_object_members(object: &Object) -> Option<(&Json, &Json)> {
     let [first, second] = object.entries() else {
-        return false;
+        return None;
     };
-    let (datatype, literal) = match (first.key.as_str(), second.key.as_str()) {
-        (TYPE, VALUE) => (&first.value, &second.value),
-        (VALUE, TYPE) => (&second.value, &first.value),
-        _ => return false,
-    };
-    datatype.as_str() == Some(JSON) && matches!(literal, Json::Null)
+    match (first.key.as_str(), second.key.as_str()) {
+        (TYPE | TYPE_TERM, VALUE) => Some((&first.value, &second.value)),
+        (VALUE, TYPE | TYPE_TERM) => Some((&second.value, &first.value)),
+        _ => None,
+    }
 }
 
 /// Writes `{"@type": "@json", "@value": null}`, `@type` first.

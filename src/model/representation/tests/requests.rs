@@ -264,6 +264,26 @@ fn a_request_holds_the_json_null_literal_as_a_property_value_in_both_forms() {
 }
 
 #[test]
+fn a_response_entity_holds_the_json_null_literal_spelled_with_the_term_type() {
+    let canonical = r#"{"@type":"@json","@value":null}"#;
+    for (form, representation) in [(Lossless::Normalized, Representation::Normalized), (Lossless::Concise, Representation::Concise)] {
+        let text = r#"{"id":"urn:ngsi-ld:T:1","type":"T","x":{"type":"Property","value":{"@value":null,"type":"@json"}}}"#;
+        let entity = Entity::<Output>::parse(text, form).unwrap();
+        let written = entity.render(representation).to_string();
+        assert!(written.contains(canonical), "{written}");
+    }
+}
+
+#[test]
+fn a_concise_attribute_that_is_a_value_object_spelled_with_the_term_type_is_normalized_and_refused() {
+    let error = request_with(r#"{"@value":null,"type":"@json"}"#, Lossless::Concise).unwrap_err();
+    assert!(
+        matches!(error.kind, DocumentErrorKind::UnknownAttributeType { ref found } if found == r#""@json""#),
+        "{error}"
+    );
+}
+
+#[test]
 fn an_object_type_is_a_term_so_it_may_hold_a_hyphen() {
     for (object_type, written) in [
         (r#""smart-building""#, r#""smart-building""#),

@@ -90,17 +90,9 @@ impl TypedValue {
         }
     }
 
-    /// Reads `{"@type": <term>, "@value": <string>}` and nothing else as a typed value; `None` for any other object.
-    pub(crate) fn from_object(object: &Object) -> Option<Result<TypedValue, TypedValueError>> {
-        let [first, second] = object.entries() else {
-            return None;
-        };
-        let (datatype, lexical) = match (first.key.as_str(), second.key.as_str()) {
-            (TYPE, VALUE) => (&first.value, &second.value),
-            (VALUE, TYPE) => (&second.value, &first.value),
-            // Member names are free-form user data: any other pair makes an ordinary object.
-            _ => return None,
-        };
+    /// Reads the datatype and the `@value` of a value object as a typed value when the datatype is a term and the
+    /// `@value` a string; `None` otherwise.
+    pub(crate) fn from_members(datatype: &Json, lexical: &Json) -> Option<Result<TypedValue, TypedValueError>> {
         let datatype = VocabTerm::try_new(datatype.as_str()?).ok()?;
         Some(TypedValue::try_new(datatype, lexical.as_str()?))
     }

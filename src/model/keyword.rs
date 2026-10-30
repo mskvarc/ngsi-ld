@@ -1,6 +1,7 @@
 //! The JSON-LD keywords the documents of NGSI-LD carry (NGSI-LD clause 4.4, W3C JSON-LD 1.1 section 1.7): the
 //! `@context` member, the `@none` key of a language map, a dataset id or an entity map, and the `@type` and
-//! `@value` members of a JSON-LD value object, and the `@json` datatype of a JSON literal.
+//! `@value` members of a JSON-LD value object, the term `type` that stands for `@type`, and the `@json` datatype of a
+//! JSON literal.
 
 /// `@context`, the member that carries the context of a document (clause 4.4).
 pub(crate) const CONTEXT: &str = "@context";
@@ -11,6 +12,9 @@ pub(crate) const NONE: &str = "@none";
 
 /// `@type`, the datatype member of a JSON-LD value object (clause 4.6.3).
 pub(crate) const TYPE: &str = "@type";
+
+/// `type`, the term the core `@context` maps to `@type`; a response uses it in place of the keyword (clause 4.4).
+pub(crate) const TYPE_TERM: &str = "type";
 
 /// `@json`, the datatype of a JSON-LD JSON literal, which is not expanded and so can hold a JSON `null` (clause 4.4).
 pub(crate) const JSON: &str = "@json";

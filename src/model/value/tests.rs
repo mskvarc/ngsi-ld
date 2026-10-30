@@ -194,3 +194,37 @@ fn the_json_null_literal_nests_in_an_array_and_an_object() {
     let json = format!(r#"{{"a":[{literal},1]}}"#);
     assert_eq!(parse(&json).unwrap().to_string(), json);
 }
+
+#[test]
+fn a_value_object_spelled_with_the_term_type_reads_as_with_the_keyword_and_writes_the_keyword() {
+    for (spelled, canonical) in [
+        (r#"{"@value":null,"type":"@json"}"#, r#"{"@type":"@json","@value":null}"#),
+        (r#"{"type":"@json","@value":null}"#, r#"{"@type":"@json","@value":null}"#),
+        (r#"{"@value":"2018-12-04","type":"Date"}"#, r#"{"@type":"Date","@value":"2018-12-04"}"#),
+        (
+            r#"{"type":"DateTime","@value":"2018-12-04T12:00:00Z"}"#,
+            r#"{"@type":"DateTime","@value":"2018-12-04T12:00:00Z"}"#,
+        ),
+    ] {
+        let value = parse(spelled).unwrap();
+        assert_eq!(value, parse(canonical).unwrap(), "{spelled}");
+        assert_eq!(value.to_string(), canonical);
+    }
+    assert_eq!(parse(r#"{"@value":null,"type":"@json"}"#).unwrap(), Value::JsonNull);
+}
+
+#[test]
+fn a_value_object_spelled_with_the_term_type_keeps_the_refusals_of_the_keyword() {
+    assert!(matches!(parse(r#"{"type":"@json","@value":null,"other":1}"#), Err(ValueError::Null)));
+    assert!(matches!(parse(r#"{"type":"Other","@value":null}"#), Err(ValueError::Null)));
+    assert!(matches!(parse(r#"{"type":"@json","@type":"@json","@value":null}"#), Err(ValueError::Null)));
+    assert!(matches!(parse(r#"{"type":"Date","@value":"yesterday"}"#), Err(ValueError::Typed { .. })));
+}
+
+#[test]
+fn an_object_with_a_type_member_and_no_value_keyword_stays_an_object() {
+    let json = r#"{"type":"Date","value":"2018-12-04"}"#;
+    let value = parse(json).unwrap();
+    assert!(value.is_object());
+    assert_eq!(value.to_string(), json);
+}
