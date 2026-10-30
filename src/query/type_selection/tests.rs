@@ -1,8 +1,11 @@
-use crate::query::{
-    Expected,
-    ParseError,
-    Problem,
-    type_selection::{self, SelectableType, SelectableTypeError, TypeSelection},
+use crate::{
+    model::EntityTypeName,
+    query::{
+        Expected,
+        ParseError,
+        Problem,
+        type_selection::{self, SelectableType, SelectableTypeError, TypeSelection, builders::TypeSelectionBuilder},
+    },
 };
 
 #[test]
@@ -49,6 +52,21 @@ fn iri_holding_a_language_operator_is_refused() {
         "{error:?}"
     );
     assert!("https://example.org/types(2)".parse::<SelectableType>().is_err());
+}
+
+#[test]
+fn an_entity_type_name_converts_into_a_selection_builder_owned_or_borrowed() {
+    let name: EntityTypeName = "Vehicle".parse().unwrap();
+    let borrowed = TypeSelectionBuilder::from(&name).build().unwrap();
+    assert_eq!(borrowed.to_string(), "Vehicle");
+    assert_eq!(TypeSelectionBuilder::from(name).or("Home").build().unwrap().to_string(), "Vehicle|Home");
+}
+
+#[test]
+fn an_entity_type_name_holding_an_operator_is_refused_when_the_selection_is_built() {
+    let name: EntityTypeName = "https://example.org/a,b".parse().unwrap();
+    let error = TypeSelectionBuilder::from(&name).build().unwrap_err();
+    assert!(matches!(error.problems(), [Problem::InvalidEntityType { .. }]), "{error:?}");
 }
 
 #[test]

@@ -3,7 +3,7 @@
 //! [`TypeSelectionBuilder`].
 
 use crate::{
-    model::BuildError,
+    model::{BuildError, EntityTypeName},
     query::{
         Problem,
         build_error::Deferred,
@@ -59,6 +59,21 @@ impl TypeSelectionBuilder {
 /// A selection of the one entity type `name`, as [`entity_type`] starts it.
 impl From<&str> for TypeSelectionBuilder {
     fn from(name: &str) -> Self {
+        entity_type(name)
+    }
+}
+
+/// A selection of the one entity type `name`. A name holding an operator of the language is reported by
+/// [`build`](TypeSelectionBuilder::build), as for a string.
+impl From<&EntityTypeName> for TypeSelectionBuilder {
+    fn from(name: &EntityTypeName) -> Self {
+        entity_type(name)
+    }
+}
+
+/// A selection of the one entity type `name`, as for [`&EntityTypeName`](EntityTypeName).
+impl From<EntityTypeName> for TypeSelectionBuilder {
+    fn from(name: EntityTypeName) -> Self {
         entity_type(name)
     }
 }
