@@ -2,6 +2,7 @@ mod aggregated;
 mod bodies;
 mod entities;
 mod input;
+mod instance_ids;
 mod ranges;
 mod scope;
 mod simplified;

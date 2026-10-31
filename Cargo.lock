@@ -1837,6 +1837,7 @@ dependencies = [
  "derive_more",
  "geo-types",
  "geojson",
+ "hashbrown",
  "headers",
  "http",
  "indexmap",

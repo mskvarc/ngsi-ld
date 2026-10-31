@@ -25,6 +25,7 @@ use crate::{
         RawJson,
         attribute::attributes::check_kind,
         evolution::{DeletedInstance, TemporalInstanceMembers, read::read_temporal_attributes, write::temporal_fragment_object},
+        keyed_positions::KeyedPositions,
         reader::parse_json,
     },
     query::temporal_query::TemporalProperty,
@@ -49,6 +50,8 @@ pub struct Evolution<D: EntityDirection> {
     instances: Vec<Attribute<D>>,
     /// The `instanceId` each instance of a request names and the deletion it records, at the instance's index.
     members: Vec<D::TemporalMembers>,
+    /// The positions of the members that name an `instanceId`, by `instanceId`.
+    instance_ids: KeyedPositions,
 }
 
 impl<D: EntityDirection> Evolution<D> {
@@ -57,6 +60,7 @@ impl<D: EntityDirection> Evolution<D> {
         Self {
             instances: vec![attribute],
             members: vec![members],
+            instance_ids: KeyedPositions::default(),
         }
     }
 
@@ -106,7 +110,10 @@ impl<D: EntityDirection> Evolution<D> {
             return Err(AttributesError::KindChange { expected, found });
         }
         if let Some(instance_id) = D::instance_id(Seal::new(), &members)
-            && self.members.iter().any(|held| D::instance_id(Seal::new(), held) == Some(instance_id))
+            && self
+                .instance_ids
+                .record(&self.members, |held| D::instance_id(Seal::new(), held), instance_id)
+                .is_err()
         {
             return Err(AttributesError::InstanceIdRepeated);
         }
@@ -248,6 +255,7 @@ impl<D: MapDirection + EntityDirection> MapNames for TemporalAttributes<D> {
                 Ok(Evolution {
                     instances,
                     members: evolution.members,
+                    instance_ids: evolution.instance_ids,
                 })
             },
             |target, evolution| evolution.instances.iter().try_for_each(|instance| check_kind(target, instance)),
@@ -342,6 +350,7 @@ impl TemporalAttributes<Output> {
             Evolution {
                 instances: Vec::new(),
                 members: Vec::new(),
+                instance_ids: KeyedPositions::default(),
             },
         );
     }
@@ -352,8 +361,14 @@ impl TemporalAttributes<Output> {
         for (name, evolution) in later.0 {
             match self.0.get_mut(&name) {
                 Some(known) => {
+                    // Built from what this evolution holds once a later instance names an `instanceId`.
+                    let mut identified = KeyedPositions::default();
                     for instance in evolution.instances {
-                        if !known.instances.iter().any(|held| same_instance(held, &instance)) {
+                        let held = match instance.meta().output.instance_id.as_ref() {
+                            Some(instance_id) => identified.record(&known.instances, output_instance_id, instance_id).is_err(),
+                            None => known.instances.iter().any(|held| held == &instance),
+                        };
+                        if !held {
                             known.instances.push(instance);
                             known.members.push(());
                         }
@@ -399,7 +414,14 @@ impl TemporalAttributes<Output> {
                         (input, TemporalInstanceMembers::new(None, deleted_at))
                     })
                     .unzip();
-                (name, Evolution { instances, members })
+                (
+                    name,
+                    Evolution {
+                        instances,
+                        members,
+                        instance_ids: KeyedPositions::default(),
+                    },
+                )
             })
             .collect();
         TemporalAttributes(attributes)
@@ -430,13 +452,10 @@ impl Evolution<Output> {
     }
 }
 
-/// Whether two instances of an evolution are the same one: their `instanceId`s when both carry one (clause 4.5.7),
-/// their whole content otherwise.
-fn same_instance(held: &Attribute<Output>, instance: &Attribute<Output>) -> bool {
-    match (&held.meta().output.instance_id, &instance.meta().output.instance_id) {
-        (Some(held_id), Some(instance_id)) => held_id == instance_id,
-        (Some(_) | None, None) | (None, Some(_)) => held == instance,
-    }
+/// The `instanceId` a broker gave an instance of a response, by which two pages name the same instance (clause
+/// 4.5.7).
+const fn output_instance_id(instance: &Attribute<Output>) -> Option<&InstanceId> {
+    instance.meta().output.instance_id.as_ref()
 }
 
 impl<'a, D: EntityDirection> IntoIterator for &'a TemporalAttributes<D> {
