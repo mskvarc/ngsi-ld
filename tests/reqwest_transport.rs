@@ -141,6 +141,11 @@ mod entity_maps;
 #[path = "reqwest_transport/request_options.rs"]
 mod request_options;
 
+/// The HEAD requests of the retrievals, over the client.
+#[cfg(test)]
+#[path = "reqwest_transport/heads.rs"]
+mod heads;
+
 /// The `NGSILD-Warning` header, over the client.
 #[cfg(test)]
 #[path = "reqwest_transport/warnings.rs"]

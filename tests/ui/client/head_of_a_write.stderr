@@ -1,0 +1,26 @@
+error[E0277]: the trait bound `ngsi_ld::http::operation::DeleteEntity<'_>: HeadOperation` is not satisfied
+  --> tests/ui/client/head_of_a_write.rs:11:23
+   |
+11 |     let _ = Head::new(&delete);
+   |             --------- ^^^^^^^ the trait `HeadOperation` is not implemented for `ngsi_ld::http::operation::DeleteEntity<'_>`
+   |             |
+   |             required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `HeadOperation`:
+             CreateEntityMap<'_>
+             CreateTemporalEntityMap<'_>
+             ListContextDetails
+             ListContexts
+             OnSnapshot<'_, O>
+             PageRequest<'_, T>
+             QueryEntities<'_, F, C>
+             QueryRegistrations<'_>
+           and $N others
+note: required by a bound in `Head::<'a, O>::new`
+  --> src/http/operation/head.rs
+   |
+   | impl<'a, O: HeadOperation> Head<'a, O> {
+   |             ^^^^^^^^^^^^^ required by this bound in `Head::<'a, O>::new`
+...
+   |     pub const fn new(operation: &'a O) -> Head<'a, O> {
+   |                  --- required by a bound in this associated function

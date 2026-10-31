@@ -214,6 +214,12 @@ impl Success {
         jstrict::from_value(self.json()?).map_err(|source| self.body_error(ShapeError(source)))
     }
 
+    /// The head of the response, which it takes: the outcome of a response whose body is not read.
+    pub(crate) fn into_head(self) -> ResponseHead {
+        let (parts, _) = self.0.into_parts();
+        ResponseHead::from_parts(parts)
+    }
+
     /// The headers.
     pub(crate) fn headers(&self) -> &HeaderMap {
         self.0.headers()

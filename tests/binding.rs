@@ -284,6 +284,11 @@ mod entity_requests;
 #[path = "binding/entity_responses.rs"]
 mod entity_responses;
 
+/// The HEAD requests of the retrievals.
+#[cfg(test)]
+#[path = "binding/heads.rs"]
+mod heads;
+
 /// The unchecked path.
 #[cfg(test)]
 #[path = "binding/unchecked.rs"]

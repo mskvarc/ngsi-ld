@@ -49,6 +49,13 @@
 //!
 //! [`Operation`], [`Simplified`], [`ArgumentError`], [`PageRequest`].
 //!
+//! # HEAD requests
+//!
+//! The resources a GET reads also answer HEAD (ETSI TS 104 176 clause 5): [`Head`] sends the GET of an operation as a
+//! HEAD and reads the head of the answer, without a body.
+//!
+//! [`Head`], [`HeadOperation`].
+//!
 //! # Entities
 //!
 //! [`CreateEntity`], [`RetrieveEntity`], [`RetrieveEntityParameters`], [`QueryEntities`], [`QueryEntitiesParameters`],
@@ -194,6 +201,7 @@ pub use crate::http::operation::{
         update::UpdateEntityMap,
     },
     geo_json::GeoJson,
+    head::{Head, HeadOperation},
     linked_entities::{Flattened, InlineJoin},
     locality::{LocalScopeOperation, WithLocality},
     merge_entity::{MergeEntity, MergeSimplifiedEntity},
@@ -287,6 +295,7 @@ mod entity_ordering;
 mod fragment_target;
 mod geo_json;
 mod geoquery;
+mod head;
 mod linked_entities;
 mod locality;
 mod merge_entity;

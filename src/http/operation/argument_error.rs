@@ -101,4 +101,8 @@ pub enum ArgumentError {
     /// select instances of an attribute and which Table 6.8.3.2-1 does not list: a registration has no instances.
     #[error("a query of context source registrations takes no lastN or aggregation")]
     InstanceOptionsOnRegistrations,
+    /// A HEAD request of a query sent through POST: a HEAD request functions as the GET of its resource does, and
+    /// only the GET binding of a query has one (ETSI TS 104 176 clause 5, Table 5-1).
+    #[error("only an operation sent through GET has a HEAD request")]
+    HeadWithoutGet,
 }
