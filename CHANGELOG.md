@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.1] - 2026-10-31
+
+### ⚡ Performance
+- `model` - check instance dataset ids and instance ids in constant time
+
+### 🧹 Chores
+- bump version
+
 ## [v1.3.0] - 2026-10-30
 
 ### 🚀 Features
