@@ -4,10 +4,12 @@
 use crate::{
     http::{
         Coverage,
+        ResponseContext,
         ResponseError,
         headers::{NgsiLdEntityMap, NgsiLdWarnings, OptionalHeader, SpecVersion, ngsild_warning::combine},
         operation::TemporalSelection,
         response::{Success, classify},
+        response_links::{IntervalLinks, ResponseLinks},
         result_headers::ResultHeaders,
     },
     model::{Completeness, Output, evolution::TemporalEntity},
@@ -15,13 +17,16 @@ use crate::{
 };
 use bytes::Bytes;
 use http::{Response, StatusCode};
+use url::Url;
 
 /// What Retrieve Entity and Retrieve Temporal Evolution return.
 ///
 /// It holds the entity (or, for a flattened join, the entities), with the location of the Entity map the broker used
 /// (NGSI-LD clause 6.5.3.1), the version it amended the payload to when it answered 203 (clause 4.3.6.8), the warnings
 /// it attached when a distributed part of the retrieval was served from a cache or behaved abnormally (clause 6.3.17),
-/// and, for a temporal evolution, the part of the requested time range a 206 Partial Content covers (clause 6.3.10).
+/// and, for a temporal evolution, the part of the requested time range a 206 Partial Content covers (clause 6.3.10)
+/// and the links to the neighbouring pages of its attribute instances (`intervalafter` and `intervalbefore`, ETSI TS
+/// 104 176 clause 6.4.7.3).
 ///
 /// The creation of an entity map (Tables 6.34.3.1-1 to 6.35.3.2-1) answers with the same parts: the map in the body,
 /// and its location in `NGSILD-EntityMap`.
@@ -35,6 +40,8 @@ pub struct Retrieved<T> {
     body: T,
     /// The entity map, version, warnings and coverage the headers carry.
     headers: ResultHeaders,
+    /// The neighbouring pages of the attribute instances.
+    intervals: IntervalLinks,
     /// The success status the broker answered.
     status: StatusCode,
 }
@@ -89,8 +96,24 @@ impl<T> Retrieved<T> {
         &self.headers.coverage
     }
 
-    /// Reads a retrieval whose status is one of `statuses`, its body with `read`.
+    /// The URL of the next page of the attribute instances, in ascending order of their timestamps, when the broker
+    /// links it (`rel="intervalafter"`, ETSI TS 104 176 clause 6.4.7.3), resolved against the URL of the request.
+    #[must_use]
+    pub const fn interval_after(&self) -> Option<&Url> {
+        self.intervals.after.as_ref()
+    }
+
+    /// The URL of the next page of the attribute instances, in descending order of their timestamps, when the broker
+    /// links it (`rel="intervalbefore"`, ETSI TS 104 176 clause 6.4.7.3), resolved against the URL of the request.
+    #[must_use]
+    pub const fn interval_before(&self) -> Option<&Url> {
+        self.intervals.before.as_ref()
+    }
+
+    /// Reads a retrieval whose status is one of `statuses`, its body with `read`, and its links against the URL of
+    /// the request in `context`.
     pub(crate) fn decode(
+        context: &ResponseContext,
         response: Response<Bytes>,
         statuses: &[StatusCode],
         read: impl FnOnce(&Success) -> Result<T, ResponseError>,
@@ -102,6 +125,7 @@ impl<T> Retrieved<T> {
         Ok(Retrieved {
             body: read(&response)?,
             headers: ResultHeaders::read(&response),
+            intervals: ResponseLinks::read(&response, context).intervals,
             status: response.status(),
         })
     }
@@ -111,7 +135,7 @@ impl<C: Completeness> Retrieved<TemporalEntity<Output, C>> {
     /// This answer joined with `later`, the answer for the rest of the time range of a request that selected its
     /// instances with `selection` (clause 6.3.10): the instances of both (see [`TemporalEntity::absorb`]), only the
     /// last `lastN` of each attribute when the request has one (see [`TemporalEntity::absorb_last`]), the warnings
-    /// of both, and the coverage of `later`; the entity map and the version are this answer's.
+    /// of both, and the coverage, links and status of `later`; the entity map and the version are this answer's.
     pub(crate) fn followed_by(mut self, later: Retrieved<TemporalEntity<Output, C>>, selection: TemporalSelection<'_>) -> Retrieved<TemporalEntity<Output, C>> {
         match selection.last_n() {
             // Without a `timeproperty`, `lastN` counts by `observedAt` (clause 4.11).
@@ -122,6 +146,20 @@ impl<C: Completeness> Retrieved<TemporalEntity<Output, C>> {
         }
         self.headers.warnings = combine(self.headers.warnings, later.headers.warnings);
         self.headers.coverage = later.headers.coverage;
+        self.intervals = later.intervals;
+        self.status = later.status;
+        self
+    }
+
+    /// This answer joined with `later`, the page of attribute instances one of its interval links pointed at (ETSI
+    /// TS 104 176 clause 6.4.7.3): the instances of both (see [`TemporalEntity::absorb`]), the warnings of both, and
+    /// the coverage, links and status of `later`; the entity map and the version are this answer's. Every instance is
+    /// kept: `firstN` and `lastN` size the pages of the instances, so the pages together hold the whole range.
+    pub(crate) fn followed_by_interval(mut self, later: Retrieved<TemporalEntity<Output, C>>) -> Retrieved<TemporalEntity<Output, C>> {
+        self.body.absorb(later.body);
+        self.headers.warnings = combine(self.headers.warnings, later.headers.warnings);
+        self.headers.coverage = later.headers.coverage;
+        self.intervals = later.intervals;
         self.status = later.status;
         self
     }

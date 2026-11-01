@@ -8,6 +8,7 @@ use crate::{
         Temporal,
         Transport,
         arguments::{SelectionBuilders, build, built, selectors_built},
+        temporal::instance_paging,
     },
     http::{
         Page,
@@ -95,6 +96,8 @@ macro_rules! query_method {
                 #[builder(default)] split_entities: EntitySplitting,
                 entity_map: Option<&EntityMapRequest>,
                 #[builder(default)] system_attributes: SystemAttributes,
+                first_n: Option<u64>,
+                offset_n: Option<u64>,
                 limit: Option<u32>,
                 offset: Option<u32>,
                 #[builder(default)] count: ResultsCount,
@@ -136,6 +139,7 @@ macro_rules! query_method {
                     dataset_ids: &dataset_ids,
                     lang: selection.lang.as_ref(),
                     temporal_q: &temporal_q,
+                    instance_paging: instance_paging(first_n, offset_n)?,
                     ordering: ordering.as_ref(),
                     split_entities,
                     entity_map,
@@ -160,8 +164,10 @@ query_method!(
     /// representation; the first page, which [`Client::pages`](crate::client::Client::pages) walks on.
     ///
     /// At least an entity type, attributes, a `q` or a geoquery is needed unless the query is local, `limit` 0 needs
-    /// `count` (clause 6.3.13), the ordering may only order by `id` (Table 6.18.3.2-1), and a `pick` or `omit` must
-    /// keep `id` and `type` ([`query_projected`] reads an answer without them); `send()` refuses the request otherwise.
+    /// `count` (clause 6.3.13), the ordering may only order by `id` (Table 6.18.3.2-1), a `pick` or `omit` must
+    /// keep `id` and `type` ([`query_projected`] reads an answer without them), and `first_n`, which pages the
+    /// instances with `offset_n` (ETSI TS 104 176 clause 6.4.7.3), must be positive and stand without a `lastN` in
+    /// the temporal query; `send()` refuses the request otherwise.
     ///
     /// [`query_projected`]: Temporal::query_projected
     query => QueryTemporalBuilder, TemporalEntity<Output>,

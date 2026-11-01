@@ -48,6 +48,14 @@ pub enum RelationType {
     /// `last`: the last page of a paginated result.
     #[display("last")]
     Last,
+    /// `intervalafter`: the next page of the attribute instances of a temporal result, in ascending order of their
+    /// timestamps (ETSI TS 104 176 clause 6.4.7.3).
+    #[display("intervalafter")]
+    IntervalAfter,
+    /// `intervalbefore`: the previous page of the attribute instances of a temporal result, in descending order of
+    /// their timestamps (ETSI TS 104 176 clause 6.4.7.3).
+    #[display("intervalbefore")]
+    IntervalBefore,
     /// `profile`: the target names a profile of the representation (RFC 6906).
     #[display("profile")]
     Profile,
@@ -82,6 +90,8 @@ impl FromStr for RelationType {
             RelationType::Prev,
             RelationType::First,
             RelationType::Last,
+            RelationType::IntervalAfter,
+            RelationType::IntervalBefore,
             RelationType::Profile,
             RelationType::Alternate,
             RelationType::JsonLdContext,
@@ -108,6 +118,8 @@ mod tests {
             (RelationType::Prev, "prev"),
             (RelationType::First, "first"),
             (RelationType::Last, "last"),
+            (RelationType::IntervalAfter, "intervalafter"),
+            (RelationType::IntervalBefore, "intervalbefore"),
             (RelationType::Profile, "profile"),
             (RelationType::Alternate, "alternate"),
         ] {

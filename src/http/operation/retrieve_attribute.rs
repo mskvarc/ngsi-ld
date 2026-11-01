@@ -108,8 +108,8 @@ impl Operation for RetrieveAttribute<'_> {
     type Outcome = Retrieved<AttributeDocument<Attribute<Output>>>;
 
     /// Reads 200, or 203 when the broker amended the attribute to another version (Table 7.5.3.1-3).
-    fn decode(&self, _: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<AttributeDocument<Attribute<Output>>>, ResponseError> {
-        Retrieved::decode(response, &[StatusCode::OK, StatusCode::NON_AUTHORITATIVE_INFORMATION], |success| {
+    fn decode(&self, context: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<AttributeDocument<Attribute<Output>>>, ResponseError> {
+        Retrieved::decode(context, response, &[StatusCode::OK, StatusCode::NON_AUTHORITATIVE_INFORMATION], |success| {
             AttributeDocument::read(success.json()?, Lossless::Normalized).map_err(|source| success.body_error(source))
         })
     }

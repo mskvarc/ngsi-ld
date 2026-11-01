@@ -17,7 +17,7 @@ use crate::{
             parameters::{check_limit, push_paging},
             registration::READER,
             sealed::{BuildsRequest, Sealed},
-            temporal::push_time_bound,
+            temporal::selection::push_time_bound,
         },
         path::ResourcePath,
         query_string::QueryString,

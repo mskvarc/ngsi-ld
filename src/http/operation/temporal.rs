@@ -6,7 +6,6 @@ use crate::{
     http::{
         BodyError,
         Page,
-        QueryParameter,
         ResponseContext,
         ResponseError,
         Retrieved,
@@ -14,36 +13,37 @@ use crate::{
             ArgumentError,
             RepresentationSpelling,
             RepresentationToken,
+            TemporalSelection,
             projection_rule::ProjectionRule,
             representation_spelling::RepresentationFamily,
         },
-        query_string::QueryString,
         response::{Success, read_array},
     },
     model::{
         Completeness,
         DocumentError,
-        Duration,
         Lossless,
         Output,
         evolution::{AggregatedTemporalEntity, SimplifiedTemporalEntity, TemporalEntity, read::read_temporal_entity},
     },
-    query::temporal_query::{AggregationMethods, TemporalProperty, TemporalQuery},
 };
 use bytes::Bytes;
 use http::{Response, StatusCode};
 use jstrict::Value as Json;
-use std::num::NonZeroU64;
 
 pub(super) mod add_attributes;
 pub(super) mod create_or_update;
 pub(super) mod delete;
 pub(super) mod delete_attribute;
 pub(super) mod delete_instance;
+pub(super) mod instance_paging;
+pub(super) mod interval_request;
 pub(super) mod modify_instance;
 pub(super) mod parameters;
+pub(super) mod post_parameters;
 pub(super) mod query;
 pub(super) mod retrieve;
+pub(super) mod selection;
 
 /// Asks for the simplified temporal representation.
 ///
@@ -194,107 +194,6 @@ impl RepresentationFamily for TemporalRepresentation {
     }
 }
 
-/// The instances of each attribute a temporal request asks for.
-///
-/// NGSI-LD clause 4.11, Tables 6.18.3.2-1 and 6.19.3.1-1.
-///
-/// A temporal query selects instances by time, and carries `timeproperty`, `lastN`, `aggrMethods` and
-/// `aggrPeriodDuration` with it (Table 5.2.21-1). Retrieve Temporal Evolution may also be sent without one (Table
-/// 6.19.3.1-1 makes `timerel` optional), in which case the broker applies its own default range (clause 6.3.10)
-/// and `timeproperty`, `lastN` and the aggregation stand alone: Table 6.19.3.1-1 lists `timeproperty` with no
-/// condition on `timerel`, and clause 5.7.3.4 ranks the `lastN` instances by it.
-///
-/// The enum is exhaustive: a request has a temporal query or does not.
-///
-/// ```
-/// use ngsi_ld::{
-///     http::operation::TemporalSelection,
-///     query::temporal_query::{TemporalProperty, TemporalQuery},
-/// };
-/// use std::num::NonZeroU64;
-///
-/// let after = TemporalQuery::after("2018-08-01T12:00:00Z".parse()?);
-/// assert_eq!(TemporalSelection::Query(&after).last_n(), None);
-/// let last_two = TemporalSelection::Unbounded {
-///     time_property: Some(TemporalProperty::ModifiedAt),
-///     last_n: NonZeroU64::new(2),
-///     aggregation_methods: None,
-///     aggregation_period: None,
-/// };
-/// assert_eq!(last_two.last_n(), NonZeroU64::new(2));
-/// assert_eq!(last_two.time_property(), Some(TemporalProperty::ModifiedAt));
-/// # Ok::<(), anyhow::Error>(())
-/// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TemporalSelection<'a> {
-    /// The instances the temporal query selects: `timerel`, `timeAt`, `endTimeAt`, `timeproperty`, and its `lastN`,
-    /// `aggrMethods` and `aggrPeriodDuration`.
-    Query(&'a TemporalQuery),
-    /// No time bound: the broker's default range.
-    Unbounded {
-        /// The Temporal Property the instances are ranked by (`timeproperty`); `observedAt` when `None`.
-        time_property: Option<TemporalProperty>,
-        /// Only the last instances of each attribute (`lastN`).
-        last_n: Option<NonZeroU64>,
-        /// The aggregation methods (`aggrMethods`, clause 4.5.19).
-        aggregation_methods: Option<&'a AggregationMethods>,
-        /// The duration of each aggregation period (`aggrPeriodDuration`).
-        aggregation_period: Option<Duration>,
-    },
-}
-
-impl<'a> TemporalSelection<'a> {
-    /// Returns the Temporal Property the selection applies to (`timeproperty`); `None` applies it to `observedAt`.
-    #[must_use]
-    pub const fn time_property(self) -> Option<TemporalProperty> {
-        match self {
-            Self::Query(query) => query.time_property(),
-            Self::Unbounded { time_property, .. } => time_property,
-        }
-    }
-
-    /// Returns how many of the last instances of each attribute are asked for (`lastN`).
-    #[must_use]
-    pub const fn last_n(self) -> Option<NonZeroU64> {
-        match self {
-            Self::Query(query) => query.last_n(),
-            Self::Unbounded { last_n, .. } => last_n,
-        }
-    }
-
-    /// Returns the aggregation methods asked for (`aggrMethods`).
-    #[must_use]
-    pub const fn aggregation_methods(self) -> Option<&'a AggregationMethods> {
-        match self {
-            Self::Query(query) => query.aggregation_methods(),
-            Self::Unbounded { aggregation_methods, .. } => aggregation_methods,
-        }
-    }
-
-    /// Returns the duration of each aggregation period (`aggrPeriodDuration`).
-    #[must_use]
-    pub const fn aggregation_period(self) -> Option<Duration> {
-        match self {
-            Self::Query(query) => query.aggregation_period(),
-            Self::Unbounded { aggregation_period, .. } => aggregation_period,
-        }
-    }
-
-    /// Adds the parameters to a query string: `timerel`, `timeAt`, `endTimeAt`, `timeproperty` (clause 4.11), then
-    /// `lastN`, `aggrMethods` (a comma-separated list, its `,` literal) and `aggrPeriodDuration`.
-    pub(crate) fn push_query(self, query: &mut QueryString) {
-        match self {
-            Self::Query(temporal) => push_time_bound(query, temporal),
-            Self::Unbounded { time_property, .. } => query.push_some(QueryParameter::Timeproperty, time_property),
-        }
-        query.push_some(QueryParameter::LastN, self.last_n());
-        if let Some(methods) = self.aggregation_methods() {
-            query.push_list(QueryParameter::AggrMethods, methods.as_slice());
-        }
-        query.push_some(QueryParameter::AggrPeriodDuration, self.aggregation_period());
-    }
-}
-
 /// Refuses how a temporal request writes its representation when the spelling cannot ask for the answer read: an
 /// `options` keyword with no `format` to take precedence over it (clause 6.3.12), and `aggregatedValues` in
 /// `options` without aggregation methods, which Tables 6.18.3.2-1 and 6.19.3.1-1 require "if aggregatedValues is
@@ -309,15 +208,6 @@ pub(crate) fn check_spelling(
         return Err(ArgumentError::AggregationWithoutMethods);
     }
     Ok(())
-}
-
-/// Adds the time bound of a temporal query to a query string: `timerel`, `timeAt`, `endTimeAt` and `timeproperty`
-/// (clause 4.11), the parameters every operation taking a temporal query in its query string lists.
-pub(crate) fn push_time_bound(query: &mut QueryString, temporal: &TemporalQuery) {
-    query.push(QueryParameter::Timerel, temporal.relation());
-    query.push(QueryParameter::TimeAt, temporal.time_at());
-    query.push_some(QueryParameter::EndTimeAt, temporal.end_time_at());
-    query.push_some(QueryParameter::Timeproperty, temporal.time_property());
 }
 
 /// How a temporal request asks for its answer and reads it; `C` is what the entities hold of their `id` and
@@ -383,8 +273,13 @@ impl<C: ProjectionRule> TemporalFormat<C> for Aggregated {
 
 /// Reads the answer of Retrieve Temporal Evolution: 200, 203 when the broker amended it to another version (clause
 /// 4.3.6.8), or 206 when it covers part of the range (clause 6.3.10).
-fn decode_retrieved<C: Completeness, F: TemporalFormat<C>>(response: Response<Bytes>, format: F) -> Result<Retrieved<F::Item>, ResponseError> {
+fn decode_retrieved<C: Completeness, F: TemporalFormat<C>>(
+    context: &ResponseContext,
+    response: Response<Bytes>,
+    format: F,
+) -> Result<Retrieved<F::Item>, ResponseError> {
     Retrieved::decode(
+        context,
         response,
         &[StatusCode::OK, StatusCode::NON_AUTHORITATIVE_INFORMATION, StatusCode::PARTIAL_CONTENT],
         |response| format.read(response.json()?).map_err(|source| response.body_error(source)),

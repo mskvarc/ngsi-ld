@@ -189,8 +189,8 @@ macro_rules! retrieve_operation {
         impl Operation for RetrieveEntity<'_, $format, $join, $completeness> {
             type Outcome = Retrieved<$body>;
 
-            fn decode(&self, _: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<$body>, ResponseError> {
-                decode(response, |success| $read::<$completeness, _>(success, self.format))
+            fn decode(&self, context: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<$body>, ResponseError> {
+                decode(context, response, |success| $read::<$completeness, _>(success, self.format))
             }
         }
 
@@ -247,6 +247,10 @@ fn parts<C: Completeness, F: EntityFormat<C>, J: RetrieveJoin>(retrieve: &Retrie
 }
 
 /// Reads 200, or 203 when the broker amended the entity to another version (clause 4.3.6.8), with `read`.
-fn decode<T>(response: Response<Bytes>, read: impl FnOnce(&Success) -> Result<T, ResponseError>) -> Result<Retrieved<T>, ResponseError> {
-    Retrieved::decode(response, &[StatusCode::OK, StatusCode::NON_AUTHORITATIVE_INFORMATION], read)
+fn decode<T>(
+    context: &ResponseContext,
+    response: Response<Bytes>,
+    read: impl FnOnce(&Success) -> Result<T, ResponseError>,
+) -> Result<Retrieved<T>, ResponseError> {
+    Retrieved::decode(context, response, &[StatusCode::OK, StatusCode::NON_AUTHORITATIVE_INFORMATION], read)
 }

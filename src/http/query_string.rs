@@ -102,6 +102,8 @@ const fn escaping(name: QueryParameter) -> &'static AsciiSet {
         | QueryParameter::EndTimeAt
         | QueryParameter::Timeproperty
         | QueryParameter::LastN
+        | QueryParameter::FirstN
+        | QueryParameter::OffsetN
         | QueryParameter::AggrPeriodDuration
         | QueryParameter::DeleteAll
         | QueryParameter::ObservedAt

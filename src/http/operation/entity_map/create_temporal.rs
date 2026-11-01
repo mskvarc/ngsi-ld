@@ -147,8 +147,8 @@ impl Operation for CreateTemporalEntityMap<'_> {
     type Outcome = Retrieved<EntityMap>;
 
     /// Reads 201, the one success Tables 6.35.3.1-1 and 6.35.3.2-1 list.
-    fn decode(&self, _: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<EntityMap>, ResponseError> {
-        decode_created(response, &[StatusCode::CREATED])
+    fn decode(&self, context: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<EntityMap>, ResponseError> {
+        decode_created(context, response, &[StatusCode::CREATED])
     }
 }
 

@@ -25,6 +25,7 @@ use ngsi_ld::{
         Input,
         InstanceId,
         OneOrMany,
+        Output,
         Property,
         evolution::{DeletedInstance, TemporalAttributes, TemporalEntity},
     },
@@ -558,4 +559,177 @@ async fn a_whole_range_retrieve_stops_when_the_broker_cycles_back_to_a_rest_alre
         .await
         .unwrap();
     assert!(whole.coverage().is_partial());
+}
+
+/// `B`'s evolution holding one `speed` instance per time of `times`, each with its own `instanceId`.
+fn speeds(times: &[&str]) -> Value {
+    let instances: Vec<Value> = times
+        .iter()
+        .map(|at| json!({"type": "Property", "value": 80, "observedAt": at, "instanceId": format!("urn:ngsi-ld:i:{at}")}))
+        .collect();
+    json!({"id": "urn:ngsi-ld:Vehicle:B9211", "type": "Vehicle", "speed": instances})
+}
+
+/// The `Link` field of a page linking `target` as `rel`.
+fn interval_link(target: &str, rel: RelationType) -> String {
+    link_field([LinkValue::builder(IriRefBuf::new(target.to_owned()).unwrap()).rel(rel).build()])
+}
+
+/// The `observedAt` of each `speed` instance of `entity`, in order.
+fn observed_speeds(entity: &TemporalEntity<Output>) -> Vec<String> {
+    let speed: AttributeName = "speed".parse().unwrap();
+    entity
+        .attribute(&speed)
+        .unwrap()
+        .iter()
+        .map(|instance| instance.meta().observed_at.unwrap().to_string())
+        .collect()
+}
+
+#[tokio::test]
+async fn a_whole_range_retrieve_follows_interval_after_links_and_keeps_every_instance() {
+    // ETSI TS 104 176 clause 6.4.7.3: with firstN the instances are paged in ascending order and the next page is
+    // linked as intervalafter; firstN sizes each page, so the pages together hold the whole range.
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param("firstN", "2"))
+        .and(query_param_is_missing("offsetN"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header(
+                    &header::LINK,
+                    interval_link("?timerel=after&timeAt=2018-08-01T12:00:00Z&firstN=2&offsetN=2", RelationType::IntervalAfter).as_str(),
+                )
+                .set_body_json(speeds(&["2018-08-01T12:01:00Z", "2018-08-01T12:02:00Z"])),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param("firstN", "2"))
+        .and(query_param("offsetN", "2"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(speeds(&["2018-08-01T12:03:00Z"])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let whole = client(&server.uri())
+        .temporal()
+        .retrieve_whole_range(&b())
+        .temporal_q(temporal_query::after(time("2018-08-01T12:00:00Z")))
+        .first_n(2)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        observed_speeds(whole.body()),
+        ["2018-08-01T12:01:00Z", "2018-08-01T12:02:00Z", "2018-08-01T12:03:00Z"]
+    );
+    assert_eq!(whole.interval_after(), None);
+}
+
+#[tokio::test]
+async fn a_whole_range_retrieve_with_last_n_follows_interval_before_links_only() {
+    // ETSI TS 104 176 clause 6.4.7.3: with lastN the instances are paged in descending order, so the following page
+    // is the intervalbefore one; the intervalafter link points back at more recent instances already read.
+    let server = MockServer::start().await;
+    let links = [
+        LinkValue::builder(IriRefBuf::new("?lastN=2&offsetN=2").unwrap())
+            .rel(RelationType::IntervalBefore)
+            .build(),
+        LinkValue::builder(IriRefBuf::new("?lastN=2&offsetN=0&after").unwrap())
+            .rel(RelationType::IntervalAfter)
+            .build(),
+    ];
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param("lastN", "2"))
+        .and(query_param_is_missing("offsetN"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header(&header::LINK, link_field(links).as_str())
+                .set_body_json(speeds(&["2018-08-01T12:09:00Z", "2018-08-01T12:08:00Z"])),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param("offsetN", "2"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(speeds(&["2018-08-01T12:07:00Z"])))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param("offsetN", "0"))
+        .respond_with(ResponseTemplate::new(500))
+        .expect(0)
+        .mount(&server)
+        .await;
+    let whole = client(&server.uri()).temporal().retrieve_whole_range(&b()).last_n(2).send().await.unwrap();
+    assert_eq!(
+        observed_speeds(whole.body()),
+        ["2018-08-01T12:09:00Z", "2018-08-01T12:08:00Z", "2018-08-01T12:07:00Z"]
+    );
+}
+
+#[tokio::test]
+async fn a_whole_range_retrieve_stops_at_an_interval_link_already_requested() {
+    let server = MockServer::start().await;
+    let page = "?timerel=after&timeAt=2018-08-01T12:00:00Z&firstN=1&offsetN=1";
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param_is_missing("offsetN"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header(&header::LINK, interval_link(page, RelationType::IntervalAfter).as_str())
+                .set_body_json(speeds(&["2018-08-01T12:01:00Z"])),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    // The second page links itself again.
+    Mock::given(method("GET"))
+        .and(path(B_PATH))
+        .and(query_param("offsetN", "1"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header(&header::LINK, interval_link(page, RelationType::IntervalAfter).as_str())
+                .set_body_json(speeds(&["2018-08-01T12:02:00Z"])),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    let whole = client(&server.uri())
+        .temporal()
+        .retrieve_whole_range(&b())
+        .temporal_q(temporal_query::after(time("2018-08-01T12:00:00Z")))
+        .first_n(1)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(observed_speeds(whole.body()), ["2018-08-01T12:01:00Z", "2018-08-01T12:02:00Z"]);
+}
+
+#[tokio::test]
+async fn first_n_of_zero_or_beside_last_n_is_refused_without_a_request() {
+    let server = MockServer::start().await;
+    Mock::given(any()).respond_with(ResponseTemplate::new(500)).expect(0).mount(&server).await;
+    let client = client(&server.uri());
+    let temporal = client.temporal();
+    assert!(matches!(
+        refusal(temporal.retrieve(&b()).first_n(0).send().await),
+        RequestError::Argument(ArgumentError::ZeroFirstN)
+    ));
+    assert!(matches!(
+        refusal(temporal.retrieve(&b()).first_n(2).last_n(2).send().await),
+        RequestError::Argument(ArgumentError::FirstNBesideLastN)
+    ));
+    let last_two = temporal_query::after(time("2018-08-01T12:00:00Z")).last_n(2);
+    assert!(matches!(
+        refusal(temporal.query(last_two).entity_type("Vehicle").first_n(2).send().await),
+        RequestError::Argument(ArgumentError::FirstNBesideLastN)
+    ));
 }

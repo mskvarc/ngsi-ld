@@ -1,7 +1,14 @@
 //! Retrieve Temporal Evolution of an Entity (clause 6.19.3.1), once per representation and once per completeness.
 
 use crate::{
-    client::{Answering, ClientError, Temporal, Transport, arguments::built, temporal::SelectionArguments},
+    client::{
+        Answering,
+        ClientError,
+        Temporal,
+        Transport,
+        arguments::built,
+        temporal::{SelectionArguments, instance_paging},
+    },
     http::{
         Retrieved,
         operation::{Aggregated, EntityMapRequest, RepresentationSpelling, RetrieveTemporalEvolution, SimplifiedTemporal, SystemAttributes},
@@ -52,6 +59,8 @@ macro_rules! retrieve_method {
                 #[builder(into)] temporal_q: Option<TemporalQueryBuilder>,
                 time_property: Option<TemporalProperty>,
                 last_n: Option<u64>,
+                first_n: Option<u64>,
+                offset_n: Option<u64>,
                 aggregation_methods: Option<AggregationMethods>,
                 aggregation_period: Option<Duration>,
                 #[builder(default)] attrs: Vec<TemporalAttributeName>,
@@ -74,6 +83,7 @@ macro_rules! retrieve_method {
                 let retrieve = RetrieveTemporalEvolution {
                     id,
                     selection: arguments.selection()?,
+                    instance_paging: instance_paging(first_n, offset_n)?,
                     attrs: &attrs,
                     pick: pick.as_ref(),
                     omit: omit.as_ref(),
@@ -97,6 +107,8 @@ retrieve_method!(
     /// The instances are those of `temporal_q`, or, without one, the broker's default range, of which `last_n`
     /// keeps the last ones by `time_property` (`observedAt` by default, clause 5.7.3.4); `time_property`, `last_n`
     /// and the aggregation beside a temporal query are refused before sending, as the temporal query carries them.
+    /// `first_n` and `offset_n` page the instances (ETSI TS 104 176 clause 6.4.7.3); a `first_n` of 0, or one beside
+    /// a `last_n`, is refused before sending.
     /// A `pick` or `omit` must keep `id` and `type` ([`retrieve_projected`] reads an answer without them).
     ///
     /// [`retrieve_projected`]: Temporal::retrieve_projected
@@ -164,7 +176,9 @@ retrieve_method!(
     /// for and the answers are joined, each instance once (see [`TemporalEntity::absorb`]), and, with `lastN`, the
     /// last `lastN` instances of each attribute over the whole range (see [`TemporalEntity::absorb_last`]). The
     /// coverage of the answer is that of the last one: [`Coverage::Whole`](crate::http::Coverage::Whole)
-    /// once every part is in.
+    /// once every part is in. While the broker links the following page of attribute instances, `intervalbefore`
+    /// with `lastN` and `intervalafter` otherwise (ETSI TS 104 176 clause 6.4.7.3), that page is asked for and
+    /// joined with every instance, until an answer links none or links a page already asked for.
     ///
     /// The instances are selected as for [`retrieve`](Temporal::retrieve). The simplified and aggregated
     /// representations are not walked: a simplified data point carries no `instanceId` or `datasetId`, so one returned

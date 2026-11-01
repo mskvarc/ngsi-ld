@@ -13,6 +13,7 @@ use crate::{
             Aggregated,
             ArgumentError,
             EntityMapRequest,
+            InstancePaging,
             Operation,
             QueryMethod,
             RepresentationSpelling,
@@ -168,6 +169,10 @@ pub struct QueryTemporalEvolution<'a, F = Lossless, C = Complete> {
     pub lang: Option<&'a LanguageFilter>,
     /// The instances of each attribute, by time, with `lastN` and the aggregation (clause 4.11).
     pub temporal_q: &'a TemporalQuery,
+    /// How the instances of each attribute are paged beside the `lastN` of `temporal_q`: `firstN` and `offsetN`,
+    /// which both bindings carry in the query string (ETSI TS 104 176 clause 6.4.7.3).
+    #[builder(default)]
+    pub instance_paging: InstancePaging,
     /// The order of the entities (`orderBy` and `collation`, clause 4.23), by `id` only.
     pub ordering: Option<&'a EntityOrdering>,
     /// Whether an entity may be split over several context sources (`splitEntities`).
@@ -293,6 +298,7 @@ fn parts<C: Completeness + ProjectionRule, F: TemporalFormat<C>>(query: &QueryTe
     check_ordering(query.ordering)?;
     let selection = TemporalSelection::Query(query.temporal_q);
     query.format.check(selection)?;
+    query.instance_paging.check(selection)?;
     check_spelling(query.spelling, query.format.representation(), selection)?;
     C::check(ProjectionRequest {
         pick: query.pick,
@@ -337,11 +343,13 @@ fn check_ordering(ordering: Option<&EntityOrdering>) -> Result<(), ArgumentError
 }
 
 /// The parameters both bindings carry in the query string: the format, which the `Query` body cannot carry, written
-/// as `format`, `options` or both (clause 6.3.12), and the system attributes, paging, count and locality of clauses
-/// 6.3.10, 6.3.11, 6.3.13 and 6.3.18.
+/// as `format`, `options` or both (clause 6.3.12), the system attributes, paging, count and locality of clauses
+/// 6.3.10, 6.3.11, 6.3.13 and 6.3.18, and `firstN` and `offsetN`, which the `TemporalQuery` object cannot carry
+/// (ETSI TS 104 176 clause 6.4.7.3).
 fn push_shared<C: Completeness, F: TemporalFormat<C>>(query: &QueryTemporalEvolution<'_, F, C>, parameters: &mut QueryString) {
     query.spelling.push_format(parameters, query.format.representation());
     query.spelling.push_options(parameters, query.format.representation(), query.system_attributes);
+    query.instance_paging.push_query(parameters);
     push_paging(parameters, query.limit, query.offset, query.count);
     parameters.push_some(QueryParameter::Local, query.locality.flag());
 }

@@ -1,4 +1,4 @@
-//! Requests for the pages a page of a query links (NGSI-LD clause 6.3.10).
+//! Requests for the pages a page of a query links (NGSI-LD clause 6.3.10, ETSI TS 104 176 clause 6.4.7.3).
 
 use crate::{
     http::{
@@ -117,6 +117,20 @@ impl<T> Page<T> {
     #[must_use]
     pub fn last_page(&self) -> Option<PageRequest<'_, T>> {
         self.page_at(self.last())
+    }
+
+    /// The request for the next page of attribute instances of a temporal query, in ascending order of their
+    /// timestamps, when the broker links it (`rel="intervalafter"`, ETSI TS 104 176 clause 6.4.7.3).
+    #[must_use]
+    pub fn interval_after_page(&self) -> Option<PageRequest<'_, T>> {
+        self.page_at(self.interval_after())
+    }
+
+    /// The request for the next page of attribute instances of a temporal query, in descending order of their
+    /// timestamps, when the broker links it (`rel="intervalbefore"`, ETSI TS 104 176 clause 6.4.7.3).
+    #[must_use]
+    pub fn interval_before_page(&self) -> Option<PageRequest<'_, T>> {
+        self.page_at(self.interval_before())
     }
 
     /// The request for the page at `url`, a link of this page, on this page's tenant, snapshot and entity map.

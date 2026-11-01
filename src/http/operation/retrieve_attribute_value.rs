@@ -95,8 +95,8 @@ impl Operation for RetrieveAttributeValue<'_> {
     type Outcome = Retrieved<RawJson>;
 
     /// Reads 200, or 203 when the broker amended the value to another version (Table 7.6.3.1-2).
-    fn decode(&self, _: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<RawJson>, ResponseError> {
-        Retrieved::decode(response, &[StatusCode::OK, StatusCode::NON_AUTHORITATIVE_INFORMATION], |success| {
+    fn decode(&self, context: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<RawJson>, ResponseError> {
+        Retrieved::decode(context, response, &[StatusCode::OK, StatusCode::NON_AUTHORITATIVE_INFORMATION], |success| {
             success.json().map(RawJson::from_json)
         })
     }

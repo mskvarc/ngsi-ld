@@ -11,6 +11,7 @@ use crate::{
         operation::{
             Aggregated,
             EntityMapRequest,
+            InstancePaging,
             Operation,
             RepresentationSpelling,
             SimplifiedTemporal,
@@ -52,7 +53,7 @@ use http::{Method, Request, Response};
 /// Table 6.19.3.1-1 lists the deprecated `attrs`, `pick`, `omit`, `datasetId`, `lang`, the temporal query,
 /// `timeproperty`, `lastN`, `aggrMethods` and `aggrPeriodDuration`; clauses 6.3.11 and 6.3.12 add `options=sysAttrs`
 /// and `format`, and clause 6.3.18 `local`, which [`WithLocality`](crate::http::operation::WithLocality)
-/// adds. Clause 5.7.3.3 also lists the entity map inputs (`entityMap`, `entityMapLifetime` and the
+/// adds. ETSI TS 104 176 clause 6.4.7.3 adds `firstN` and `offsetN` ([`InstancePaging`]). Clause 5.7.3.3 also lists the entity map inputs (`entityMap`, `entityMapLifetime` and the
 /// `NGSILD-EntityMap` header), which Table 6.19.3.1-1 omits; the request carries them, as the clause allows.
 ///
 /// ```
@@ -103,6 +104,9 @@ pub struct RetrieveTemporalEvolution<'a, F = Lossless, C = Complete> {
     pub id: &'a EntityId,
     /// The instances asked for: a temporal query, or none with `lastN` and the aggregation standing alone.
     pub selection: TemporalSelection<'a>,
+    /// How the instances of each attribute are paged beside the `lastN` of `selection`: `firstN` and `offsetN`.
+    #[builder(default)]
+    pub instance_paging: InstancePaging,
     /// The attributes to keep (`attrs`): deprecated by the specification, a synonym of a `pick` of these attributes
     /// (Table 6.19.3.1-1); prefer `pick`. It may name `scope`, which the temporal representation reifies (clause
     /// 4.18). Empty sends no `attrs`.
@@ -153,8 +157,8 @@ macro_rules! retrieve_operation {
         impl Operation for RetrieveTemporalEvolution<'_, $format, $completeness> {
             type Outcome = Retrieved<$item>;
 
-            fn decode(&self, _: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<$item>, ResponseError> {
-                decode_retrieved::<$completeness, _>(response, self.format)
+            fn decode(&self, context: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<$item>, ResponseError> {
+                decode_retrieved::<$completeness, _>(context, response, self.format)
             }
         }
 
@@ -176,6 +180,7 @@ retrieve_operation!(Aggregated, Projected, AggregatedTemporalEntity<Projected>);
 /// The request, after the checks the format and the completeness call for.
 fn parts<C: Completeness + ProjectionRule, F: TemporalFormat<C>>(retrieve: &RetrieveTemporalEvolution<'_, F, C>) -> Result<RequestParts, RequestError> {
     retrieve.format.check(retrieve.selection)?;
+    retrieve.instance_paging.check(retrieve.selection)?;
     check_spelling(retrieve.spelling, retrieve.format.representation(), retrieve.selection)?;
     C::check(ProjectionRequest {
         pick: retrieve.pick,
@@ -189,6 +194,7 @@ fn parts<C: Completeness + ProjectionRule, F: TemporalFormat<C>>(retrieve: &Retr
     query.push_list(QueryParameter::DatasetId, retrieve.dataset_ids);
     query.push_language_filter(QueryParameter::Lang, retrieve.lang);
     retrieve.selection.push_query(&mut query);
+    retrieve.instance_paging.push_query(&mut query);
     if let Some(entity_map) = retrieve.entity_map {
         entity_map.push_query(&mut query);
     }

@@ -13,6 +13,7 @@ use crate::{
             DeleteAttributeInstance,
             DeleteTemporalAttribute,
             DeleteTemporalEvolution,
+            InstancePaging,
             InstanceSelection,
             ModifyAttributeInstance,
             TemporalSelection,
@@ -153,6 +154,15 @@ impl SelectionArguments {
             }),
         }
     }
+}
+
+/// `firstN` and `offsetN` as the client takes them: a `firstN` of 0 is refused, since ETSI TS 104 176 Table
+/// 6.4.7.3-1 makes it a positive integer.
+fn instance_paging<E>(first_n: Option<u64>, offset_n: Option<u64>) -> Result<InstancePaging, ClientError<E>> {
+    let first_n = first_n
+        .map(|count| NonZeroU64::new(count).ok_or(ClientError::Request(ArgumentError::ZeroFirstN.into())))
+        .transpose()?;
+    Ok(InstancePaging { first_n, offset_n })
 }
 
 #[bon]

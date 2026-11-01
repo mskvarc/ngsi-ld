@@ -151,10 +151,10 @@ impl Operation for CreateEntityMap<'_> {
     type Outcome = Retrieved<EntityMap>;
 
     /// Reads 201, or for the GET binding 203, the one Table 6.34.3.1-1 adds (clause 4.3.6.8).
-    fn decode(&self, _: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<EntityMap>, ResponseError> {
+    fn decode(&self, context: &ResponseContext, response: Response<Bytes>) -> Result<Retrieved<EntityMap>, ResponseError> {
         match self.method {
-            QueryMethod::Get => decode_created(response, &[StatusCode::CREATED, StatusCode::NON_AUTHORITATIVE_INFORMATION]),
-            QueryMethod::Post => decode_created(response, &[StatusCode::CREATED]),
+            QueryMethod::Get => decode_created(context, response, &[StatusCode::CREATED, StatusCode::NON_AUTHORITATIVE_INFORMATION]),
+            QueryMethod::Post => decode_created(context, response, &[StatusCode::CREATED]),
         }
     }
 }
@@ -228,6 +228,8 @@ pub(super) fn push_lifetime_query(query: &mut QueryString, lifetime: Option<Enti
 
 /// Reads the answer of a creation: the map, read strictly, with its location in `NGSILD-EntityMap` and the version
 /// of a 203 in `Preference-Applied`, when the status is one of `statuses`.
-pub(super) fn decode_created(response: Response<Bytes>, statuses: &[StatusCode]) -> Result<Retrieved<EntityMap>, ResponseError> {
-    Retrieved::decode(response, statuses, |response| DocumentReader::document(EntityMap::from_json).one(response))
+pub(super) fn decode_created(context: &ResponseContext, response: Response<Bytes>, statuses: &[StatusCode]) -> Result<Retrieved<EntityMap>, ResponseError> {
+    Retrieved::decode(context, response, statuses, |response| {
+        DocumentReader::document(EntityMap::from_json).one(response)
+    })
 }

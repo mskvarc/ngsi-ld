@@ -88,6 +88,13 @@ pub enum ArgumentError {
     /// A `lastN` of 0; Tables 6.18.3.2-1 and 6.19.3.1-1 make it a positive integer.
     #[error("lastN is a positive integer")]
     ZeroLastN,
+    /// A `firstN` of 0; ETSI TS 104 176 Table 6.4.7.3-1 makes it a positive integer.
+    #[error("firstN is a positive integer")]
+    ZeroFirstN,
+    /// A temporal request given both `firstN` and `lastN`: ETSI TS 104 176 clause 6.4.7.3 pages the instances in
+    /// ascending order with `firstN` and in descending order with `lastN`, and gives the two together no meaning.
+    #[error("a temporal request pages its instances with firstN or with lastN, not both")]
+    FirstNBesideLastN,
     /// A Retrieve Temporal Evolution given a temporal query and, beside it, `lastN`, an aggregation or a
     /// `timeproperty`, which the temporal query carries itself (Table 5.2.21-1).
     #[error("lastN, the aggregation and the time property of a request with a temporal query belong to the temporal query")]

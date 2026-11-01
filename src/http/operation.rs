@@ -83,11 +83,14 @@
 //! values, [`SimplifiedTemporal`] with [`SimplifiedTemporalEntity`](crate::model::evolution::SimplifiedTemporalEntity)
 //! values and [`Aggregated`] with [`AggregatedTemporalEntity`](crate::model::evolution::AggregatedTemporalEntity)
 //! values (clause 6.3.12). A broker that cannot answer at once answers 206 Partial Content with a `Content-Range`
-//! (clause 6.3.10), read into the [`Coverage`](crate::http::Coverage) of the answer.
+//! (clause 6.3.10), read into the [`Coverage`](crate::http::Coverage) of the answer, or pages the instances of each
+//! attribute and links the neighbouring pages as `intervalafter` and `intervalbefore` (ETSI TS 104 176 clause
+//! 6.4.7.3), which [`InstancePaging`] asks for with `firstN` and `offsetN` and [`IntervalRequest`] follows.
 //!
 //! [`CreateOrUpdateTemporalEvolution`], [`CreateOrUpdateSimplifiedTemporalEvolution`], [`AddTemporalAttributes`],
 //! [`DeleteTemporalAttribute`], [`ModifyAttributeInstance`], [`DeleteAttributeInstance`], [`DeleteTemporalEvolution`],
-//! [`RetrieveTemporalEvolution`], [`QueryTemporalEvolution`], [`TemporalSelection`], [`TemporalRepresentation`],
+//! [`RetrieveTemporalEvolution`], [`QueryTemporalEvolution`], [`TemporalSelection`], [`InstancePaging`],
+//! [`IntervalRequest`], [`TemporalRepresentation`],
 //! [`SimplifiedTemporal`], [`Aggregated`], [`TemporalSelectionParameters`], [`RetrieveTemporalEvolutionParameters`],
 //! [`QueryTemporalEvolutionParameters`], [`QueryTemporalEvolutionPostParameters`].
 //!
@@ -262,21 +265,19 @@ pub use crate::http::operation::{
         Aggregated,
         SimplifiedTemporal,
         TemporalRepresentation,
-        TemporalSelection,
         add_attributes::AddTemporalAttributes,
         create_or_update::{CreateOrUpdateSimplifiedTemporalEvolution, CreateOrUpdateTemporalEvolution},
         delete::DeleteTemporalEvolution,
         delete_attribute::DeleteTemporalAttribute,
         delete_instance::DeleteAttributeInstance,
+        instance_paging::InstancePaging,
+        interval_request::IntervalRequest,
         modify_instance::ModifyAttributeInstance,
-        parameters::{
-            QueryTemporalEvolutionParameters,
-            QueryTemporalEvolutionPostParameters,
-            RetrieveTemporalEvolutionParameters,
-            TemporalSelectionParameters,
-        },
+        parameters::{QueryTemporalEvolutionParameters, RetrieveTemporalEvolutionParameters, TemporalSelectionParameters},
+        post_parameters::QueryTemporalEvolutionPostParameters,
         query::QueryTemporalEvolution,
         retrieve::RetrieveTemporalEvolution,
+        selection::TemporalSelection,
     },
     update_attributes::UpdateAttributes,
 };

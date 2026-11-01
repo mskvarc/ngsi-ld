@@ -5,15 +5,16 @@ use crate::{
         Coverage,
         ResponseContext,
         ResponseError,
-        headers::{NgsiLdEntityMap, NgsiLdResultsCount, NgsiLdWarnings, OptionalHeader, RelationType, SpecVersion, link::header::read_line},
+        headers::{NgsiLdEntityMap, NgsiLdResultsCount, NgsiLdWarnings, OptionalHeader, SpecVersion},
         response::{Success, classify},
+        response_links::{IntervalLinks, ResponseLinks},
         result_headers::ResultHeaders,
     },
     model::{Context, Tenant},
     snapshot::SnapshotId,
 };
 use bytes::Bytes;
-use http::{HeaderValue, Response, StatusCode, header::LINK};
+use http::{HeaderValue, Response, StatusCode};
 use url::Url;
 
 /// One page of results.
@@ -25,7 +26,8 @@ use url::Url;
 ///
 /// It holds, too, the warnings the broker attached when a distributed part of the query was served from a cache or
 /// behaved abnormally (clause 6.3.17), and, for the temporal evolution of entities, the part of the requested time
-/// range a 206 Partial Content covers (clause 6.3.10).
+/// range a 206 Partial Content covers (clause 6.3.10) and the links to the neighbouring pages of the attribute
+/// instances (`intervalafter` and `intervalbefore`, ETSI TS 104 176 clause 6.4.7.3).
 ///
 /// The links are resolved against the URL of the request that returned the page, the default context of a link (RFC
 /// 8288 section 3.2), so they can be requested as they are. The page remembers the tenant that request addressed, the
@@ -49,6 +51,8 @@ pub struct Page<T> {
     first: Option<Url>,
     /// The last page.
     last: Option<Url>,
+    /// The neighbouring pages of the attribute instances.
+    intervals: IntervalLinks,
     /// The number of matching items over all pages.
     total: Option<u64>,
     /// The entity map the request for this page asked the broker to use.
@@ -110,6 +114,20 @@ impl<T> Page<T> {
     #[must_use]
     pub const fn last(&self) -> Option<&Url> {
         self.last.as_ref()
+    }
+
+    /// The URL of the next page of the attribute instances, in ascending order of their timestamps, when the broker
+    /// links it (`rel="intervalafter"`, ETSI TS 104 176 clause 6.4.7.3).
+    #[must_use]
+    pub const fn interval_after(&self) -> Option<&Url> {
+        self.intervals.after.as_ref()
+    }
+
+    /// The URL of the next page of the attribute instances, in descending order of their timestamps, when the broker
+    /// links it (`rel="intervalbefore"`, ETSI TS 104 176 clause 6.4.7.3).
+    #[must_use]
+    pub const fn interval_before(&self) -> Option<&Url> {
+        self.intervals.before.as_ref()
     }
 
     /// The number of matching items over all pages, when the query asked for the count.
@@ -195,13 +213,14 @@ impl<T> Page<T> {
             return Err(response.unexpected());
         }
         let (items, body_context) = read(&response)?;
-        let links = PageLinks::read(&response, context);
+        let links = ResponseLinks::read(&response, context);
         Ok(Page {
             items,
             next: links.next,
             prev: links.prev,
             first: links.first,
             last: links.last,
+            intervals: links.intervals,
             total: response.header::<NgsiLdResultsCount>()?.map(NgsiLdResultsCount::count),
             // The page outlives the request it answers, so it keeps its own copy of the map.
             requested_entity_map: context.entity_map().cloned(),
@@ -213,52 +232,6 @@ impl<T> Page<T> {
             unread_links: links.unread,
             headers: ResultHeaders::read(&response),
             status: response.status(),
-        })
-    }
-}
-
-/// The pagination links of a response (clause 6.3.10).
-#[derive(Debug, Default)]
-struct PageLinks {
-    /// The first resolvable `next` link.
-    next: Option<Url>,
-    /// The first resolvable `prev` link.
-    prev: Option<Url>,
-    /// The first resolvable `first` link.
-    first: Option<Url>,
-    /// The first resolvable `last` link.
-    last: Option<Url>,
-    /// The lines holding a link-value that could not be read or resolved.
-    unread: Vec<HeaderValue>,
-}
-
-impl PageLinks {
-    /// Reads every `Link` line, keeping the first `next`, `prev`, `first` and `last` targets, resolved against the
-    /// request URL.
-    fn read(response: &Success, context: &ResponseContext) -> PageLinks {
-        response.headers().get_all(LINK).iter().fold(PageLinks::default(), |mut links, line| {
-            let read = read_line(line);
-            let mut unresolved = 0_usize;
-            for value in &read.values {
-                for (rel, slot) in [
-                    (RelationType::Next, &mut links.next),
-                    (RelationType::Prev, &mut links.prev),
-                    (RelationType::First, &mut links.first),
-                    (RelationType::Last, &mut links.last),
-                ] {
-                    if slot.is_none() && value.has_rel(&rel) {
-                        match context.resolve(value.target().as_str()) {
-                            Some(url) => *slot = Some(url),
-                            None => unresolved += 1,
-                        }
-                    }
-                }
-            }
-            if read.unread + unresolved > 0 {
-                // The header map keeps the line; the page outlives the response, so it keeps its own handle.
-                links.unread.push(line.clone());
-            }
-            links
         })
     }
 }

@@ -202,6 +202,11 @@ mod temporal_requests;
 #[path = "binding/temporal_responses.rs"]
 mod temporal_responses;
 
+/// The temporal pagination of ETSI TS 104 176 clause 6.4.7.3.
+#[cfg(test)]
+#[path = "binding/temporal_intervals.rs"]
+mod temporal_intervals;
+
 /// The entity type and attribute discovery operations.
 #[cfg(test)]
 #[path = "binding/discovery.rs"]
