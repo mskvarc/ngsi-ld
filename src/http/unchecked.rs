@@ -2,7 +2,7 @@
 //! (clause 5.5.4).
 
 use crate::{
-    http::{Endpoint, RequestError, operation::Operation, request::scope::RequestScope},
+    http::{Endpoint, QueryParameter, RequestError, operation::Operation, query_string::QueryString, request::scope::RequestScope},
     model::{Entity, Input, Lossless, RawJson, keyword::CONTEXT, null::NGSI_LD_NULL, representation::write::write_entity},
 };
 use bytes::Bytes;
@@ -198,6 +198,46 @@ impl UncheckedRequest {
         self
     }
 
+    /// Sets the `scopeQ` parameter to `text` as written, which need not be a scope query (clause 4.19): the parameter
+    /// keeps its place in the query string when the operation sent one, and is added last otherwise.
+    ///
+    /// The text is escaped as a parsed [`ScopeQuery`](crate::query::scope_query::ScopeQuery) is, so the broker
+    /// decodes exactly `text` and the request differs from a valid one only in the syntax under test.
+    ///
+    /// ```
+    /// use ngsi_ld::{
+    ///     http::{Endpoint, UncheckedRequest, operation::QueryEntities},
+    ///     model::Lossless,
+    ///     query::SelectorType,
+    /// };
+    /// use url::Url;
+    ///
+    /// let endpoint = Endpoint::builder()
+    ///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+    ///     .build()?;
+    /// let buildings: SelectorType = "Building".parse()?;
+    /// let query = QueryEntities::builder()
+    ///     .entity_type(&buildings)
+    ///     .format(Lossless::Normalized)
+    ///     .build();
+    /// let request = UncheckedRequest::try_from_operation(&query, &endpoint)?
+    ///     .scope_query("/Madrid/#/Gardens")?;
+    /// assert_eq!(
+    ///     request.as_request().uri(),
+    ///     "http://broker.test/ngsi-ld/v1/entities?type=Building&scopeQ=/Madrid/%23/Gardens"
+    /// );
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RequestError::Uri`] when the request URI with the parameter is not a valid URI.
+    pub fn scope_query(mut self, text: &str) -> Result<UncheckedRequest, RequestError> {
+        let uri = with_parameter(self.request.uri(), QueryParameter::ScopeQ, &QueryString::escaped_scope_query(text));
+        *self.request.uri_mut() = Uri::try_from(uri).map_err(|source| RequestError::Uri { source })?;
+        Ok(self)
+    }
+
     /// Adds a header value, keeping any the request already has under that name.
     #[must_use]
     pub fn append_header(mut self, name: HeaderName, value: HeaderValue) -> Self {
@@ -327,6 +367,30 @@ impl UncheckedRequest {
     pub fn into_request(self) -> Request<Bytes> {
         self.request
     }
+}
+
+/// The text of `uri` with the parameter `name` set to the already escaped `value`: in place of its first occurrence,
+/// every other occurrence removed, or added last when the query has none.
+fn with_parameter(uri: &Uri, name: QueryParameter, value: &str) -> String {
+    let name = <&'static str>::from(name);
+    let text = uri.to_string();
+    let (base, query) = text.split_once('?').map_or((text.as_str(), None), |(base, query)| (base, Some(query)));
+    let pair = format!("{name}={value}");
+    let mut pairs: Vec<&str> = Vec::new();
+    let mut placed = false;
+    for existing in query.into_iter().flat_map(|query| query.split('&')) {
+        let existing_name = existing.split_once('=').map_or(existing, |(key, _)| key);
+        if existing_name != name {
+            pairs.push(existing);
+        } else if !placed {
+            pairs.push(&pair);
+            placed = true;
+        }
+    }
+    if !placed {
+        pairs.push(&pair);
+    }
+    format!("{base}?{}", pairs.join("&"))
 }
 
 /// The `@context` member of a JSON object body, or of the first element of an array body (a batch, whose every

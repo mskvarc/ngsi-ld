@@ -309,6 +309,11 @@ mod heads;
 #[path = "binding/unchecked.rs"]
 mod unchecked;
 
+/// A scope query sent as written through the unchecked path.
+#[cfg(test)]
+#[path = "binding/unchecked_scope_query.rs"]
+mod unchecked_scope_query;
+
 /// Retrieves the entity `id` in `format`, as complete entities, with no other parameter.
 fn retrieve_entity<F>(id: &EntityId, format: F) -> RetrieveEntity<'_, F> {
     RetrieveEntity::builder().id(id).format(format).build()

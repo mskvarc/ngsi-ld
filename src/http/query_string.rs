@@ -142,6 +142,12 @@ impl QueryString {
         }
     }
 
+    /// The text of a scope query, escaped as [`push_scope_query`](Self::push_scope_query) escapes a parsed one, for a
+    /// deliberately invalid request that sends the text as written.
+    pub(crate) fn escaped_scope_query(text: &str) -> String {
+        utf8_percent_encode(text, SCOPE_QUERY).to_string()
+    }
+
     /// Whether no parameter was added.
     pub(crate) const fn is_empty(&self) -> bool {
         self.0.is_empty()
