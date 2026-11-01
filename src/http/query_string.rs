@@ -54,6 +54,63 @@ const GEO_RELATION: &AsciiSet = &OPAQUE.remove(b';').remove(b'=');
 /// A scope query: its `/`, `;`, `(` and `)` stay literal.
 const SCOPE_QUERY: &AsciiSet = &OPAQUE.remove(b'/').remove(b';').remove(b'(').remove(b')');
 
+/// A comma-separated list written as text: its separator `,` stays literal.
+const LIST: &AsciiSet = &OPAQUE.remove(b',');
+
+/// The characters escaped in the value of `name`: the set the crate escapes a typed value of the parameter with, so
+/// text written for the parameter is escaped as a typed value would be.
+const fn escaping(name: QueryParameter) -> &'static AsciiSet {
+    match name {
+        QueryParameter::Type => TYPE_SELECTION,
+        QueryParameter::ScopeQ => SCOPE_QUERY,
+        QueryParameter::Pick | QueryParameter::Omit => PROJECTION,
+        QueryParameter::Lang => LANGUAGE_FILTER,
+        QueryParameter::OrderBy => ORDER_BY,
+        QueryParameter::Georel => GEO_RELATION,
+        QueryParameter::Id
+        | QueryParameter::Attrs
+        | QueryParameter::Options
+        | QueryParameter::ContainedBy
+        | QueryParameter::DatasetId
+        | QueryParameter::ExpandValues
+        | QueryParameter::JsonKeys
+        | QueryParameter::AggrMethods
+        | QueryParameter::Drop
+        | QueryParameter::Keep => LIST,
+        QueryParameter::IdPattern
+        | QueryParameter::Q
+        | QueryParameter::Csf
+        | QueryParameter::Geometry
+        | QueryParameter::Coordinates
+        | QueryParameter::Geoproperty
+        | QueryParameter::GeometryProperty
+        | QueryParameter::Format
+        | QueryParameter::Limit
+        | QueryParameter::Offset
+        | QueryParameter::Count
+        | QueryParameter::Local
+        | QueryParameter::Join
+        | QueryParameter::JoinLevel
+        | QueryParameter::Collation
+        | QueryParameter::OrderFrom
+        | QueryParameter::OrderGeometry
+        | QueryParameter::EntityMap
+        | QueryParameter::EntityMapLifetime
+        | QueryParameter::SplitEntities
+        | QueryParameter::Timerel
+        | QueryParameter::TimeAt
+        | QueryParameter::EndTimeAt
+        | QueryParameter::Timeproperty
+        | QueryParameter::LastN
+        | QueryParameter::AggrPeriodDuration
+        | QueryParameter::DeleteAll
+        | QueryParameter::ObservedAt
+        | QueryParameter::Details
+        | QueryParameter::Kind
+        | QueryParameter::Reload => OPAQUE,
+    }
+}
+
 /// The parameters of a request, in the order they were added.
 #[derive(Debug, Clone, PartialEq, Eq, Default, derive_more::Display)]
 pub(crate) struct QueryString(String);
@@ -142,10 +199,16 @@ impl QueryString {
         }
     }
 
-    /// The text of a scope query, escaped as [`push_scope_query`](Self::push_scope_query) escapes a parsed one, for a
-    /// deliberately invalid request that sends the text as written.
-    pub(crate) fn escaped_scope_query(text: &str) -> String {
-        utf8_percent_encode(text, SCOPE_QUERY).to_string()
+    /// `text` escaped as a typed value of `name` is, for a deliberately invalid request that sends the text as
+    /// written.
+    pub(crate) fn escaped_as(name: QueryParameter, text: &str) -> String {
+        utf8_percent_encode(text, escaping(name)).to_string()
+    }
+
+    /// `text` with every character but the unreserved ones escaped: the name or the value of a parameter the
+    /// specification does not define.
+    pub(crate) fn escaped_opaque(text: &str) -> String {
+        utf8_percent_encode(text, OPAQUE).to_string()
     }
 
     /// Whether no parameter was added.

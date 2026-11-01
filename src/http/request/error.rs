@@ -1,6 +1,7 @@
 //! Why the request pipeline did not build a request.
 
 use crate::http::{
+    QueryParameter,
     headers::{InvalidFieldValue, LinkBuildError},
     operation::ArgumentError,
 };
@@ -33,6 +34,14 @@ pub enum RequestError {
         /// Why.
         #[source]
         source: InvalidFieldValue,
+    },
+    /// An unchecked request was given, as a parameter the specification does not define, the name of one it defines;
+    /// such a parameter is set through
+    /// [`UncheckedRequest::query_parameter`](crate::http::UncheckedRequest::query_parameter).
+    #[error("`{parameter}` is a parameter the specification defines")]
+    DefinedQueryParameter {
+        /// The parameter.
+        parameter: QueryParameter,
     },
     /// The request URI is not valid.
     #[error("invalid request URI")]

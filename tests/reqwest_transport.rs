@@ -156,10 +156,10 @@ mod attribute_value_retrieval;
 #[path = "reqwest_transport/attribute_value_setting.rs"]
 mod attribute_value_setting;
 
-/// A scope query sent as written through the unchecked path, over the client.
+/// Query parameters sent as written through the unchecked path, over the client.
 #[cfg(test)]
-#[path = "reqwest_transport/unchecked_scope_query.rs"]
-mod unchecked_scope_query;
+#[path = "reqwest_transport/unchecked_query_parameters.rs"]
+mod unchecked_query_parameters;
 
 /// The HEAD requests of the retrievals, over the client.
 #[cfg(test)]
