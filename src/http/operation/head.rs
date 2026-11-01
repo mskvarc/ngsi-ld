@@ -38,6 +38,7 @@ use crate::http::{
         RetrieveTemporalEvolution,
         ServeContext,
         ServeContextDetails,
+        ServeContextWithCore,
         SnapshotOperation,
         WithLocality,
         sealed::{BuildsRequest, Sealed},
@@ -84,6 +85,7 @@ impl HeadOperation for ListContexts {}
 impl HeadOperation for ListContextDetails {}
 impl HeadOperation for ServeContext<'_> {}
 impl HeadOperation for ServeContextDetails<'_> {}
+impl HeadOperation for ServeContextWithCore<'_> {}
 impl HeadOperation for CreateEntityMap<'_> {}
 impl HeadOperation for CreateTemporalEntityMap<'_> {}
 impl HeadOperation for RetrieveEntityMap<'_> {}

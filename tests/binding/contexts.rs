@@ -12,7 +12,9 @@ use ngsi_ld::{
     http::{
         BodyError,
         ContextDelivery,
+        QueryParameter,
         ResponseError,
+        UncheckedRequest,
         headers::{NgsiLdTenant, OptionalHeader},
         operation::{
             AddContext,
@@ -24,9 +26,22 @@ use ngsi_ld::{
             Operation,
             ServeContext,
             ServeContextDetails,
+            ServeContextWithCore,
         },
     },
-    model::{Context, ContextEntry, ContextId, DocumentErrorKind, ErrorType, InlineContext, JsonType, MemberError, StoredContextKind, Tenant},
+    model::{
+        ConformanceVersion,
+        Context,
+        ContextEntry,
+        ContextId,
+        DocumentErrorKind,
+        ErrorType,
+        InlineContext,
+        JsonType,
+        MemberError,
+        StoredContextKind,
+        Tenant,
+    },
 };
 use pretty_assertions::assert_eq;
 use std::str;
@@ -158,6 +173,86 @@ fn serve_names_the_context_in_one_path_segment() {
         built(&ServeContext::builder().id(&cached).build()).uri().path(),
         "/ngsi-ld/v1/jsonldContexts/https:%2F%2Fexample.org%2Fcontext.jsonld"
     );
+}
+
+/// The answer of Serve @context with `core`: the stored context's original location, then the core context's.
+const WITH_CORE: &str = concat!(
+    r#"{"@context":["https://example.org/context.jsonld","#,
+    r#""https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.9.jsonld"]}"#
+);
+
+/// Serve @context with `core=1.9` of `id`.
+const fn with_core(id: &ContextId) -> ServeContextWithCore<'_> {
+    ServeContextWithCore {
+        id,
+        core: ConformanceVersion::new(1, 9),
+    }
+}
+
+#[test]
+fn serve_with_core_states_core_and_never_details() {
+    // ETSI TS 104 175 clause 13.4.4 answers `core` beside `details` with a BadRequest, `details=false` included.
+    let id = c();
+    let request = built(&with_core(&id));
+    assert_eq!(request.method(), Method::GET);
+    assert_eq!(request.uri().path(), "/ngsi-ld/v1/jsonldContexts/urn:ngsi-ld:context:c1");
+    assert_eq!(request.uri().query(), Some("core=1.9"));
+    assert_eq!(header_value(&request, &header::ACCEPT), Some("application/json"));
+    assert_eq!(link_of(&request), Some(context_link()));
+    assert!(request.body().is_empty());
+    let tenant: Tenant = "t1".parse().unwrap();
+    let on_tenant = with_core(&id).to_request(&endpoint().with_tenant(tenant)).unwrap();
+    assert_eq!(header_value(&on_tenant, NgsiLdTenant::name()), Some("t1"));
+}
+
+#[test]
+fn serve_with_core_reads_the_two_references_in_the_order_served() {
+    let id = c();
+    let served = with_core(&id).decode(&context(), response(200, &[], WITH_CORE)).unwrap();
+    let reference = |text: &str| ContextEntry::Reference(IriRefBuf::new(text.to_owned()).unwrap());
+    assert_eq!(
+        served,
+        Context::Multiple(vec![
+            reference("https://example.org/context.jsonld"),
+            reference("https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.9.jsonld"),
+        ])
+    );
+}
+
+#[test]
+fn serve_with_core_reports_an_unknown_context_and_a_bad_request_as_problems() {
+    let id = c();
+    let error = with_core(&id)
+        .decode(
+            &context(),
+            response(404, &[(&header::CONTENT_TYPE, "application/json")], &problem("ResourceNotFound")),
+        )
+        .unwrap_err();
+    assert!(is_problem(&error, &ErrorType::ResourceNotFound, 404), "{error:?}");
+    let error = with_core(&id)
+        .decode(
+            &context(),
+            response(400, &[(&header::CONTENT_TYPE, "application/json")], &problem("BadRequestData")),
+        )
+        .unwrap_err();
+    assert!(is_problem(&error, &ErrorType::BadRequestData, 400), "{error:?}");
+}
+
+#[test]
+fn the_unchecked_path_writes_core_as_written_beside_details() {
+    // The negative cases of ETSI TS 104 175 clause 13.4.4: `core` with `details`, and a `core` that is no version.
+    let id = c();
+    let details = UncheckedRequest::try_from_operation(&ServeContextDetails { id: &id }, &endpoint())
+        .unwrap()
+        .query_parameter(QueryParameter::Core, "1.9")
+        .unwrap();
+    assert_eq!(details.as_request().uri().query(), Some("details=true&core=1.9"));
+    let not_a_version = UncheckedRequest::try_from_operation(&with_core(&id), &endpoint())
+        .unwrap()
+        .query_parameter(QueryParameter::Core, "latest")
+        .unwrap();
+    assert_eq!(not_a_version.as_request().uri().query(), Some("core=latest"));
+    assert_eq!("core".parse::<QueryParameter>().unwrap(), QueryParameter::Core);
 }
 
 #[test]

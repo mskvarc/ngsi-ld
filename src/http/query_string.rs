@@ -107,7 +107,8 @@ const fn escaping(name: QueryParameter) -> &'static AsciiSet {
         | QueryParameter::ObservedAt
         | QueryParameter::Details
         | QueryParameter::Kind
-        | QueryParameter::Reload => OPAQUE,
+        | QueryParameter::Reload
+        | QueryParameter::Core => OPAQUE,
     }
 }
 

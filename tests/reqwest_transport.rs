@@ -151,6 +151,11 @@ mod attribute_retrieval;
 #[path = "reqwest_transport/attribute_value_retrieval.rs"]
 mod attribute_value_retrieval;
 
+/// Serve @context with `core`, over the client.
+#[cfg(test)]
+#[path = "reqwest_transport/context_with_core.rs"]
+mod context_with_core;
+
 /// Set Attribute Value, over the client.
 #[cfg(test)]
 #[path = "reqwest_transport/attribute_value_setting.rs"]

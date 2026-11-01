@@ -26,10 +26,11 @@ use ngsi_ld::{
             ResultsCount,
             RetrieveEntityTypes,
             RetrieveSubscription,
+            ServeContextWithCore,
             WithLocality,
         },
     },
-    model::{EntityId, Lossless, Tenant},
+    model::{ConformanceVersion, ContextId, EntityId, Lossless, Tenant},
     query::{Locality, SelectorType},
     snapshot::SnapshotId,
     subscription::{EntitySubscription, SubscriptionId},
@@ -120,6 +121,11 @@ fn the_heads_of_the_other_apis_mirror_their_gets() {
     let subscription = RetrieveSubscription::builder().id(&id).kind(EntitySubscription).build();
     let types = RetrieveEntityTypes::default();
     let contexts = ListContexts::builder().build();
+    let context_id: ContextId = "urn:ngsi-ld:context:c1".parse().unwrap();
+    let with_core = ServeContextWithCore {
+        id: &context_id,
+        core: ConformanceVersion::new(1, 9),
+    };
     let requests = [
         (
             subscription.to_request(&endpoint()).unwrap(),
@@ -127,6 +133,10 @@ fn the_heads_of_the_other_apis_mirror_their_gets() {
         ),
         (types.to_request(&endpoint()).unwrap(), Head::new(&types).to_request(&endpoint()).unwrap()),
         (contexts.to_request(&endpoint()).unwrap(), Head::new(&contexts).to_request(&endpoint()).unwrap()),
+        (
+            with_core.to_request(&endpoint()).unwrap(),
+            Head::new(&with_core).to_request(&endpoint()).unwrap(),
+        ),
     ];
     for (get, head) in requests {
         assert_eq!(head.method(), Method::HEAD);

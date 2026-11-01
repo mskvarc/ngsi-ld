@@ -1,8 +1,10 @@
-//! Serve @context (NGSI-LD clauses 5.13.4 and 6.30.3.1), as the context itself or as its metadata.
+//! Serve @context (NGSI-LD clauses 5.13.4 and 6.30.3.1, ETSI TS 104 175 clause 13.4), as the context itself, as its
+//! metadata, or as references to it and to a core context.
 
 use crate::{
     http::{
         Endpoint,
+        QueryParameter,
         RequestError,
         ResponseContext,
         ResponseError,
@@ -14,12 +16,13 @@ use crate::{
             stored_document::DocumentReader,
         },
         path::ResourcePath,
-        request::scope::RequestScope,
+        query_string::QueryString,
+        request::{RequestParts, scope::RequestScope},
     },
-    model::{Context, ContextId, ContextMetadata, DocumentError, LocalContext},
+    model::{ConformanceVersion, Context, ContextId, ContextMetadata, DocumentError, LocalContext, NgsiLdMediaType},
 };
 use bytes::Bytes;
-use http::{Request, Response};
+use http::{Method, Request, Response};
 use jstrict::Value as Json;
 
 /// Reads a stored context.
@@ -98,6 +101,53 @@ pub struct ServeContextDetails<'a> {
     pub id: &'a ContextId,
 }
 
+/// Reads the `@context` that references a stored context together with the core context of a version of the
+/// specification.
+///
+/// Its request is `GET /jsonldContexts/{contextId}?core={major.minor}` (ETSI TS 104 176 Table 10.3.3.1-1). The broker
+/// answers with a local context document whose `@context` is an array of two references: the original location of
+/// the stored context and the location of the core context (ETSI TS 104 175 clause 13.4.4).
+///
+/// The outcome is that `@context` as served. Clause 13.4.4 fixes the two items of the array but not their order, so
+/// the outcome does not tell the user reference from the core one.
+///
+/// Clause 13.4.4 answers a request that names both `core` and `details` with a `BadRequest`, so the operation has no
+/// `details`.
+///
+/// ```
+/// use iri_rs::iri;
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{Operation, ServeContextWithCore},
+///     },
+///     model::{ConformanceVersion, ContextId},
+/// };
+/// use url::Url;
+///
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
+/// let id = ContextId::from(iri!("urn:ngsi-ld:context:c1"));
+/// let request = ServeContextWithCore {
+///     id: &id,
+///     core: ConformanceVersion::new(1, 9),
+/// }
+/// .to_request(&endpoint)?;
+/// assert_eq!(
+///     request.uri(),
+///     "http://broker.test/ngsi-ld/v1/jsonldContexts/urn:ngsi-ld:context:c1?core=1.9"
+/// );
+/// # Ok::<(), anyhow::Error>(())
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ServeContextWithCore<'a> {
+    /// The stored context.
+    pub id: &'a ContextId,
+    /// The version of the specification whose core context the answer references (`core`).
+    pub core: ConformanceVersion,
+}
+
 /// Builds the GET of the stored context `id` in the representation `details` names.
 fn request(id: &ContextId, details: Details, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
     details.get(ResourcePath::stored_context(id), |_| ()).into_request(endpoint, scope)
@@ -137,5 +187,25 @@ impl Operation for ServeContextDetails<'_> {
 impl BuildsRequest for ServeContextDetails<'_> {
     fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
         request(self.id, Details::Detailed, endpoint, scope)
+    }
+}
+
+impl Sealed for ServeContextWithCore<'_> {}
+
+impl Operation for ServeContextWithCore<'_> {
+    type Outcome = Context;
+
+    fn decode(&self, _: &ResponseContext, response: Response<Bytes>) -> Result<Context, ResponseError> {
+        DocumentReader::document(read_context).decode_one(response)
+    }
+}
+
+impl BuildsRequest for ServeContextWithCore<'_> {
+    fn scoped_request(&self, endpoint: &Endpoint, scope: RequestScope<'_>) -> Result<Request<Bytes>, RequestError> {
+        let mut query = QueryString::default();
+        query.push(QueryParameter::Core, self.core);
+        RequestParts::resource(Method::GET, ResourcePath::stored_context(self.id), query)
+            .accepting(NgsiLdMediaType::Json)
+            .into_request(endpoint, scope)
     }
 }

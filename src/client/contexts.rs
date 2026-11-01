@@ -14,10 +14,11 @@ use crate::{
             ListContexts,
             ServeContext,
             ServeContextDetails,
+            ServeContextWithCore,
             SummaryDetails,
         },
     },
-    model::{Context, ContextId, ContextMetadata, ExtraMemberName, Tenant, Value},
+    model::{ConformanceVersion, Context, ContextId, ContextMetadata, ExtraMemberName, Tenant, Value},
 };
 use bon::bon;
 use indexmap::IndexMap;
@@ -177,6 +178,23 @@ impl<T: Transport, M: Answering> StoredContexts<'_, T, M> {
         tenant: Option<&Tenant>,
     ) -> Result<M::Answer<ContextMetadata>, ClientError<T::Error>> {
         self.client.send_on_tenant(&ServeContextDetails { id }, tenant).await
+    }
+
+    /// Serve @context with `core` (ETSI TS 104 175 clause 13.4.4): the `@context` that references the stored context
+    /// `id` together with the core context of the specification version `core`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError`] when the context is unknown (`ResourceNotFound`), the answer is not a local context
+    /// document, or the call fails.
+    #[builder(finish_fn = send)]
+    pub async fn serve_with_core(
+        &self,
+        #[builder(start_fn)] id: &ContextId,
+        #[builder(start_fn)] core: ConformanceVersion,
+        tenant: Option<&Tenant>,
+    ) -> Result<M::Answer<Context>, ClientError<T::Error>> {
+        self.client.send_on_tenant(&ServeContextWithCore { id, core }, tenant).await
     }
 
     /// Delete and Reload @context (clause 6.30.3.2): removes the stored context `id`, or does what `deletion`

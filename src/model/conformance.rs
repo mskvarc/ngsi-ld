@@ -1,5 +1,6 @@
-//! The version of the specification a subscriber asks its notifications to conform to (the `ngsildConformance`
-//! member of NGSI-LD Table 5.2.12-1, applied by clause 4.3.6.8).
+//! A `major.minor` version of the specification: the one a subscriber asks its notifications to conform to (the
+//! `ngsildConformance` member of NGSI-LD Table 5.2.12-1, applied by clause 4.3.6.8), and the one whose core context
+//! Serve @context references (the `core` parameter, ETSI TS 104 175 clause 13.4.3).
 
 use std::{num::ParseIntError, str::FromStr};
 
@@ -21,7 +22,7 @@ pub enum ConformanceVersionError {
 
 /// A semantic version of the specification in the form `major.minor`.
 ///
-/// NGSI-LD Table 5.2.12-1.
+/// NGSI-LD Table 5.2.12-1 and ETSI TS 104 175 clause 13.4.3.
 ///
 /// ```
 /// use ngsi_ld::model::ConformanceVersion;

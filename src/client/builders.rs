@@ -25,7 +25,7 @@
 //! [`SnapshotsCreateBuilder`], [`SnapshotsDeleteBuilder`], [`SnapshotsPurgeBuilder`], [`SnapshotsRetrieveBuilder`],
 //! [`SnapshotsUpdateBuilder`], [`StoredContextsAddBuilder`], [`StoredContextsDeleteBuilder`],
 //! [`StoredContextsListBuilder`], [`StoredContextsListDetailsBuilder`], [`StoredContextsServeBuilder`],
-//! [`StoredContextsServeDetailsBuilder`], [`SubscriptionsCreateBuilder`], [`SubscriptionsDeleteBuilder`],
+//! [`StoredContextsServeDetailsBuilder`], [`StoredContextsServeWithCoreBuilder`], [`SubscriptionsCreateBuilder`], [`SubscriptionsDeleteBuilder`],
 //! [`SubscriptionsQueryBuilder`], [`SubscriptionsRetrieveBuilder`], [`SubscriptionsUpdateBuilder`],
 //! [`TemporalAddAttributesBuilder`], [`TemporalCreateOrUpdateBuilder`], [`TemporalCreateOrUpdateSimplifiedBuilder`],
 //! [`TemporalDeleteAttributeBuilder`], [`TemporalDeleteBuilder`], [`TemporalDeleteInstanceBuilder`],
@@ -48,6 +48,7 @@ pub use crate::client::{
         StoredContextsListDetailsBuilder,
         StoredContextsServeBuilder,
         StoredContextsServeDetailsBuilder,
+        StoredContextsServeWithCoreBuilder,
     },
     entities::{
         EntitiesAppendAttributesBuilder,

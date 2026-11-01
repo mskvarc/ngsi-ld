@@ -121,10 +121,11 @@
 //! # Stored contexts
 //!
 //! The body of Add @context is a JSON-LD local context, sent as `application/ld+json` without the client's own context
-//! (clause 6.3.5). As for discovery, `details=true` has its own request types.
+//! (clause 6.3.5). As for discovery, `details=true` has its own request types, and so has `core` (ETSI TS 104 175 clause
+//! 13.4.4), which excludes `details`.
 //!
 //! [`AddContext`], [`ListContexts`], [`ListContextDetails`], [`ListContextsParameters`], [`ContextKindFilter`],
-//! [`ServeContext`], [`ServeContextDetails`], [`DeleteContext`], [`ContextDeletion`].
+//! [`ServeContext`], [`ServeContextDetails`], [`ServeContextWithCore`], [`DeleteContext`], [`ContextDeletion`].
 //!
 //! # Entity maps
 //!
@@ -247,7 +248,7 @@ pub use crate::http::operation::{
         delete::{ContextDeletion, DeleteContext},
         list::{ContextKindFilter, ListContextDetails, ListContexts},
         parameters::ListContextsParameters,
-        serve::{ServeContext, ServeContextDetails},
+        serve::{ServeContext, ServeContextDetails, ServeContextWithCore},
     },
     subscription::{
         create::CreateSubscription,
