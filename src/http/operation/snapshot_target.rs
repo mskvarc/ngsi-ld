@@ -33,6 +33,7 @@ use crate::{
             QuerySubscriptions,
             ReplaceAttribute,
             ReplaceEntity,
+            RetrieveAttribute,
             RetrieveAttributeDetails,
             RetrieveAttributeInfo,
             RetrieveAttributes,
@@ -87,6 +88,7 @@ impl<C: Completeness> SnapshotOperation for MergeEntity<'_, C> where Self: Opera
 impl SnapshotOperation for MergeSimplifiedEntity<'_> {}
 impl<C: Completeness> SnapshotOperation for UpdateAttributes<'_, C> where Self: Operation {}
 impl<C: Completeness> SnapshotOperation for AppendAttributes<'_, C> where Self: Operation {}
+impl SnapshotOperation for RetrieveAttribute<'_> {}
 impl SnapshotOperation for PartialAttributeUpdate<'_> {}
 impl SnapshotOperation for ReplaceAttribute<'_> {}
 impl SnapshotOperation for DeleteAttribute<'_> {}

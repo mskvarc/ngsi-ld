@@ -1,5 +1,5 @@
 //! A lone attribute read and written as a JSON-LD document, with its `@context` (clause 6.3.5): the body of Replace
-//! Attribute and of Partial Attribute Update.
+//! Attribute and of Partial Attribute Update, and the answer of Retrieve Attribute.
 
 use crate::model::{
     Attribute,
@@ -14,6 +14,7 @@ use crate::model::{
     Lossless,
     MemberError,
     NullMember,
+    Output,
 };
 use iri_rs::IriRefBuf;
 use pretty_assertions::assert_eq;
@@ -23,6 +24,9 @@ type Replacement = AttributeDocument<Attribute<Input>>;
 
 /// The body of Partial Attribute Update.
 type Update = AttributeDocument<Change<AttributeFragment, InstanceDeletion>>;
+
+/// The answer of Retrieve Attribute.
+type Retrieval = AttributeDocument<Attribute<Output>>;
 
 /// The `@context` member every document below carries.
 const CONTEXT_MEMBER: &str = r#""@context":"https://example.org/context.jsonld""#;
@@ -152,4 +156,26 @@ fn the_document_refuses_what_its_attribute_refuses() {
         matches!(bare_null.kind, DocumentErrorKind::NgsiLdNull { member: NullMember::Value }),
         "{bare_null}"
     );
+}
+
+#[test]
+fn a_retrieve_attribute_answer_round_trips_with_its_output_members_and_its_context_in_either_form() {
+    let normalized =
+        r#"{"type":"Property","value":80,"observedAt":"2024-05-01T10:00:00Z","createdAt":"2024-05-01T10:00:00Z","modifiedAt":"2024-05-01T10:05:00Z"}"#;
+    let concise = r#"{"value":80,"observedAt":"2024-05-01T10:00:00Z","createdAt":"2024-05-01T10:00:00Z","modifiedAt":"2024-05-01T10:05:00Z"}"#;
+    for (text, form) in [(normalized, Lossless::Normalized), (concise, Lossless::Concise)] {
+        let document = Retrieval::parse(&with_context(text), form).unwrap();
+        assert_eq!(document.context, Some(context()));
+        assert_eq!(document.render(form).to_string(), with_context(text));
+        let bare = Retrieval::parse(text, form).unwrap();
+        assert_eq!(bare.context, None);
+        assert_eq!(bare.attribute, document.attribute);
+        assert_eq!(bare.render(form).to_string(), text);
+    }
+}
+
+#[test]
+fn a_retrieve_attribute_answer_of_several_instances_is_refused() {
+    let one = r#"{"type":"Property","value":80}"#;
+    assert!(Retrieval::parse(&format!("[{one},{one}]"), Lossless::Normalized).is_err());
 }

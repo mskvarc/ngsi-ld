@@ -1,5 +1,6 @@
-//! A lone attribute as a JSON-LD document of its own: the body of Replace Attribute or Partial Attribute Update with the
-//! `@context` it carries (NGSI-LD clauses 5.6.4, 5.6.19 and 6.3.5).
+//! A lone attribute as a JSON-LD document of its own: the body of Replace Attribute or Partial Attribute Update, or the
+//! answer of Retrieve Attribute, with the `@context` it carries (NGSI-LD clauses 5.6.4, 5.6.19 and 6.3.5, ETSI TS
+//! 104 175 clause 10.4.4.5).
 
 use crate::model::{
     Attribute,
@@ -10,6 +11,7 @@ use crate::model::{
     Input,
     InstanceDeletion,
     Lossless,
+    Output,
     RawJson,
     keyword::CONTEXT,
     reader::{context, duplicate, parse_json, within},
@@ -29,8 +31,10 @@ use jstrict::{Object, Value as Json};
 /// the member; this document reads it, as a broker or a context source receives the body.
 ///
 /// `A` is what the operation takes: an [`Attribute<Input>`] for Replace Attribute, a
-/// [`Change<AttributeFragment, InstanceDeletion>`] for Partial Attribute Update. The document is written as the
-/// operation writes its body: always an object, with the `@context` last when it has one.
+/// [`Change<AttributeFragment, InstanceDeletion>`] for Partial Attribute Update; or what it answers: an
+/// [`Attribute<Output>`] for Retrieve Attribute, whose answer in `application/ld+json` carries its `@context` (ETSI
+/// TS 104 175 clause 10.4.4.5). The document is written as the operation writes its body: always an object, with the
+/// `@context` last when it has one.
 ///
 /// The struct is exhaustive: the document is the attribute and its context, and nothing else (clause 6.3.5).
 ///
@@ -99,6 +103,47 @@ impl AttributeDocument<Attribute<Input>> {
     }
 
     /// Writes the document in normalized or concise representation, as Replace Attribute sends its body.
+    #[must_use]
+    pub fn render(&self, form: Lossless) -> RawJson {
+        document(write_attribute_object(&self.attribute, form), self.context.as_ref())
+    }
+}
+
+impl AttributeDocument<Attribute<Output>> {
+    /// Reads the answer of Retrieve Attribute (ETSI TS 104 175 clause 10.4.4.5) in normalized or concise
+    /// representation, keeping its `@context`.
+    ///
+    /// ```
+    /// use ngsi_ld::model::{Attribute, AttributeDocument, Lossless, Output};
+    ///
+    /// let answer = r#"{"type":"Property","value":80,"createdAt":"2024-05-01T10:00:00Z"}"#;
+    /// let document = AttributeDocument::<Attribute<Output>>::parse(answer, Lossless::Normalized)?;
+    /// assert_eq!(document.context, None);
+    /// assert_eq!(
+    ///     document.attribute.render(Lossless::Concise).to_string(),
+    ///     r#"{"value":80,"createdAt":"2024-05-01T10:00:00Z"}"#
+    /// );
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] when the `@context` is not a context, or when the rest is not what
+    /// [`Attribute::<Output>::parse`] reads.
+    pub fn parse(text: &str, form: Lossless) -> Result<Self, DocumentError> {
+        Self::read(parse_json(text)?, form)
+    }
+
+    /// Reads the answer of Retrieve Attribute from its JSON.
+    pub(crate) fn read(json: Json, form: Lossless) -> Result<Self, DocumentError> {
+        let (json, context) = take_context(json)?;
+        Ok(AttributeDocument {
+            attribute: read_lone_instance::<Output>(json, form)?,
+            context,
+        })
+    }
+
+    /// Writes the document in normalized or concise representation, as a broker answers Retrieve Attribute.
     #[must_use]
     pub fn render(&self, form: Lossless) -> RawJson {
         document(write_attribute_object(&self.attribute, form), self.context.as_ref())

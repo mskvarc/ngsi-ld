@@ -141,6 +141,11 @@ mod entity_maps;
 #[path = "reqwest_transport/request_options.rs"]
 mod request_options;
 
+/// Retrieve Attribute, over the client.
+#[cfg(test)]
+#[path = "reqwest_transport/attribute_retrieval.rs"]
+mod attribute_retrieval;
+
 /// The HEAD requests of the retrievals, over the client.
 #[cfg(test)]
 #[path = "reqwest_transport/heads.rs"]

@@ -43,6 +43,7 @@ use crate::{
 };
 use bon::bon;
 
+pub(super) mod attribute_retrieval;
 pub(super) mod batching;
 pub(super) mod merging;
 pub(super) mod querying;

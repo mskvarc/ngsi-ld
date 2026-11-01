@@ -36,8 +36,8 @@
 //! context source returns (clause 5.2.2): a client never builds them for a request; a mock broker or a context source
 //! under test does, to answer the way the specification shapes an answer.
 //!
-//! A lone attribute sent as a JSON-LD document, the body of Replace Attribute or Partial Attribute Update with its
-//! `@context`, is an [`AttributeDocument`].
+//! A lone attribute as a JSON-LD document, the body of Replace Attribute or Partial Attribute Update or the answer of
+//! Retrieve Attribute with its `@context`, is an [`AttributeDocument`].
 //!
 //! [`Attribute`], [`AttributeKind`], [`AttributeKindIter`], [`AttributeDraft`], [`AttributeSlot`], [`AttributeDocument`], [`Property`],
 //! [`PropertyOutputMembers`], [`Relationship`], [`RelationshipOutputMembers`], [`GeoProperty`],
