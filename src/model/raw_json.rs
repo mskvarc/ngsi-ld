@@ -101,6 +101,13 @@ impl RawJson {
         self.0.as_str() == Some(NGSI_LD_NULL.as_str())
     }
 
+    /// Whether the value is the NGSI-LD Null or holds it anywhere, in an array or as a member of an object, searched
+    /// on a stack that grows with the depth.
+    #[cfg(feature = "http")]
+    pub(crate) fn holds_ngsi_ld_null(&self) -> bool {
+        holds_null(&self.0)
+    }
+
     /// Wraps a value read from a document.
     pub(crate) const fn from_json(json: Json) -> Self {
         Self(json)
@@ -130,6 +137,18 @@ fn copy(json: &Json) -> Json {
         Json::Array(items) => Json::Array(items.iter().map(copy).collect()),
         Json::Object(object) => Json::Object(object.iter().map(|entry| (entry.key.clone(), copy(&entry.value))).collect()),
         scalar @ (Json::Null | Json::Boolean(_) | Json::Number(_) | Json::String(_)) => scalar.clone(),
+    })
+}
+
+/// Whether `json` is the NGSI-LD Null or holds it anywhere, each level on a stack that grows with the depth (see
+/// [`grow`]).
+#[cfg(feature = "http")]
+fn holds_null(json: &Json) -> bool {
+    grow(|| match json {
+        Json::String(text) => text.as_str() == NGSI_LD_NULL.as_str(),
+        Json::Array(items) => items.iter().any(holds_null),
+        Json::Object(object) => object.iter().any(|entry| holds_null(&entry.value)),
+        Json::Null | Json::Boolean(_) | Json::Number(_) => false,
     })
 }
 

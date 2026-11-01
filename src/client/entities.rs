@@ -48,6 +48,7 @@ pub(super) mod batching;
 pub(super) mod merging;
 pub(super) mod querying;
 pub(super) mod retrieving;
+pub(super) mod value_setting;
 
 /// The entity operations of a [`Client`](crate::client::Client), from
 /// [`Client::entities`](crate::client::Client::entities).

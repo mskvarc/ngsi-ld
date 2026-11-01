@@ -105,4 +105,8 @@ pub enum ArgumentError {
     /// only the GET binding of a query has one (ETSI TS 104 176 clause 5, Table 5-1).
     #[error("only an operation sent through GET has a HEAD request")]
     HeadWithoutGet,
+    /// The value of a Set Attribute Value is or holds the NGSI-LD Null, which ETSI TS 104 175 clause 10.2.6.4 answers
+    /// with an `InvalidRequest`.
+    #[error("the value to set holds the NGSI-LD Null")]
+    NullInValue,
 }

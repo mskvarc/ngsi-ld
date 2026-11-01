@@ -35,6 +35,7 @@ use crate::{
             RetrieveAttributeValue,
             RetrieveEntity,
             RetrieveTemporalEvolution,
+            SetAttributeValue,
             UpdateAttributes,
             sealed::{BuildsRequest, Sealed},
         },
@@ -70,6 +71,7 @@ impl<C: Completeness> LocalScopeOperation for UpdateAttributes<'_, C> where Self
 impl<C: Completeness> LocalScopeOperation for AppendAttributes<'_, C> where Self: Operation {}
 impl LocalScopeOperation for PartialAttributeUpdate<'_> {}
 impl LocalScopeOperation for ReplaceAttribute<'_> {}
+impl LocalScopeOperation for SetAttributeValue<'_> {}
 impl LocalScopeOperation for DeleteAttribute<'_> {}
 impl LocalScopeOperation for BatchCreate<'_> {}
 impl LocalScopeOperation for BatchUpsert<'_> {}

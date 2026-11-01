@@ -57,6 +57,10 @@ pub(crate) enum RequestBody {
     /// the context being stored, which clause 6.3.5 refuses in an `application/json` body, so it is always sent as
     /// `application/ld+json`, without the `Link` header and without the client's own context.
     LocalContext(Object),
+    /// A value only Attribute Fragment, the body of Set Attribute Value (ETSI TS 104 176 clause 7.6.3.2): the
+    /// attribute value itself, a JSON primitive, object or array. It cannot embed a context, so it is always sent
+    /// as `application/json` with the `Link` header (ETSI TS 104 175 clause 5.4.2).
+    ValueOnly(Json),
 }
 
 impl RequestBody {
@@ -65,7 +69,7 @@ impl RequestBody {
     const fn delivery(&self, requested: ContextDelivery) -> ContextDelivery {
         match self {
             Self::Document(_) | Self::Documents(_) => requested,
-            Self::EntityIds(_) => ContextDelivery::JsonWithLink,
+            Self::EntityIds(_) | Self::ValueOnly(_) => ContextDelivery::JsonWithLink,
             Self::LocalContext(_) => ContextDelivery::LdJsonBody,
         }
     }
@@ -77,6 +81,7 @@ impl RequestBody {
             Self::Documents(bodies) => Json::Array(bodies.into_iter().map(|body| with_context(body, endpoint, delivery)).collect()),
             Self::EntityIds(ids) => Json::Array(ids.into()),
             Self::LocalContext(document) => Json::Object(document),
+            Self::ValueOnly(value) => value,
         }
     }
 }
@@ -129,6 +134,12 @@ impl RequestParts {
     /// Adds a body that is a JSON-LD local context.
     pub(crate) fn with_local_context(mut self, document: Object) -> Self {
         self.body = Some(RequestBody::LocalContext(document));
+        self
+    }
+
+    /// Adds a body that is a value only Attribute Fragment.
+    pub(crate) fn with_value_only(mut self, value: Json) -> Self {
+        self.body = Some(RequestBody::ValueOnly(value));
         self
     }
 
@@ -258,7 +269,7 @@ fn context_link(endpoint: &Endpoint, body: Option<&RequestBody>, delivery: Conte
 fn check_body_context(endpoint: &Endpoint, body: &RequestBody, delivery: ContextDelivery) -> Result<(), ContextDeliveryError> {
     let carried = match body {
         RequestBody::Document(_) | RequestBody::Documents(_) => delivery == ContextDelivery::LdJsonBody,
-        RequestBody::EntityIds(_) | RequestBody::LocalContext(_) => false,
+        RequestBody::EntityIds(_) | RequestBody::LocalContext(_) | RequestBody::ValueOnly(_) => false,
     };
     match endpoint
         .context()

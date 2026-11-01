@@ -294,6 +294,11 @@ mod attribute_retrieval;
 #[path = "binding/attribute_value_retrieval.rs"]
 mod attribute_value_retrieval;
 
+/// Set Attribute Value.
+#[cfg(test)]
+#[path = "binding/attribute_value_setting.rs"]
+mod attribute_value_setting;
+
 /// The HEAD requests of the retrievals.
 #[cfg(test)]
 #[path = "binding/heads.rs"]

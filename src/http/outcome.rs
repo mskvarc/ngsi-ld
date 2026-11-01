@@ -119,8 +119,9 @@ pub enum TemporalUpsertOutcome {
 
 /// The outcome of an operation on whole entities.
 ///
-/// The operations are Delete, Replace and Merge Entity, Purge Entities, and Batch Entity Update, Delete and Merge
-/// (NGSI-LD clauses 6.4.3.3, 6.5.3.2 to 6.5.3.4, 6.16.3.1, 6.17.3.1 and 6.31.3.1).
+/// The operations are Delete, Replace and Merge Entity, Purge Entities, Batch Entity Update, Delete and Merge (NGSI-LD
+/// clauses 6.4.3.3, 6.5.3.2 to 6.5.3.4, 6.16.3.1, 6.17.3.1 and 6.31.3.1), and Set Attribute Value (ETSI TS 104 176
+/// clause 7.6.3.2), whose 207 reports the result of each registration it was forwarded to.
 ///
 /// The enum is exhaustive: its variants are the success statuses the operation's table in clause 6 lists.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::IsVariant)]

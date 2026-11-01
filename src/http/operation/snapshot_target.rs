@@ -44,6 +44,7 @@ use crate::{
             RetrieveEntityTypes,
             RetrieveSubscription,
             RetrieveTemporalEvolution,
+            SetAttributeValue,
             UpdateAttributes,
             UpdateSubscription,
             sealed::{BuildsRequest, Sealed},
@@ -93,6 +94,7 @@ impl SnapshotOperation for RetrieveAttribute<'_> {}
 impl SnapshotOperation for RetrieveAttributeValue<'_> {}
 impl SnapshotOperation for PartialAttributeUpdate<'_> {}
 impl SnapshotOperation for ReplaceAttribute<'_> {}
+impl SnapshotOperation for SetAttributeValue<'_> {}
 impl SnapshotOperation for DeleteAttribute<'_> {}
 impl SnapshotOperation for BatchCreate<'_> {}
 impl SnapshotOperation for BatchUpsert<'_> {}

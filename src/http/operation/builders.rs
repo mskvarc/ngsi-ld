@@ -12,7 +12,8 @@
 //! [`RetrieveAttributeValueBuilder`], [`RetrieveAttributesBuilder`],
 //! [`RetrieveEntityBuilder`], [`RetrieveEntityTypeDetailsBuilder`], [`RetrieveEntityTypeInfoBuilder`],
 //! [`RetrieveEntityTypesBuilder`], [`RetrieveRegistrationBuilder`], [`RetrieveSubscriptionBuilder`],
-//! [`RetrieveTemporalEvolutionBuilder`], [`ServeContextBuilder`], [`UpdateAttributesBuilder`].
+//! [`RetrieveTemporalEvolutionBuilder`], [`ServeContextBuilder`], [`SetAttributeValueBuilder`],
+//! [`UpdateAttributesBuilder`].
 
 pub use crate::http::operation::{
     append_attributes::AppendAttributesBuilder,
@@ -39,6 +40,7 @@ pub use crate::http::operation::{
     retrieve_attribute::RetrieveAttributeBuilder,
     retrieve_attribute_value::RetrieveAttributeValueBuilder,
     retrieve_entity::RetrieveEntityBuilder,
+    set_attribute_value::SetAttributeValueBuilder,
     stored_context::{
         add::AddContextBuilder,
         delete::DeleteContextBuilder,

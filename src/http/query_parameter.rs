@@ -110,7 +110,7 @@ pub enum QueryParameter {
     Keep,
     /// `deleteAll`, of Delete Attribute and Delete Attribute from Temporal Evolution.
     DeleteAll,
-    /// `observedAt`, of Merge Entity.
+    /// `observedAt`, of Merge Entity and Set Attribute Value.
     ObservedAt,
     /// `details`, of Retrieve Available Entity Types, Retrieve Available Attributes, List @contexts and Serve
     /// @context.

@@ -151,6 +151,11 @@ mod attribute_retrieval;
 #[path = "reqwest_transport/attribute_value_retrieval.rs"]
 mod attribute_value_retrieval;
 
+/// Set Attribute Value, over the client.
+#[cfg(test)]
+#[path = "reqwest_transport/attribute_value_setting.rs"]
+mod attribute_value_setting;
+
 /// The HEAD requests of the retrievals, over the client.
 #[cfg(test)]
 #[path = "reqwest_transport/heads.rs"]

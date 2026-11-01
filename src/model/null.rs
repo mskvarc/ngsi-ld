@@ -106,6 +106,18 @@ fn nested_object_holds_null(value: &Value) -> bool {
     })
 }
 
+/// Whether `value` is the NGSI-LD Null or holds it anywhere, in an array or as a member of an object. Each level of
+/// nesting is searched on a stack that grows with the depth (see [`grow`]).
+#[cfg(feature = "http")]
+pub(crate) fn holds_null(value: &Value) -> bool {
+    grow(|| match value {
+        Value::Text(text) => is_null(text),
+        Value::Array(items) => items.iter().any(holds_null),
+        Value::Object(members) => members.values().any(holds_null),
+        Value::Boolean(_) | Value::Number(_) | Value::Typed(_) | Value::JsonNull => false,
+    })
+}
+
 /// Fails with `member` when `items` is the NGSI-LD Null alone.
 fn refuse_null_alone<T>(items: &[T], text: impl Fn(&T) -> bool, member: NullMember) -> Result<(), NullMember> {
     match items {
