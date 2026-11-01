@@ -8,7 +8,8 @@
 //! [`ModifyAttributeInstanceBuilder`], [`PartialAttributeUpdateBuilder`], [`PurgeEntitiesBuilder`],
 //! [`QueryEntitiesBuilder`], [`QueryRegistrationsBuilder`], [`QuerySubscriptionsBuilder`],
 //! [`QueryTemporalEvolutionBuilder`], [`ReplaceAttributeBuilder`], [`ReplaceEntityBuilder`],
-//! [`RetrieveAttributeDetailsBuilder`], [`RetrieveAttributeInfoBuilder`], [`RetrieveAttributesBuilder`],
+//! [`RetrieveAttributeBuilder`], [`RetrieveAttributeDetailsBuilder`], [`RetrieveAttributeInfoBuilder`],
+//! [`RetrieveAttributeValueBuilder`], [`RetrieveAttributesBuilder`],
 //! [`RetrieveEntityBuilder`], [`RetrieveEntityTypeDetailsBuilder`], [`RetrieveEntityTypeInfoBuilder`],
 //! [`RetrieveEntityTypesBuilder`], [`RetrieveRegistrationBuilder`], [`RetrieveSubscriptionBuilder`],
 //! [`RetrieveTemporalEvolutionBuilder`], [`ServeContextBuilder`], [`UpdateAttributesBuilder`].
@@ -35,6 +36,8 @@ pub use crate::http::operation::{
     registration::{query::QueryRegistrationsBuilder, retrieve::RetrieveRegistrationBuilder},
     replace_attribute::ReplaceAttributeBuilder,
     replace_entity::ReplaceEntityBuilder,
+    retrieve_attribute::RetrieveAttributeBuilder,
+    retrieve_attribute_value::RetrieveAttributeValueBuilder,
     retrieve_entity::RetrieveEntityBuilder,
     stored_context::{
         add::AddContextBuilder,

@@ -64,7 +64,7 @@
 //!
 //! # Attributes
 //!
-//! [`RetrieveAttribute`], [`AppendAttributes`], [`AppendAttributesParameters`], [`UpdateAttributes`], [`PartialAttributeUpdate`],
+//! [`RetrieveAttribute`], [`RetrieveAttributeValue`], [`AppendAttributes`], [`AppendAttributesParameters`], [`UpdateAttributes`], [`PartialAttributeUpdate`],
 //! [`ReplaceAttribute`], [`DeleteAttribute`], [`DeleteAttributeParameters`], [`DeleteAll`], [`InstanceSelection`].
 //!
 //! # Batch operations
@@ -229,6 +229,7 @@ pub use crate::http::operation::{
     replace_entity::{EntityIdMember, ReplaceEntity},
     representation_spelling::{NormalizedSpelling, RepresentationParameter, RepresentationSpelling, RepresentationToken},
     retrieve_attribute::RetrieveAttribute,
+    retrieve_attribute_value::RetrieveAttributeValue,
     retrieve_entity::{RetrieveEntity, parameters::RetrieveEntityParameters},
     snapshot::{
         clone::CloneSnapshot,
@@ -314,6 +315,7 @@ mod replace_attribute;
 mod replace_entity;
 mod representation_spelling;
 mod retrieve_attribute;
+mod retrieve_attribute_value;
 mod retrieve_entity;
 mod sealed;
 mod snapshot;

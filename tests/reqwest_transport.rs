@@ -146,6 +146,11 @@ mod request_options;
 #[path = "reqwest_transport/attribute_retrieval.rs"]
 mod attribute_retrieval;
 
+/// Retrieve Attribute Value, over the client.
+#[cfg(test)]
+#[path = "reqwest_transport/attribute_value_retrieval.rs"]
+mod attribute_value_retrieval;
+
 /// The HEAD requests of the retrievals, over the client.
 #[cfg(test)]
 #[path = "reqwest_transport/heads.rs"]

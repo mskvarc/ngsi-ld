@@ -32,6 +32,7 @@ use crate::{
             ReplaceAttribute,
             ReplaceEntity,
             RetrieveAttribute,
+            RetrieveAttributeValue,
             RetrieveEntity,
             RetrieveTemporalEvolution,
             UpdateAttributes,
@@ -60,6 +61,7 @@ pub trait LocalScopeOperation: Operation {}
 impl LocalScopeOperation for CreateEntity<'_> {}
 impl<F, J: Default, C> LocalScopeOperation for RetrieveEntity<'_, F, J, C> where Self: Operation {}
 impl LocalScopeOperation for RetrieveAttribute<'_> {}
+impl LocalScopeOperation for RetrieveAttributeValue<'_> {}
 impl LocalScopeOperation for ReplaceEntity<'_> {}
 impl LocalScopeOperation for DeleteEntity<'_> {}
 impl<C: Completeness> LocalScopeOperation for MergeEntity<'_, C> where Self: Operation {}

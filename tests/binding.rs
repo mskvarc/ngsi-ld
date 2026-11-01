@@ -289,6 +289,11 @@ mod entity_responses;
 #[path = "binding/attribute_retrieval.rs"]
 mod attribute_retrieval;
 
+/// Retrieve Attribute Value.
+#[cfg(test)]
+#[path = "binding/attribute_value_retrieval.rs"]
+mod attribute_value_retrieval;
+
 /// The HEAD requests of the retrievals.
 #[cfg(test)]
 #[path = "binding/heads.rs"]

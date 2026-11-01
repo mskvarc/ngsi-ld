@@ -24,6 +24,7 @@ use crate::http::{
         RetrieveAttribute,
         RetrieveAttributeDetails,
         RetrieveAttributeInfo,
+        RetrieveAttributeValue,
         RetrieveAttributes,
         RetrieveEntity,
         RetrieveEntityMap,
@@ -52,7 +53,7 @@ use http::{Method, Request, Response, StatusCode};
 ///
 /// It is an operation sent through GET on a resource for which Table 5-1 of ETSI TS 104 176 defines GET and HEAD: the
 /// queries and retrievals of entities, of their temporal evolution, of subscriptions and of context source
-/// registrations, the retrieval of one attribute of an entity, the discovery of entity types and attributes, the
+/// registrations, the retrieval of one attribute of an entity and of its value, the discovery of entity types and attributes, the
 /// listing and serving of stored `@context`s, the creation through GET and the retrieval of entity maps, the retrieval
 /// of the source identity and of a snapshot, and the pages a query links. An operation aimed at a snapshot or limited
 /// to local scope is one too when the operation it wraps is.
@@ -64,6 +65,7 @@ pub trait HeadOperation: Operation {}
 
 impl<F, J: Default, C> HeadOperation for RetrieveEntity<'_, F, J, C> where Self: Operation {}
 impl HeadOperation for RetrieveAttribute<'_> {}
+impl HeadOperation for RetrieveAttributeValue<'_> {}
 impl<F, C> HeadOperation for QueryEntities<'_, F, C> where Self: Operation {}
 impl<T> HeadOperation for PageRequest<'_, T> where Self: Operation {}
 impl<F, C> HeadOperation for RetrieveTemporalEvolution<'_, F, C> where Self: Operation {}

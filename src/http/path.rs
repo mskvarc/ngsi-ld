@@ -86,6 +86,11 @@ impl ResourcePath {
         Self::attributes(id).segment(name.as_ref())
     }
 
+    /// `entities/{entityId}/attrs/{attrId}/value` (ETSI TS 104 176 clause 7.6).
+    pub(crate) fn attribute_value(id: &EntityId, name: &AttributeName) -> Self {
+        Self::attribute(id, name).segment("value")
+    }
+
     /// `entityOperations/query` (clause 6.23).
     pub(crate) fn query_entities() -> Self {
         Self("entityOperations/query".to_owned())
@@ -263,6 +268,15 @@ mod tests {
         assert_eq!(
             ResourcePath::attribute(&iri!("urn:ngsi-ld:Vehicle:A4567").into(), &name).to_string(),
             "entities/urn:ngsi-ld:Vehicle:A4567/attrs/https:%2F%2Fexample.org%2Fspeed"
+        );
+    }
+
+    #[test]
+    fn the_value_of_an_attribute_is_a_segment_below_the_attribute() {
+        let name: AttributeName = "https://example.org/speed".parse().unwrap();
+        assert_eq!(
+            ResourcePath::attribute_value(&iri!("urn:ngsi-ld:Vehicle:A4567").into(), &name).to_string(),
+            "entities/urn:ngsi-ld:Vehicle:A4567/attrs/https:%2F%2Fexample.org%2Fspeed/value"
         );
     }
 
