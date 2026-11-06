@@ -3,7 +3,8 @@
 //! Clause 5.2.1 counts IRIs (IETF RFC 3987) as URIs. In practice an identifier is a URN
 //! (`urn:ngsi-ld:Vehicle:A4567`) or a URL (`https://example.org/vehicles/1`), and occasionally an IRI with
 //! characters beyond ASCII. Each of the three has its own normalisation rules, so a [`Uri`] keeps the form it
-//! was recognised as and compares by that form's rules.
+//! was recognised as, normalised by that form's rules, and compares the normalised text: clause 5.5.1 has URIs
+//! compared as IETF RFC 3986 section 6 recommends.
 
 use iri_rs::{Iri, IriBuf};
 use serde::{Deserialize, Serialize};
@@ -32,7 +33,9 @@ pub struct UriError;
 /// - a URN (IETF RFC 8141) when it is one, so the case of the `urn:` prefix and the namespace identifier do
 ///   not distinguish two values;
 /// - otherwise a URL when it is all ASCII, normalised the way the WHATWG URL standard normalises scheme and host;
-/// - otherwise an IRI, kept verbatim, because URL parsing would percent-encode its non-ASCII characters.
+/// - otherwise an IRI, in its RFC 3987 section 5.3.2 syntax-based normal form (scheme and host in lowercase,
+///   percent-encoded unreserved characters decoded, other escapes in uppercase hex, dot segments removed), because
+///   URL parsing would percent-encode its non-ASCII characters.
 ///
 /// ```
 /// use ngsi_ld::model::Uri;
@@ -59,7 +62,7 @@ enum Form {
     Urn(Urn),
     /// An all-ASCII URL.
     Url(Url),
-    /// A non-ASCII IRI, kept verbatim.
+    /// A non-ASCII IRI, in its syntax-based normal form.
     Iri(IriBuf),
     /// A form written as the caller gave it. It is a variant of its own, not a field of the URI, so that the URI
     /// keeps the size it has without it: URIs travel in the `Err` variant of every reader.
@@ -104,7 +107,6 @@ impl Hash for Form {
 }
 
 impl Form {
-    /// The form without its spelling.
     /// The text the form writes.
     fn text(&self) -> &str {
         match self {
@@ -115,6 +117,7 @@ impl Form {
         }
     }
 
+    /// The form without its spelling.
     const fn recognised(&self) -> &Self {
         match self {
             Self::Spelled(spelled) => &spelled.form,
@@ -133,7 +136,7 @@ impl Form {
         {
             return Self::Url(url);
         }
-        Self::Iri(iri.into())
+        Self::Iri(iri.normalized())
     }
 }
 

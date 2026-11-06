@@ -99,10 +99,13 @@ impl BundledContexts {
     }
 
     /// The bundled document behind `url`, if one is.
+    ///
+    /// URLs that are equivalent under IETF RFC 3986 section 6.2.2 dereference to the same document (NGSI-LD clause
+    /// 5.5.1), so the bundled one answers every spelling of its URL.
     fn document(&self, url: Iri<&str>) -> Option<&Json> {
-        if url == CORE_CONTEXT {
+        if url.equivalent(&CORE_CONTEXT) {
             Some(&self.core)
-        } else if url == DATA_INTEGRITY_CONTEXT {
+        } else if url.equivalent(&DATA_INTEGRITY_CONTEXT) {
             Some(&self.data_integrity)
         } else {
             None

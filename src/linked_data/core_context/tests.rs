@@ -28,3 +28,21 @@ fn the_bundled_data_integrity_context_is_a_json_object_with_a_context() {
     assert!(bundled.document(CORE_CONTEXT).is_some());
     assert!(bundled.document(iri_rs::iri!("https://example.org/a.jsonld")).is_none());
 }
+
+/// Clause 5.5.1: an RFC 3986 section 6.2.2 equivalent spelling of a bundled URL names the bundled document.
+#[test]
+fn an_equivalent_spelling_of_a_bundled_url_is_answered_from_the_bundle() {
+    let bundled = BundledContexts::read().unwrap();
+    let core = bundled.document(CORE_CONTEXT).unwrap();
+    for spelling in [
+        iri_rs::iri!("HTTPS://URI.ETSI.ORG/ngsi-ld/v1/ngsi-ld-core-context-v1.9.jsonld"),
+        iri_rs::iri!("https://uri.etsi.org/ngsi-ld/v1/../v1/ngsi-ld-core-context-v1%2E9.jsonld"),
+    ] {
+        assert_eq!(bundled.document(spelling), Some(core), "{spelling}");
+    }
+    assert!(
+        bundled
+            .document(iri_rs::iri!("https://uri.etsi.org/NGSI-LD/v1/ngsi-ld-core-context-v1.9.jsonld"))
+            .is_none()
+    );
+}

@@ -15,7 +15,8 @@ use std::str::FromStr;
 /// The twelve types of the table have their own variants; any other problem type a broker reports is kept as
 /// [`ErrorType::Other`], as the IRI reference it was written as. RFC 7807 section 3.1 makes the type a URI reference,
 /// so a relative one is kept as written, and brokers commonly define their own types, so an unknown type is not a
-/// decoding error. A value read from a document is always the named variant when one exists, so matching on the
+/// decoding error. A value read from a document is always the named variant when one exists, including for a
+/// spelling of its URL that is equivalent under IETF RFC 3986 section 6.2.2 (clause 5.5.1), so matching on the
 /// variants is reliable; constructing `Other` with the URL of a named type yields a value that does not compare
 /// equal to it.
 ///
@@ -95,12 +96,13 @@ impl ErrorType {
     ];
 }
 
-/// The named type whose URL this is, or [`ErrorType::Other`].
+/// The named type whose URL this is, or [`ErrorType::Other`]. A spelling equivalent to a named type's URL under IETF
+/// RFC 3986 section 6.2.2 is that type (NGSI-LD clause 5.5.1).
 impl From<IriRefBuf> for ErrorType {
     fn from(reference: IriRefBuf) -> Self {
         Self::NAMED
             .into_iter()
-            .find(|named| named.to_string() == reference.as_str())
+            .find(|named| IriRefBuf::new(named.to_string()).is_ok_and(|url| url.equivalent(&reference)))
             .unwrap_or(Self::Other(reference))
     }
 }
@@ -309,6 +311,24 @@ mod tests {
             assert!(url.starts_with("https://uri.etsi.org/ngsi-ld/errors/"));
             assert_eq!(url.parse::<ErrorType>().unwrap(), named);
         }
+    }
+
+    // Clause 5.5.1: URIs compare as IETF RFC 3986 section 6 recommends, so scheme and host case and percent-encoded
+    // unreserved characters do not hide a named type; the path stays case-sensitive.
+    #[test]
+    fn an_equivalent_spelling_of_a_named_type_reads_as_that_type() {
+        for spelling in [
+            "HTTPS://URI.ETSI.ORG/ngsi-ld/errors/ResourceNotFound",
+            "https://uri.etsi.org/ngsi-ld/errors/%52esourceNotFound",
+        ] {
+            let read: ErrorType = spelling.parse().unwrap();
+            assert_eq!(read, ErrorType::ResourceNotFound, "{spelling}");
+            assert_eq!(read.to_string(), "https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound");
+        }
+        assert!(matches!(
+            "https://uri.etsi.org/ngsi-ld/errors/resourcenotfound".parse::<ErrorType>(),
+            Ok(ErrorType::Other(_))
+        ));
     }
 
     #[test]

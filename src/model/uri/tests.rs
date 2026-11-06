@@ -1,7 +1,8 @@
 use crate::model::{Uri, UriError};
 use iri_rs::iri;
 use jstrict::Value as Json;
-use pretty_assertions::assert_eq;
+use pretty_assertions::{assert_eq, assert_ne};
+use std::hash::{DefaultHasher, Hash, Hasher};
 use url::Url;
 
 #[test]
@@ -28,11 +29,57 @@ fn the_urn_prefix_case_does_not_distinguish_two_uris() {
 }
 
 #[test]
-fn a_non_ascii_iri_is_kept_verbatim() {
+fn a_non_ascii_iri_is_held_as_an_iri() {
     let raw = "https://example.org/Ciudad/Par\u{ed}s";
     let uri: Uri = raw.parse().unwrap();
     assert!(uri.as_url().is_none() && uri.as_urn().is_none());
     assert_eq!(uri.as_str(), raw);
+}
+
+// RFC 3986 section 6.2.2 (RFC 3987 section 5.3.2): scheme and host case, the case of percent-encoding hex digits,
+// percent-encoded unreserved characters and dot segments do not distinguish two IRIs.
+#[test]
+fn syntax_based_equivalent_non_ascii_iris_are_one_uri() {
+    let canonical: Uri = "https://example.org/Ciudad/Par\u{ed}s/~%2F".parse().unwrap();
+    for raw in [
+        "HTTPS://Example.ORG/Ciudad/Par\u{ed}s/~%2F",
+        "https://example.org/Ciudad/Par\u{ed}s/%7e%2f",
+        "https://example.org/Pueblo/../Ciudad/./Par\u{ed}s/~%2F",
+    ] {
+        let uri: Uri = raw.parse().unwrap();
+        assert_eq!(uri, canonical, "{raw:?}");
+        assert_eq!(uri.as_str(), canonical.as_str(), "{raw:?}");
+        assert_eq!(hash_of(&uri), hash_of(&canonical), "{raw:?}");
+    }
+}
+
+#[test]
+fn non_ascii_iris_differing_beyond_syntax_based_normalisation_are_distinct() {
+    let canonical: Uri = "https://example.org/Ciudad/Par\u{ed}s".parse().unwrap();
+    for raw in [
+        "https://example.org/ciudad/Par\u{ed}s",
+        "https://example.org/Ciudad/Par\u{ed}s/",
+        "https://example.org:443/Ciudad/Par\u{ed}s",
+    ] {
+        assert_ne!(raw.parse::<Uri>().unwrap(), canonical, "{raw:?}");
+    }
+}
+
+#[test]
+fn a_verbatim_non_ascii_iri_keeps_its_spelling_and_equals_the_normal_form() {
+    let raw = "HTTPS://Example.ORG/Ciudad/Par\u{ed}s/%7e";
+    let verbatim = Uri::verbatim(raw).unwrap();
+    assert_eq!(verbatim.as_str(), raw);
+    let parsed: Uri = raw.parse().unwrap();
+    assert_eq!(parsed.as_str(), "https://example.org/Ciudad/Par\u{ed}s/~");
+    assert_eq!(verbatim, parsed);
+    assert_eq!(hash_of(&verbatim), hash_of(&parsed));
+}
+
+fn hash_of(uri: &Uri) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    uri.hash(&mut hasher);
+    hasher.finish()
 }
 
 #[test]
