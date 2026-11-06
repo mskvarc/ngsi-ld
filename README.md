@@ -41,7 +41,7 @@ The types follow the specification. Builders don't compile without their require
 [dependencies]
 anyhow = "1.0.104"
 iri-rs = { version = "4.0.0", features = ["static"] }
-ngsi-ld = "1.0.0"
+ngsi-ld = "2.0.0"
 tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }
 url = "2.5.8"
 ```
