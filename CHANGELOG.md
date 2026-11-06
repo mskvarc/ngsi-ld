@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.0.0] - 2026-11-06
+
+### 🚀 Features
+- require iri-rs 4 and jsonld 0.27 ⚠️ **BREAKING**
+- `http` - page temporal attribute instances with firstn, offsetn and interval links
+- `http` - serve a stored context with the core context of a version
+- `http` - set, remove or add query parameters of an unchecked request
+- `http` - send an unchecked scope query as written
+- `http` - add set attribute value operation
+- `http` - add retrieve attribute value operation
+- `http` - add retrieve attribute operation
+- `http` - add head requests for read operations
+
+### 🐛 Bug Fixes
+- compare uris as rfc 3986 section 6 recommends
+
+### 🧹 Chores
+- bump version
+
 ## [v1.3.1] - 2026-10-31
 
 ### ⚡ Performance
