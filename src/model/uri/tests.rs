@@ -59,10 +59,86 @@ fn non_ascii_iris_differing_beyond_syntax_based_normalisation_are_distinct() {
     for raw in [
         "https://example.org/ciudad/Par\u{ed}s",
         "https://example.org/Ciudad/Par\u{ed}s/",
-        "https://example.org:443/Ciudad/Par\u{ed}s",
+        "https://example.org:8443/Ciudad/Par\u{ed}s",
     ] {
         assert_ne!(raw.parse::<Uri>().unwrap(), canonical, "{raw:?}");
     }
+}
+
+// RFC 3986 section 6.2.2: the same equivalences hold for an all-ASCII URL, which is written in its normal form.
+#[test]
+fn syntax_based_equivalent_ascii_urls_are_one_uri() {
+    let canonical: Uri = "http://example.org/a/c/~b%2F".parse().unwrap();
+    for raw in [
+        "HTTP://Example.ORG/a/c/~b%2F",
+        "http://example.org/a/c/%7eb%2f",
+        "http://example.org/a/./b/../c/%7Eb%2F",
+        "http://exa%6Dple.org/a/c/~b%2F",
+    ] {
+        let uri: Uri = raw.parse().unwrap();
+        assert!(uri.as_url().is_some(), "{raw:?}");
+        assert_eq!(uri, canonical, "{raw:?}");
+        assert_eq!(uri.as_str(), "http://example.org/a/c/~b%2F", "{raw:?}");
+        assert_eq!(hash_of(&uri), hash_of(&canonical), "{raw:?}");
+    }
+}
+
+// RFC 3987 section 5.3.2.3: percent-encoding is aligned by mapping the IRI to a URI (section 3.1), so an escaped
+// UTF-8 sequence and the character it encodes are one URI, each written as it was recognised.
+#[test]
+fn an_escaped_non_ascii_character_and_the_character_are_one_uri() {
+    let spelled: Uri = "https://example.org/Ciudad/Par\u{ed}s".parse().unwrap();
+    for raw in ["https://example.org/Ciudad/Par%C3%ADs", "https://example.org/Ciudad/Par%c3%ads"] {
+        let escaped: Uri = raw.parse().unwrap();
+        assert_eq!(escaped, spelled, "{raw:?}");
+        assert_eq!(hash_of(&escaped), hash_of(&spelled), "{raw:?}");
+        assert_eq!(escaped.as_str(), "https://example.org/Ciudad/Par%C3%ADs", "{raw:?}");
+    }
+    assert_eq!(spelled.as_str(), "https://example.org/Ciudad/Par\u{ed}s");
+}
+
+#[test]
+fn a_non_ascii_host_and_its_idna_form_are_one_uri() {
+    let spelled: Uri = "https://B\u{fc}cher.example/Par\u{ed}s".parse().unwrap();
+    for raw in ["https://xn--bcher-kva.example/Par%C3%ADs", "https://b%C3%BCcher.example/Par%C3%ADs"] {
+        let other: Uri = raw.parse().unwrap();
+        assert_eq!(other, spelled, "{raw:?}");
+        assert_eq!(hash_of(&other), hash_of(&spelled), "{raw:?}");
+    }
+}
+
+// RFC 3986 section 6.2.3: the default port of the scheme does not distinguish two URLs.
+#[test]
+fn a_default_port_does_not_distinguish_two_uris() {
+    assert_eq!(
+        "https://example.org:443/a".parse::<Uri>().unwrap(),
+        "https://example.org/a".parse::<Uri>().unwrap()
+    );
+    assert_eq!(
+        "https://example.org:443/Par\u{ed}s".parse::<Uri>().unwrap(),
+        "https://example.org/Par%C3%ADs".parse::<Uri>().unwrap()
+    );
+}
+
+#[test]
+fn an_iri_no_url_holds_is_compared_by_the_uri_it_maps_to() {
+    let spelled: Uri = "HTTP://example.org:99999/Par\u{ed}s/%7e".parse().unwrap();
+    assert!(spelled.as_url().is_none() && spelled.as_urn().is_none());
+    assert_eq!(spelled.as_str(), "http://example.org:99999/Par\u{ed}s/~");
+    let escaped: Uri = "http://example.org:99999/Par%c3%ads/~".parse().unwrap();
+    assert_eq!(escaped, spelled);
+    assert_eq!(hash_of(&escaped), hash_of(&spelled));
+    assert_ne!("http://example.org:99998/Par\u{ed}s/~".parse::<Uri>().unwrap(), spelled);
+}
+
+#[test]
+fn a_url_converts_to_the_form_its_text_parses_to() {
+    let urn = Uri::try_from(Url::parse("urn:ngsi-ld:Vehicle:A4567").unwrap()).unwrap();
+    assert!(urn.as_urn().is_some());
+    assert_eq!(urn, "urn:ngsi-ld:Vehicle:A4567".parse::<Uri>().unwrap());
+    let url = Uri::try_from(Url::parse("http://example.org/%7ea").unwrap()).unwrap();
+    assert_eq!(url, "http://example.org/~a".parse::<Uri>().unwrap());
+    assert_eq!(url.as_str(), "http://example.org/~a");
 }
 
 #[test]

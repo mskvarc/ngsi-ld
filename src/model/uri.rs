@@ -2,11 +2,11 @@
 //!
 //! Clause 5.2.1 counts IRIs (IETF RFC 3987) as URIs. In practice an identifier is a URN
 //! (`urn:ngsi-ld:Vehicle:A4567`) or a URL (`https://example.org/vehicles/1`), and occasionally an IRI with
-//! characters beyond ASCII. Each of the three has its own normalisation rules, so a [`Uri`] keeps the form it
-//! was recognised as, normalised by that form's rules, and compares the normalised text: clause 5.5.1 has URIs
-//! compared as IETF RFC 3986 section 6 recommends.
+//! characters beyond ASCII. A [`Uri`] keeps the form it was recognised as, and compares the way clause 5.5.1
+//! asks, as IETF RFC 3986 section 6 recommends: a URN by the equivalence of RFC 8141 section 3, anything else by
+//! the URL its syntax-based normal form maps to.
 
-use iri_rs::{Iri, IriBuf};
+use iri_rs::{Iri, IriBuf, UriBuf};
 use serde::{Deserialize, Serialize};
 use std::{
     hash::{Hash, Hasher},
@@ -30,12 +30,15 @@ pub struct UriError;
 /// non-ASCII characters; nothing is parsed into a more specific form before the whole string passes. Within
 /// that grammar the value is held as:
 ///
-/// - a URN (IETF RFC 8141) when it is one, so the case of the `urn:` prefix and the namespace identifier do
-///   not distinguish two values;
-/// - otherwise a URL when it is all ASCII, normalised the way the WHATWG URL standard normalises scheme and host;
-/// - otherwise an IRI, in its RFC 3987 section 5.3.2 syntax-based normal form (scheme and host in lowercase,
-///   percent-encoded unreserved characters decoded, other escapes in uppercase hex, dot segments removed), because
-///   URL parsing would percent-encode its non-ASCII characters.
+/// - a URN (IETF RFC 8141) when it is one, so the case of the `urn:` prefix and the namespace identifier and the
+///   case of percent-encoding hex digits do not distinguish two values;
+/// - otherwise in its RFC 3987 section 5.3.2 syntax-based normal form (scheme and host in lowercase,
+///   percent-encoded unreserved characters decoded, other escapes in uppercase hex, dot segments removed), and
+///   compared by the URL its RFC 3987 section 3.1 URI (every non-ASCII character as percent-encoded UTF-8)
+///   parses to under the WHATWG URL standard, which also drops a default port and maps the host of an `http` or
+///   `https` URL to its IDNA form. A URI with non-ASCII characters is written as the IRI, not as the URL, so
+///   `https://example.org/Par%C3%ADs` and `https://example.org/París` are one URI written two ways (RFC 3987
+///   section 5.3.2.3).
 ///
 /// ```
 /// use ngsi_ld::model::Uri;
@@ -49,7 +52,7 @@ pub struct UriError;
 /// ```
 ///
 /// A URI built with [`Uri::verbatim`] writes the text it was given, so a caller can send a spelling the
-/// normalisation would change; it still equals, hashes and orders as the same URI built from the canonical text.
+/// normalisation would change; it still equals and hashes as the same URI built from the canonical text.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, derive_more::Display, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "String")]
 #[display("{}", self.as_str())]
@@ -60,13 +63,42 @@ pub struct Uri(Form);
 enum Form {
     /// A URN.
     Urn(Urn),
-    /// An all-ASCII URL.
+    /// A URL whose text is all ASCII.
     Url(Url),
-    /// A non-ASCII IRI, in its syntax-based normal form.
-    Iri(IriBuf),
+    /// An IRI the URL form does not write as it is: one with non-ASCII characters, or one the WHATWG URL standard
+    /// refuses. Boxed, as `Spelled` is, so that the URI keeps the size of its URL form.
+    Iri(Box<IriForm>),
     /// A form written as the caller gave it. It is a variant of its own, not a field of the URI, so that the URI
     /// keeps the size it has without it: URIs travel in the `Err` variant of every reader.
     Spelled(Box<Spelled>),
+}
+
+/// An IRI held for its text, with what it is compared by.
+#[derive(Debug, Clone)]
+struct IriForm {
+    /// The IRI in its syntax-based normal form.
+    text: IriBuf,
+    /// What the URI the normal form maps to is compared by.
+    mapped: MappedUri,
+}
+
+/// The URI an IRI maps to, as it is compared.
+#[derive(Debug, Clone)]
+enum MappedUri {
+    /// The URL the WHATWG URL standard parses the URI to.
+    Url(Url),
+    /// The URI itself, which the WHATWG URL standard refuses (a port beyond 65535, for instance).
+    Uri(UriBuf),
+}
+
+impl MappedUri {
+    /// What the RFC 3987 section 3.1 URI of `iri` is compared by.
+    fn of(iri: &IriBuf) -> Self {
+        let uri = iri.to_uri();
+        uri.as_str()
+            .parse::<Url>()
+            .map_or_else(|_| Self::Uri(UriBuf::parse_unchecked(uri.as_str().to_owned())), Self::Url)
+    }
 }
 
 /// A form together with the text it was built from.
@@ -78,31 +110,32 @@ struct Spelled {
     text: Box<str>,
 }
 
-// A spelling is not part of the value: equality, hash and order are those of the form beneath it. No derive can
-// look through the `Spelled` variant.
+/// What a form is compared and hashed by: an IRI and the URL it maps to are one identity, and a spelling is not
+/// part of it.
+#[derive(PartialEq, Eq, Hash)]
+enum Identity<'a> {
+    /// A URN, by RFC 8141 equivalence.
+    Urn(&'a Urn),
+    /// A URL, or an IRI by the URL its URI parses to.
+    Url(&'a Url),
+    /// An IRI by its URI, when no URL holds that.
+    Uri(&'a UriBuf),
+}
+
+// No derive compares a form through the identity it maps to.
 impl PartialEq for Form {
     fn eq(&self, other: &Self) -> bool {
-        match (self.recognised(), other.recognised()) {
-            (Self::Urn(left), Self::Urn(right)) => left == right,
-            (Self::Url(left), Self::Url(right)) => left == right,
-            (Self::Iri(left), Self::Iri(right)) => left == right,
-            (Self::Urn(_) | Self::Url(_) | Self::Iri(_) | Self::Spelled(_), Self::Urn(_) | Self::Url(_) | Self::Iri(_) | Self::Spelled(_)) => false,
-        }
+        self.identity() == other.identity()
     }
 }
 
-// Reflexive, symmetric and transitive, as `PartialEq` compares the forms beneath.
+// Reflexive, symmetric and transitive, as `PartialEq` compares identities.
 impl Eq for Form {}
 
-// Consistent with `PartialEq`: the form beneath is hashed, so a spelling does not change the hash.
+// Consistent with `PartialEq`: the identity is hashed.
 impl Hash for Form {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        match self.recognised() {
-            Self::Urn(urn) => urn.hash(state),
-            Self::Url(url) => url.hash(state),
-            Self::Iri(iri) => iri.hash(state),
-            Self::Spelled(spelled) => spelled.form.hash(state),
-        }
+        self.identity().hash(state);
     }
 }
 
@@ -112,7 +145,7 @@ impl Form {
         match self {
             Self::Urn(urn) => urn.as_str(),
             Self::Url(url) => url.as_str(),
-            Self::Iri(iri) => iri.as_str(),
+            Self::Iri(iri) => iri.text.as_str(),
             Self::Spelled(spelled) => &spelled.text,
         }
     }
@@ -125,18 +158,33 @@ impl Form {
         }
     }
 
+    /// What the form is compared and hashed by.
+    fn identity(&self) -> Identity<'_> {
+        match self.recognised() {
+            Self::Urn(urn) => Identity::Urn(urn),
+            Self::Url(url) => Identity::Url(url),
+            Self::Iri(iri) => match &iri.mapped {
+                MappedUri::Url(url) => Identity::Url(url),
+                MappedUri::Uri(uri) => Identity::Uri(uri),
+            },
+            Self::Spelled(spelled) => spelled.form.identity(),
+        }
+    }
+
     /// Picks the most specific form for a string the URI or IRI grammar has already accepted.
+    ///
+    /// A URN keeps its own equivalence (RFC 8141 section 3 normalises the case of an escape and decodes none).
+    /// Anything else is normalised before the URL parse, which does not decode an escaped unreserved character or
+    /// remove an escaped dot segment by itself.
     fn of_well_formed(iri: Iri<&str>) -> Self {
-        let value = iri.as_str();
-        if let Ok(urn) = value.parse::<Urn>() {
+        if let Ok(urn) = iri.as_str().parse::<Urn>() {
             return Self::Urn(urn);
         }
-        if value.is_ascii()
-            && let Ok(url) = value.parse::<Url>()
-        {
-            return Self::Url(url);
+        let text = iri.normalized();
+        match MappedUri::of(&text) {
+            MappedUri::Url(url) if text.as_str().is_ascii() => Self::Url(url),
+            mapped @ (MappedUri::Url(_) | MappedUri::Uri(_)) => Self::Iri(Box::new(IriForm { text, mapped })),
         }
-        Self::Iri(iri.normalized())
     }
 }
 
@@ -242,14 +290,13 @@ impl From<Urn> for Uri {
     }
 }
 
-/// A WHATWG URL can hold what the URI grammar refuses (a literal space in an opaque path), so it is checked, which
-/// no derive does.
+/// A WHATWG URL can hold what the URI grammar refuses (a literal space in an opaque path), so it is checked, and
+/// it gets the form its text would, a URN included, which no derive does.
 impl TryFrom<Url> for Uri {
     type Error = UriError;
 
     fn try_from(url: Url) -> Result<Self, Self::Error> {
-        Iri::parse(url.as_str()).map_err(|_| UriError)?;
-        Ok(Self(Form::Url(url)))
+        url.as_str().parse()
     }
 }
 
