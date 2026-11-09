@@ -11,6 +11,7 @@ Start a broker and point these variables at its API root, the URL that `/entitie
 | `NGSI_LD_BROKER_URL` | the examples | `http://localhost:9090/ngsi-ld/v1/` |
 | `NGSI_LD_TEST_BROKER_URL` | the live tests | `http://localhost:9090/ngsi-ld/v1/` |
 | `NGSI_LD_TEST_NOTIFICATION_HOST` | the notification tests | `host.docker.internal` |
+| `NGSI_LD_CALLBACK_HOST` | `notifications_live`, `context_source_live` | `host.docker.internal` |
 
 ## Running the Examples
 
@@ -18,7 +19,7 @@ Start a broker and point these variables at its API root, the URL that `/entitie
 NGSI_LD_BROKER_URL=http://localhost:9090/ngsi-ld/v1/ cargo run --all-features --example query_pagination
 ```
 
-Most examples talk to the broker. They clean up after themselves, so you can run them again. `documents`, `query_languages`, `notifications`, `linked_data`, `conversions`, `context_source` and `sans_io` need no broker.
+Most examples talk to the broker. They clean up after themselves, so you can run them again. `documents`, `query_languages`, `notifications`, `linked_data`, `conversions`, `context_source` and `sans_io` need no broker, and each has a companion named after it with `_live` appended that puts the same part of the crate to work against one. `notifications_live` and `context_source_live` start a server the broker calls back, so they also need `NGSI_LD_CALLBACK_HOST`, the address under which the broker reaches the machine running them.
 
 ## Running the Live Tests
 
