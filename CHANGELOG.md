@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.0.1] - 2026-11-09
+
+### 📚 Documentation
+- link the andromeda quickstart
+
+### 🧹 Chores
+- bump version
+- update dependencies
+
 ## [v2.0.0] - 2026-11-06
 
 ### 🚀 Features
