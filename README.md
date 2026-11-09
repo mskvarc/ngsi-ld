@@ -110,7 +110,7 @@ The crate implements NGSI-LD as the specification defines it and expects the bro
 
 ## Documentation
 
-The API reference is on [docs.rs](https://docs.rs/ngsi-ld). The [architecture overview](docs/architecture.md) explains how the crate is built, and the [live testing guide](docs/live-testing.md) covers running it against a real broker.
+The API reference is on [docs.rs](https://docs.rs/ngsi-ld). The [architecture overview](docs/architecture.md) explains how the crate is built, and the [live testing guide](docs/live-testing.md) covers running it against a real broker. The [Andromeda quickstart](https://andromeda.skvarc.com/docs/getting-started/quickstart/) is a hands-on tutorial that makes every request with this crate.
 
 ## Community
 
