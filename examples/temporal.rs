@@ -19,7 +19,7 @@ use ngsi_ld::{
     },
     query::temporal_query::{self, builders::TemporalQueryBuilder},
 };
-use std::env;
+use std::{env, slice};
 use url::Url;
 
 /// The time of a reading at `minute` past noon.
@@ -44,7 +44,9 @@ async fn main() -> anyhow::Result<()> {
     let client = Client::builder().base_url(base_url).transport(ReqwestTransport::try_default()?).build()?;
 
     let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:H1201"));
-    // Removes the evolution an earlier run left behind, if there is one.
+    // Removes the vehicle and the evolution an earlier run left behind, if there are any: a broker may keep the latest
+    // reading of an evolution as the vehicle's current state.
+    client.entities().batch_delete(slice::from_ref(&id)).send().await?;
     match client.temporal().delete(&id).send().await {
         Ok(()) => {}
         Err(error) if error.error_type() == Some(&ErrorType::ResourceNotFound) => {}
@@ -99,6 +101,7 @@ async fn main() -> anyhow::Result<()> {
     println!("corrected the reading {first}");
 
     client.temporal().delete(&id).send().await?;
+    client.entities().batch_delete(slice::from_ref(&id)).send().await?;
     println!("deleted the evolution of {id}");
     Ok(())
 }
