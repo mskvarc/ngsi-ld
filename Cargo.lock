@@ -1251,9 +1251,9 @@ checksum = "791930b43c0d5973160d90a8f3894509f2b273430f5c5c73b668636d0287c5c0"
 
 [[package]]
 name = "iri-rs"
-version = "4.1.0"
+version = "4.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c749bca6e986e64390bc4b02a52837ed8f0701a166fc21efe49324b92dba56d"
+checksum = "ed21e90d0f220dc68aa035ceda7f11ccfa7b5da4170199e019f300efedd93bcd"
 dependencies = [
  "iri-rs-core",
  "iri-rs-static",
