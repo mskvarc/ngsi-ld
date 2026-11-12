@@ -1274,9 +1274,9 @@ dependencies = [
 
 [[package]]
 name = "iri-rs-static"
-version = "4.1.0"
+version = "4.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f67c682a7bff165d4c606f5e34cf90fdfe5790e2468ea71efad85a75b60cb142"
+checksum = "2534ae9f6774e246bedde3ae79d259af03e900532d6a629e773553cd292a64e1"
 dependencies = [
  "iri-rs-core",
  "proc-macro-crate",
