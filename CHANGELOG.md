@@ -1,5 +1,35 @@
 # Changelog
 
+## [2.1.0](https://github.com/mskvarc/ngsi-ld/compare/v2.0.1...v2.1.0) - 2026-11-12
+
+### Changes
+
+#### 🐛 Bug Fixes
+
+- stop asking for concise temporal representations
+- delete the temporal example's vehicle with its evolution
+
+#### 📚 Documentation
+
+- add broker-backed companions to the offline examples
+
+#### 📦 Dependencies
+
+- bump urn-rs from 0.9.2 to 1.0.0
+- bump iri-rs from 4.1.0 to 4.1.1
+- bump iri-rs-static from 4.1.0 to 4.1.1
+- bump iri-rs-core from 4.1.0 to 4.1.1
+- bump jstrict from 0.16.1 to 0.16.2
+
+#### 👷 CI
+
+- open release notes with the tag message
+
+#### 🧹 Chores
+
+- bump version
+- update dependencies
+
 ## [2.0.1](https://github.com/mskvarc/ngsi-ld/compare/v2.0.0...v2.0.1) - 2026-11-09
 
 ### Changes
