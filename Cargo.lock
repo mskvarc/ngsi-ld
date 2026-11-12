@@ -1537,9 +1537,9 @@ dependencies = [
 
 [[package]]
 name = "jstrict"
-version = "0.16.1"
+version = "0.16.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d72d6a34fd0f5b000844a925bda388579c157dbc20e9aeac97f03a2d83f40f3"
+checksum = "0cf8bbb86bd7a41874dc054e65e864ae8797497bfcdc520e612e4416b4987d45"
 dependencies = [
  "compact_str",
  "contextual",
