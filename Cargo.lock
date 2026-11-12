@@ -3340,9 +3340,18 @@ checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "urn-rs"
-version = "0.9.2"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd0d8da255a93df330194029a0f508dc4c86e3270083c51905ea59fa372b6845"
+checksum = "0567c4f6bc0d61751a24a164d01510a071b378fb0e0a8d91bc81d2778e68c0ac"
+dependencies = [
+ "urn-rs-core",
+]
+
+[[package]]
+name = "urn-rs-core"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4f450d46c56f894b15ba9d9c0dc3d12d5551f2a491abc9684b9773325d96e48"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
