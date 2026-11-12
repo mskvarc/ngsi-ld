@@ -97,9 +97,11 @@ fn a_keyword_beside_the_format_never_changes_the_representation_read() {
     );
     let values = RepresentationSpelling::default().format_over_options(RepresentationToken::TemporalValues);
     assert_eq!(
-        written(TemporalRepresentation::Concise, values, SystemAttributes::Omit),
-        "format=concise&options=temporalValues"
+        written(TemporalRepresentation::Aggregated, values, SystemAttributes::Omit),
+        "format=aggregatedValues&options=temporalValues"
     );
+    // Table 6.3.12-1 allows only `temporalValues` and `aggregatedValues` as a temporal `format`.
+    assert!(read::<TemporalRepresentation>("format=concise").is_err());
     let key_values = RepresentationSpelling::default().format_over_options(RepresentationToken::KeyValues);
     assert_eq!(
         written(Representation::Concise, key_values, SystemAttributes::Omit),

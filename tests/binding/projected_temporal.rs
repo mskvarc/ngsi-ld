@@ -6,7 +6,16 @@ use crate::{
     temporal_fixtures::{b, query_string, window},
 };
 use ngsi_ld::{
-    http::operation::{Aggregated, Operation, QueryMethod, QueryTemporalEvolution, RetrieveTemporalEvolution, SimplifiedTemporal, TemporalSelection},
+    http::operation::{
+        Aggregated,
+        NormalizedTemporal,
+        Operation,
+        QueryMethod,
+        QueryTemporalEvolution,
+        RetrieveTemporalEvolution,
+        SimplifiedTemporal,
+        TemporalSelection,
+    },
     model::Lossless,
     query::{SelectorType, projection::Projection, temporal_query::AggregationMethods},
 };
@@ -42,7 +51,7 @@ fn a_projected_temporal_query_reads_each_representation_without_id_and_type() {
         ..QueryTemporalEvolution::projected_builder()
             .entity_type(&entity_type)
             .temporal_q(&window)
-            .format(Lossless::Normalized)
+            .format(NormalizedTemporal)
             .build()
     };
     assert!(query_string(&normalized).is_some_and(|query| query.contains("pick=speed")));
@@ -87,7 +96,7 @@ fn a_projected_temporal_query_by_post_sends_the_projection_in_the_body() {
         ..QueryTemporalEvolution::projected_builder()
             .entity_type(&entity_type)
             .temporal_q(&window)
-            .format(Lossless::Normalized)
+            .format(NormalizedTemporal)
             .build()
     };
     let request = query.to_request(&endpoint()).unwrap();

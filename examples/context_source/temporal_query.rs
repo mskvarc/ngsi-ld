@@ -8,7 +8,7 @@ use ngsi_ld::{
         ResponseContext,
         answer,
         headers::{Link, NgsiLdResultsCount},
-        operation::{Operation, QueryMethod, QueryTemporalEvolution, QueryTemporalEvolutionPostParameters},
+        operation::{NormalizedTemporal, Operation, QueryMethod, QueryTemporalEvolution, QueryTemporalEvolutionPostParameters},
     },
     model::{
         AttributeName,
@@ -59,7 +59,7 @@ pub(crate) fn temporal_query(vehicle: &Entity<Input>) -> anyhow::Result<()> {
         .count(received.count)
         .locality(received.locality)
         .method(QueryMethod::Post)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .spelling(received.spelling)
         .build();
     let page = operation.decode(&ResponseContext::new(&request), response)?;

@@ -17,6 +17,7 @@ use ngsi_ld::{
         operation::{
             ArgumentError,
             InstancePaging,
+            NormalizedTemporal,
             Operation,
             ParameterError,
             QueryMethod,
@@ -28,7 +29,7 @@ use ngsi_ld::{
             TemporalSelection,
         },
     },
-    model::{Complete, EntityId, Lossless},
+    model::{Complete, EntityId},
     query::{SelectorType, temporal_query::TemporalQuery},
 };
 use pretty_assertions::assert_eq;
@@ -47,12 +48,12 @@ const SECOND_PAGE: InstancePaging = InstancePaging {
 };
 
 /// A retrieve of `id` with `window`, normalized, paged by `paging`.
-fn retrieve<'a>(id: &'a EntityId, window: &'a TemporalQuery, paging: InstancePaging) -> RetrieveTemporalEvolution<'a, Lossless, Complete> {
+fn retrieve<'a>(id: &'a EntityId, window: &'a TemporalQuery, paging: InstancePaging) -> RetrieveTemporalEvolution<'a, NormalizedTemporal, Complete> {
     RetrieveTemporalEvolution::builder()
         .id(id)
         .selection(TemporalSelection::Query(window))
         .instance_paging(paging)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build()
 }
 
@@ -62,13 +63,13 @@ fn query<'a>(
     window: &'a TemporalQuery,
     paging: InstancePaging,
     method: QueryMethod,
-) -> QueryTemporalEvolution<'a, Lossless, Complete> {
+) -> QueryTemporalEvolution<'a, NormalizedTemporal, Complete> {
     QueryTemporalEvolution::builder()
         .entity_type(entity_type)
         .temporal_q(window)
         .instance_paging(paging)
         .method(method)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build()
 }
 

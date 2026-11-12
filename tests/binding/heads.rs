@@ -18,6 +18,7 @@ use ngsi_ld::{
             ArgumentError,
             Head,
             ListContexts,
+            NormalizedTemporal,
             OnSnapshot,
             Operation,
             QueryEntities,
@@ -89,7 +90,7 @@ fn the_head_of_a_query_through_post_is_refused() {
     let temporal = QueryTemporalEvolution::builder()
         .entity_type(&entity_type)
         .temporal_q(&window)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .method(QueryMethod::Post)
         .build();
     for error in [

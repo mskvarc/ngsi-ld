@@ -14,6 +14,7 @@ use ngsi_ld::{
             ArgumentError,
             CreateEntityMap,
             EntityMapRequest,
+            NormalizedTemporal,
             Operation,
             ParameterError,
             PurgeEntities,
@@ -37,7 +38,7 @@ use ngsi_ld::{
             TemporalSelectionParameters,
         },
     },
-    model::{AttributeName, DocumentError, EntityId, Lossless, MemberError, evolution::TemporalAttributeName},
+    model::{AttributeName, DocumentError, EntityId, MemberError, evolution::TemporalAttributeName},
     query::{
         EntitySplitting,
         IdPattern,
@@ -267,7 +268,7 @@ fn a_post_query_body_is_exactly_the_query_document_rendered() {
     let window = TemporalQuery::after("2024-05-01T10:00:00Z".parse().unwrap());
     let temporal = QueryTemporalEvolution {
         method: QueryMethod::Post,
-        ..temporal_query(Some(&vehicle), &window, Lossless::Normalized)
+        ..temporal_query(Some(&vehicle), &window, NormalizedTemporal)
     };
     let request = temporal.to_request(&endpoint()).unwrap();
     let body = str::from_utf8(request.body()).unwrap();

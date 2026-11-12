@@ -7,7 +7,16 @@ use crate::{
     temporal_fixtures::{b, body_text, query_string, request, window},
 };
 use ngsi_ld::{
-    http::operation::{Operation, QueryEntities, QueryMethod, QueryTemporalEvolution, RetrieveEntity, RetrieveTemporalEvolution, TemporalSelection},
+    http::operation::{
+        NormalizedTemporal,
+        Operation,
+        QueryEntities,
+        QueryMethod,
+        QueryTemporalEvolution,
+        RetrieveEntity,
+        RetrieveTemporalEvolution,
+        TemporalSelection,
+    },
     model::{AttributeName, Lossless, NameError, ReservedMember, evolution::TemporalAttributeName},
     query::temporal_query::TemporalQuery,
 };
@@ -30,7 +39,7 @@ fn temporal_query<'a>(attrs: &'a [TemporalAttributeName], window: &'a TemporalQu
         .attrs(attrs)
         .temporal_q(window)
         .method(method)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build()
 }
 
@@ -81,7 +90,7 @@ fn retrieve_temporal_evolution_sends_attrs_before_the_projection() {
             aggregation_period: None,
         })
         .attrs(&attrs)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build();
     assert_eq!(query_string(&retrieve).as_deref(), Some("attrs=speed,brandName&lastN=3"));
 }
@@ -126,7 +135,7 @@ fn retrieve_temporal_evolution_sends_scope_in_attrs() {
             aggregation_period: None,
         })
         .attrs(&attrs)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build();
     assert_eq!(query_string(&retrieve).as_deref(), Some("attrs=scope"));
 }

@@ -11,6 +11,7 @@ use crate::{
         headers::NgsiLdEntityMap,
         operation::{
             Aggregated,
+            NormalizedTemporal,
             Operation,
             SimplifiedTemporal,
             sealed::{BuildsRequest, Sealed},
@@ -20,7 +21,6 @@ use crate::{
     },
     model::{
         Complete,
-        Lossless,
         NgsiLdMediaType,
         Output,
         Projected,
@@ -39,8 +39,8 @@ use url::Url;
 /// the entity map the answer reports, since the following page belongs to the same retrieval (clause 4.3.6.7). The
 /// request is built on the tenant and snapshot it is sent with, which are those of the original request.
 ///
-/// A [`TemporalEntity`] is read with the concise reader, which also reads normalized instances (clause 4.5.2.3), so
-/// either lossless representation reads correctly.
+/// A [`TemporalEntity`] is read in the normalized representation, the only lossless one a temporal request can ask
+/// for (Table 6.3.12-1).
 ///
 /// ```
 /// use bytes::Bytes;
@@ -139,8 +139,8 @@ macro_rules! interval_operation {
     };
 }
 
-interval_operation!(TemporalEntity<Output>, Complete, Lossless::Concise);
-interval_operation!(TemporalEntity<Output, Projected>, Projected, Lossless::Concise);
+interval_operation!(TemporalEntity<Output>, Complete, NormalizedTemporal);
+interval_operation!(TemporalEntity<Output, Projected>, Projected, NormalizedTemporal);
 interval_operation!(SimplifiedTemporalEntity, Complete, SimplifiedTemporal);
 interval_operation!(SimplifiedTemporalEntity<Projected>, Projected, SimplifiedTemporal);
 interval_operation!(AggregatedTemporalEntity, Complete, Aggregated);

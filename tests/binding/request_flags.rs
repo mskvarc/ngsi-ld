@@ -25,6 +25,7 @@ use ngsi_ld::{
             DeleteContext,
             EntityMapRequest,
             ListContexts,
+            NormalizedTemporal,
             Operation,
             PurgeEntities,
             QueryMethod,
@@ -41,7 +42,7 @@ use ngsi_ld::{
             TemporalSelection,
         },
     },
-    model::{Context, ContextId, EntityId, Lossless, Value},
+    model::{Context, ContextId, EntityId, Value},
     query::{
         EntityMapReturn,
         Locality,
@@ -165,7 +166,7 @@ fn retrieve_temporal_evolution_ranks_the_last_instances_by_a_time_property_witho
         aggregation_period: None,
     };
     assert_eq!(
-        query_string(&retrieve(&id, selection, Lossless::Normalized)).as_deref(),
+        query_string(&retrieve(&id, selection, NormalizedTemporal)).as_deref(),
         Some("timeproperty=modifiedAt&lastN=2")
     );
     let deleted = TemporalSelection::Unbounded {
@@ -186,7 +187,7 @@ fn retrieve_temporal_evolution_carries_the_entity_map_inputs_of_clause_5_7_3_3()
     let request = EntityMapRequest::returned_for("PT1H".parse().unwrap()).reusing(entity_map());
     let operation = RetrieveTemporalEvolution {
         entity_map: Some(&request),
-        ..retrieve(&id, unbounded(), Lossless::Normalized)
+        ..retrieve(&id, unbounded(), NormalizedTemporal)
     };
     let sent = built(&operation);
     assert_eq!(sent.uri().query(), Some("entityMap=true&entityMapLifetime=PT1H"));
@@ -203,7 +204,7 @@ fn query_temporal_evolution_sends_the_flag_and_the_header_together_in_both_bindi
     let request = EntityMapRequest::returned().reusing(entity_map());
     let get = QueryTemporalEvolution {
         entity_map: Some(&request),
-        ..query(&entity_type, &window, Lossless::Normalized)
+        ..query(&entity_type, &window, NormalizedTemporal)
     };
     let sent = built(&get);
     assert_eq!(
@@ -221,7 +222,7 @@ fn query_temporal_evolution_sends_the_flag_and_the_header_together_in_both_bindi
     let post = QueryTemporalEvolution {
         entity_map: Some(&not_returned),
         method: QueryMethod::Post,
-        ..query(&entity_type, &window, Lossless::Normalized)
+        ..query(&entity_type, &window, NormalizedTemporal)
     };
     let sent = built(&post);
     let body = json(sent.body());
@@ -283,7 +284,7 @@ fn the_temporal_representation_is_named_in_format_options_or_both() {
     let post = QueryTemporalEvolution {
         spelling: RepresentationSpelling::default().format_over_options(RepresentationToken::TemporalValues),
         method: QueryMethod::Post,
-        ..query(&entity_type, &window, Lossless::Normalized)
+        ..query(&entity_type, &window, NormalizedTemporal)
     };
     assert!(matches!(
         post.to_request(&endpoint()),
@@ -291,12 +292,6 @@ fn the_temporal_representation_is_named_in_format_options_or_both() {
             keyword: RepresentationToken::TemporalValues
         }))
     ));
-    let concise = QueryTemporalEvolution {
-        spelling: RepresentationSpelling::default().format_over_options(RepresentationToken::TemporalValues),
-        method: QueryMethod::Post,
-        ..query(&entity_type, &window, Lossless::Concise)
-    };
-    assert_eq!(query_string(&concise).as_deref(), Some("format=concise&options=temporalValues"));
 }
 
 #[test]

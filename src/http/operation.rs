@@ -79,7 +79,7 @@
 //! # Temporal evolution
 //!
 //! Retrieve and Query Temporal Evolution choose the representation by type, as Retrieve and Query Entities do: a
-//! [`Lossless`](crate::model::Lossless) format answers with [`TemporalEntity`](crate::model::evolution::TemporalEntity)
+//! [`NormalizedTemporal`] format answers with [`TemporalEntity`](crate::model::evolution::TemporalEntity)
 //! values, [`SimplifiedTemporal`] with [`SimplifiedTemporalEntity`](crate::model::evolution::SimplifiedTemporalEntity)
 //! values and [`Aggregated`] with [`AggregatedTemporalEntity`](crate::model::evolution::AggregatedTemporalEntity)
 //! values (clause 6.3.12). A broker that cannot answer at once answers 206 Partial Content with a `Content-Range`
@@ -91,7 +91,7 @@
 //! [`DeleteTemporalAttribute`], [`ModifyAttributeInstance`], [`DeleteAttributeInstance`], [`DeleteTemporalEvolution`],
 //! [`RetrieveTemporalEvolution`], [`QueryTemporalEvolution`], [`TemporalSelection`], [`InstancePaging`],
 //! [`IntervalRequest`], [`TemporalRepresentation`],
-//! [`SimplifiedTemporal`], [`Aggregated`], [`TemporalSelectionParameters`], [`RetrieveTemporalEvolutionParameters`],
+//! [`NormalizedTemporal`], [`SimplifiedTemporal`], [`Aggregated`], [`TemporalSelectionParameters`], [`RetrieveTemporalEvolutionParameters`],
 //! [`QueryTemporalEvolutionParameters`], [`QueryTemporalEvolutionPostParameters`].
 //!
 //! # Subscriptions
@@ -263,6 +263,7 @@ pub use crate::http::operation::{
     },
     temporal::{
         Aggregated,
+        NormalizedTemporal,
         SimplifiedTemporal,
         TemporalRepresentation,
         add_attributes::AddTemporalAttributes,

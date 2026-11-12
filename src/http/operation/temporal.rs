@@ -45,6 +45,54 @@ pub(super) mod query;
 pub(super) mod retrieve;
 pub(super) mod selection;
 
+/// Asks for the normalized temporal representation, the default.
+///
+/// Table 6.3.12-1 has no token for it, so no `format` is written (NGSI-LD clauses 4.5.7, 4.5.8 and 6.3.12), and it
+/// is answered with [`TemporalEntity`] values. A temporal answer cannot be asked for in concise representation: the
+/// `concise` of Table 6.3.7-1 applies to Retrieve and Query Entities, and Table 6.3.12-1 allows only
+/// `temporalValues` and `aggregatedValues`.
+///
+/// ```
+/// use iri_rs::iri;
+/// use ngsi_ld::{
+///     http::{
+///         Endpoint,
+///         operation::{
+///             NormalizedTemporal,
+///             Operation,
+///             RetrieveTemporalEvolution,
+///             TemporalSelection,
+///         },
+///     },
+///     model::EntityId,
+///     query::temporal_query::TemporalQuery,
+/// };
+/// use url::Url;
+///
+/// let endpoint = Endpoint::builder()
+///     .base_url(Url::parse("http://broker.test/ngsi-ld/v1/")?)
+///     .build()?;
+/// let id = EntityId::from(iri!("urn:ngsi-ld:Vehicle:B9211"));
+/// let since = TemporalQuery::after("2018-08-01T12:00:00Z".parse()?);
+/// let retrieve = RetrieveTemporalEvolution::builder()
+///     .id(&id)
+///     .selection(TemporalSelection::Query(&since))
+///     .format(NormalizedTemporal)
+///     .build();
+/// let request = retrieve.to_request(&endpoint)?;
+/// assert_eq!(
+///     request.uri(),
+///     concat!(
+///         "http://broker.test/ngsi-ld/v1/temporal/entities",
+///         "/urn:ngsi-ld:Vehicle:B9211?timerel=after&",
+///         "timeAt=2018-08-01T12%3A00%3A00Z"
+///     )
+/// );
+/// # Ok::<(), anyhow::Error>(())
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct NormalizedTemporal;
+
 /// Asks for the simplified temporal representation.
 ///
 /// It is written `format=temporalValues` (NGSI-LD clauses 4.5.9 and 6.3.12) and answered with
@@ -142,7 +190,7 @@ pub struct Aggregated;
 
 /// The representations of a temporal answer.
 ///
-/// They are the normalized and concise temporal representations (NGSI-LD clauses 4.5.7 and 4.5.8), the simplified one
+/// They are the normalized temporal representation (NGSI-LD clauses 4.5.7 and 4.5.8), the simplified one
 /// (`temporalValues`, clause 4.5.9) and the aggregated one (`aggregatedValues`, clause 4.5.19), as clause 6.3.12 and
 /// Table 6.3.12-1 list them.
 ///
@@ -161,8 +209,6 @@ pub enum TemporalRepresentation {
     /// The normalized temporal representation, the default.
     #[default]
     Normalized,
-    /// The concise temporal representation.
-    Concise,
     /// The simplified temporal representation, `temporalValues`.
     Simplified,
     /// `aggregatedValues`.
@@ -170,15 +216,12 @@ pub enum TemporalRepresentation {
 }
 
 /// The representations of temporal entities. Table 6.3.12-1 writes `temporalValues` and `aggregatedValues`, and no
-/// token for the normalized default. The concise temporal representation has no token in that table, but clauses
-/// 4.5.7 and 4.5.8 make each instance of a temporal attribute a Property or Relationship "as mandated by clause
-/// 4.5.2" (and 4.5.3), whose concise form is selected "through specific request parameters" (clauses 4.5.2 and
-/// 4.5.3), the `concise` token of clause 6.3.7, so it is written as such.
+/// token for the normalized default. Its `format` "shall be one of" those two, so the tokens of Table 6.3.7-1,
+/// `concise` among them, name no temporal representation.
 impl RepresentationFamily for TemporalRepresentation {
     fn table_token(self) -> Option<RepresentationToken> {
         match self {
             Self::Normalized => None,
-            Self::Concise => Some(RepresentationToken::Concise),
             Self::Simplified => Some(RepresentationToken::TemporalValues),
             Self::Aggregated => Some(RepresentationToken::AggregatedValues),
         }
@@ -186,10 +229,9 @@ impl RepresentationFamily for TemporalRepresentation {
 
     fn from_token(token: RepresentationToken) -> Option<Self> {
         match token {
-            RepresentationToken::Concise => Some(Self::Concise),
             RepresentationToken::TemporalValues => Some(Self::Simplified),
             RepresentationToken::AggregatedValues => Some(Self::Aggregated),
-            RepresentationToken::Normalized | RepresentationToken::Simplified | RepresentationToken::KeyValues => None,
+            RepresentationToken::Normalized | RepresentationToken::Concise | RepresentationToken::Simplified | RepresentationToken::KeyValues => None,
         }
     }
 }
@@ -228,18 +270,15 @@ pub(crate) trait TemporalFormat<C: Completeness>: Copy {
     fn read(self, json: Json) -> Result<Self::Item, DocumentError>;
 }
 
-impl<C: ProjectionRule> TemporalFormat<C> for Lossless {
+impl<C: ProjectionRule> TemporalFormat<C> for NormalizedTemporal {
     type Item = TemporalEntity<Output, C>;
 
     fn representation(self) -> TemporalRepresentation {
-        match self {
-            Self::Normalized => TemporalRepresentation::Normalized,
-            Self::Concise => TemporalRepresentation::Concise,
-        }
+        TemporalRepresentation::Normalized
     }
 
     fn read(self, json: Json) -> Result<TemporalEntity<Output, C>, DocumentError> {
-        read_temporal_entity(json, self)
+        read_temporal_entity(json, Lossless::Normalized)
     }
 }
 

@@ -15,6 +15,7 @@ use crate::{
         operation::{
             Aggregated,
             EntityMapRequest,
+            NormalizedTemporal,
             QueryMethod,
             QueryTemporalEvolution,
             RepresentationSpelling,
@@ -28,7 +29,6 @@ use crate::{
         Complete,
         DatasetId,
         EntityId,
-        Lossless,
         Output,
         Projected,
         Tenant,
@@ -160,7 +160,7 @@ macro_rules! query_method {
 }
 
 query_method!(
-    /// Query Temporal Evolution of Entities (clauses 6.18.3.2 and 6.24.3.1), in normalized or concise
+    /// Query Temporal Evolution of Entities (clauses 6.18.3.2 and 6.24.3.1), in normalized
     /// representation; the first page, which [`Client::pages`](crate::client::Client::pages) walks on.
     ///
     /// At least an entity type, attributes, a `q` or a geoquery is needed unless the query is local, `limit` 0 needs
@@ -171,7 +171,7 @@ query_method!(
     ///
     /// [`query_projected`]: Temporal::query_projected
     query => QueryTemporalBuilder, TemporalEntity<Output>,
-    format => form, [#[builder(default)] form: Lossless,],
+    format => NormalizedTemporal, [],
     completeness => Complete
 );
 
@@ -199,9 +199,9 @@ query_method!(
 
 query_method!(
     /// Query Temporal Evolution of Entities (clauses 6.18.3.2 and 6.24.3.1) with a `pick` or `omit` that may
-    /// remove `id` or `type` (clause 4.21), in normalized or concise representation.
+    /// remove `id` or `type` (clause 4.21), in normalized representation.
     query_projected, TemporalEntity<Output, Projected>,
-    format => form, [#[builder(default)] form: Lossless,],
+    format => NormalizedTemporal, [],
     completeness => Projected
 );
 

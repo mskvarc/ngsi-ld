@@ -27,6 +27,7 @@ use ngsi_ld::{
             EntityMapRequest,
             InstanceSelection,
             ModifyAttributeInstance,
+            NormalizedTemporal,
             Operation,
             QueryMethod,
             QueryTemporalEvolution,
@@ -333,7 +334,7 @@ fn deleting_an_instance_or_the_evolution_sends_no_parameter_and_no_body() {
 fn retrieve_writes_the_temporal_query_and_asks_for_json() {
     let id = b();
     let window = window();
-    let request = request(&retrieve(&id, TemporalSelection::Query(&window), Lossless::Normalized));
+    let request = request(&retrieve(&id, TemporalSelection::Query(&window), NormalizedTemporal));
     assert_eq!(request.method(), Method::GET);
     assert_eq!(request.uri().path(), B_PATH);
     assert_eq!(request.uri().query(), Some(WINDOW));
@@ -346,9 +347,9 @@ fn retrieve_without_a_temporal_query_sends_last_n_alone() {
     let id = b();
     let operation = RetrieveTemporalEvolution {
         system_attributes: SystemAttributes::Include,
-        ..retrieve(&id, unbounded(NonZeroU64::new(2), None), Lossless::Concise)
+        ..retrieve(&id, unbounded(NonZeroU64::new(2), None), NormalizedTemporal)
     };
-    assert_eq!(query_string(&operation).as_deref(), Some("lastN=2&format=concise&options=sysAttrs"));
+    assert_eq!(query_string(&operation).as_deref(), Some("lastN=2&options=sysAttrs"));
 }
 
 #[test]
@@ -397,7 +398,7 @@ fn a_projection_removing_the_id_needs_a_projected_retrieve() {
     let pick: Projection = projection::attributes(["speed"]).build().unwrap();
     let complete = RetrieveTemporalEvolution {
         pick: Some(&pick),
-        ..retrieve(&id, unbounded(None, None), Lossless::Normalized)
+        ..retrieve(&id, unbounded(None, None), NormalizedTemporal)
     };
     assert!(matches!(
         refusal(&complete),
@@ -405,7 +406,7 @@ fn a_projection_removing_the_id_needs_a_projected_retrieve() {
     ));
     let projected = RetrieveTemporalEvolution {
         pick: Some(&pick),
-        ..retrieve_projected(&id, unbounded(None, None), Lossless::Normalized)
+        ..retrieve_projected(&id, unbounded(None, None), NormalizedTemporal)
     };
     assert_eq!(query_string(&projected).as_deref(), Some("pick=speed"));
 }
@@ -419,7 +420,7 @@ fn a_get_query_writes_the_selection_then_the_temporal_query_then_the_paging() {
         q: Some(&speeding),
         limit: Some(2),
         count: ResultsCount::Include,
-        ..query(Some(&entity_type), &temporal_q, Lossless::Normalized)
+        ..query(Some(&entity_type), &temporal_q, NormalizedTemporal)
     };
     let request = request(&operation);
     assert_eq!(request.method(), Method::GET);
@@ -447,14 +448,14 @@ fn a_get_query_writes_the_ordering_the_distribution_and_the_locality() {
         system_attributes: SystemAttributes::Include,
         offset: Some(4),
         locality: Locality::Local,
-        ..query(Some(&entity_type), &after, Lossless::Concise)
+        ..query(Some(&entity_type), &after, NormalizedTemporal)
     };
     assert_eq!(
         query_string(&operation).as_deref(),
         Some(concat!(
             "type=Vehicle&id=urn%3Angsi-ld%3AVehicle%3AB9211,urn%3Angsi-ld%3AVehicle%3AA4567",
             "&timerel=after&timeAt=2018-08-01T12%3A03%3A00Z&orderBy=id;desc&collation=de-u-co-phonebk",
-            "&splitEntities=true&entityMap=true&format=concise&options=sysAttrs&offset=4&local=true"
+            "&splitEntities=true&entityMap=true&options=sysAttrs&offset=4&local=true"
         ))
     );
 }
@@ -499,7 +500,7 @@ fn a_post_query_carries_several_selectors_each_as_the_caller_spelled_it() {
     let operation = QueryTemporalEvolution {
         selectors: &selectors,
         method: QueryMethod::Post,
-        ..query(None, &temporal_q, Lossless::Normalized)
+        ..query(None, &temporal_q, NormalizedTemporal)
     };
     let request = request(&operation);
     assert_eq!(request.uri().path(), "/ngsi-ld/v1/temporal/entityOperations/query");
@@ -525,13 +526,13 @@ fn a_get_temporal_query_carries_one_selector_given_alone_and_refuses_more() {
     let one = [EntitySelector::new("Vehicle".parse().unwrap())];
     let alone = QueryTemporalEvolution {
         selectors: &one,
-        ..query(None, &temporal_q, Lossless::Normalized)
+        ..query(None, &temporal_q, NormalizedTemporal)
     };
     assert_eq!(query_string(&alone), Some(format!("type=Vehicle&{WINDOW}")));
     let entity_type = vehicle_type();
     let beside_type = QueryTemporalEvolution {
         selectors: &one,
-        ..query(Some(&entity_type), &temporal_q, Lossless::Normalized)
+        ..query(Some(&entity_type), &temporal_q, NormalizedTemporal)
     };
     assert!(matches!(
         refusal(&beside_type),
@@ -540,7 +541,7 @@ fn a_get_temporal_query_carries_one_selector_given_alone_and_refuses_more() {
     let two = [EntitySelector::new("Car".parse().unwrap()), EntitySelector::new("Bus".parse().unwrap())];
     let two_selectors = QueryTemporalEvolution {
         selectors: &two,
-        ..query(None, &temporal_q, Lossless::Normalized)
+        ..query(None, &temporal_q, NormalizedTemporal)
     };
     assert!(matches!(
         refusal(&two_selectors),
@@ -568,12 +569,12 @@ fn a_temporal_query_refuses_what_the_specification_refuses() {
     let entity_type = vehicle_type();
     let window = window();
     assert!(matches!(
-        refusal(&query(None, &window, Lossless::Normalized)),
+        refusal(&query(None, &window, NormalizedTemporal)),
         RequestError::Argument(ArgumentError::UnboundedQuery)
     ));
     let zero = QueryTemporalEvolution {
         limit: Some(0),
-        ..query(Some(&entity_type), &window, Lossless::Normalized)
+        ..query(Some(&entity_type), &window, NormalizedTemporal)
     };
     assert!(matches!(refusal(&zero), RequestError::Argument(ArgumentError::ZeroLimitWithoutCount)));
     let by_speed = ordering::by("speed").build().unwrap();
@@ -584,7 +585,7 @@ fn a_temporal_query_refuses_what_the_specification_refuses() {
     for ordering in [&by_speed, &nearest] {
         let ordered = QueryTemporalEvolution {
             ordering: Some(ordering),
-            ..query(Some(&entity_type), &window, Lossless::Normalized)
+            ..query(Some(&entity_type), &window, NormalizedTemporal)
         };
         assert!(matches!(refusal(&ordered), RequestError::Argument(ArgumentError::TemporalOrdering)));
     }
@@ -595,7 +596,7 @@ fn a_temporal_query_refuses_what_the_specification_refuses() {
     let pick: Projection = projection::attributes(["speed"]).build().unwrap();
     let picking = QueryTemporalEvolution {
         pick: Some(&pick),
-        ..query(Some(&entity_type), &window, Lossless::Normalized)
+        ..query(Some(&entity_type), &window, NormalizedTemporal)
     };
     assert!(matches!(
         refusal(&picking),
@@ -606,7 +607,7 @@ fn a_temporal_query_refuses_what_the_specification_refuses() {
         ids: &ids,
         q: Some(&q::attr("speed").exists().build().unwrap()),
         method: QueryMethod::Post,
-        ..query(None, &window, Lossless::Normalized)
+        ..query(None, &window, NormalizedTemporal)
     };
     assert!(matches!(refusal(&untyped), RequestError::Argument(ArgumentError::SelectorWithoutType)));
 }
@@ -641,8 +642,8 @@ fn every_temporal_operation_names_the_tenant() {
         }
         .to_request(&endpoint),
         DeleteTemporalEvolution { id: &id }.to_request(&endpoint),
-        retrieve(&id, TemporalSelection::Query(&window), Lossless::Normalized).to_request(&endpoint),
-        query(Some(&entity_type), &window, Lossless::Normalized).to_request(&endpoint),
+        retrieve(&id, TemporalSelection::Query(&window), NormalizedTemporal).to_request(&endpoint),
+        query(Some(&entity_type), &window, NormalizedTemporal).to_request(&endpoint),
     ];
     for request in requests {
         assert_eq!(header_value(&request.unwrap(), NgsiLdTenant::name()), Some("t1"));
@@ -654,7 +655,7 @@ fn the_next_page_of_a_temporal_query_keeps_its_tenant_and_asks_for_json() {
     let entity_type = vehicle_type();
     let after = TemporalQuery::after(time(T1));
     let tenant: Tenant = "t1".parse().unwrap();
-    let operation = query(Some(&entity_type), &after, Lossless::Normalized);
+    let operation = query(Some(&entity_type), &after, NormalizedTemporal);
     let sent = operation.to_request(&endpoint().with_tenant(tenant)).unwrap();
     let link = link_field([link_value(
         "/ngsi-ld/v1/temporal/entities?type=Vehicle&timerel=after&timeAt=2018-08-01T12%3A03%3A00Z&offset=1",

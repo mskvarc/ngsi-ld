@@ -18,6 +18,7 @@ use ngsi_ld::{
             BatchCreate,
             CreateEntity,
             CreateSubscription,
+            NormalizedTemporal,
             Operation,
             QueryTemporalEvolution,
             RegisterContextSource,
@@ -199,7 +200,7 @@ fn a_temporal_query_without_its_temporal_query_is_sent_with_the_headers_of_the_q
     let query = QueryTemporalEvolution::builder()
         .entity_type(&vehicles)
         .temporal_q(&since)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build();
     let without_timerel = "http://broker.test/ngsi-ld/v1/temporal/entities?type=Vehicle".parse().unwrap();
     let request = UncheckedRequest::try_from_operation(&query, &endpoint())
@@ -219,7 +220,7 @@ fn a_preference_the_specification_does_not_define_is_sent_beside_the_typed_ones(
     let query = QueryTemporalEvolution::builder()
         .entity_type(&vehicles)
         .temporal_q(&since)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build();
     let request = UncheckedRequest::try_from_operation(&query, &endpoint())
         .unwrap()

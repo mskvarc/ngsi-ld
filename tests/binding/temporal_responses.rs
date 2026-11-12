@@ -25,6 +25,7 @@ use ngsi_ld::{
             DeleteTemporalEvolution,
             InstanceSelection,
             ModifyAttributeInstance,
+            NormalizedTemporal,
             Operation,
             QueryTemporalEvolution,
             RetrieveTemporalEvolution,
@@ -77,11 +78,11 @@ fn retrieve<'a, F>(id: &'a EntityId, window: &'a TemporalQuery, format: F) -> Re
 }
 
 /// A GET query of `Vehicle` with `window`, normalized.
-fn query<'a>(entity_type: &'a SelectorType, window: &'a TemporalQuery) -> QueryTemporalEvolution<'a, Lossless, Complete> {
+fn query<'a>(entity_type: &'a SelectorType, window: &'a TemporalQuery) -> QueryTemporalEvolution<'a, NormalizedTemporal, Complete> {
     QueryTemporalEvolution::builder()
         .entity_type(entity_type)
         .temporal_q(window)
-        .format(Lossless::Normalized)
+        .format(NormalizedTemporal)
         .build()
 }
 
@@ -149,7 +150,7 @@ fn the_operations_that_change_an_evolution_read_204_only() {
 fn a_retrieved_evolution_keeps_every_instance_and_covers_the_whole_range() {
     let id = b();
     let window = window();
-    let retrieved = retrieve(&id, &window, Lossless::Normalized)
+    let retrieved = retrieve(&id, &window, NormalizedTemporal)
         .decode(&context(), response(200, &[], RETRIEVED))
         .unwrap();
     assert_eq!(retrieved.body().attribute(&speed()).map(Evolution::len), Some(2));
@@ -162,7 +163,7 @@ fn a_206_reads_the_range_and_gives_the_query_of_the_rest() {
     let id = b();
     let window = window();
     let range = "DateTime 2018-08-01T12:03:00Z-2018-08-01T12:05:00Z/*";
-    let retrieved = retrieve(&id, &window, Lossless::Normalized)
+    let retrieved = retrieve(&id, &window, NormalizedTemporal)
         .decode(&context(), response(206, &[(&header::CONTENT_RANGE, range)], RETRIEVED))
         .unwrap();
     assert_eq!(retrieved.status().as_u16(), 206);
@@ -181,7 +182,7 @@ fn a_206_reads_an_attribute_that_has_no_instance_in_its_range() {
     let window = window();
     let body = RETRIEVED.replacen("]}", r#"],"rpm":[]}"#, 1);
     let range = "DateTime 2018-08-01T12:03:00Z-2018-08-01T12:05:00Z/*";
-    let retrieved = retrieve(&id, &window, Lossless::Normalized)
+    let retrieved = retrieve(&id, &window, NormalizedTemporal)
         .decode(&context(), response(206, &[(&header::CONTENT_RANGE, range)], &body))
         .unwrap();
     assert_eq!(retrieved.body().attribute(&"rpm".parse().unwrap()).map(Evolution::len), Some(0));
@@ -193,7 +194,7 @@ fn a_206_reads_an_attribute_that_has_no_instance_in_its_range() {
 fn a_206_without_a_readable_range_still_carries_the_entity() {
     let id = b();
     let window = window();
-    let operation = retrieve(&id, &window, Lossless::Normalized);
+    let operation = retrieve(&id, &window, NormalizedTemporal);
     let malformed = operation
         .decode(&context(), response(206, &[(&header::CONTENT_RANGE, "bytes 0-1/2")], RETRIEVED))
         .unwrap();
@@ -219,7 +220,7 @@ fn temporal_values_and_aggregated_answers_read_into_their_own_types() {
         .decode(&context(), response(200, &[], AGGREGATED))
         .unwrap();
     assert_eq!(aggregated.body().render().to_string(), AGGREGATED);
-    let amended = retrieve(&id, &window, Lossless::Normalized)
+    let amended = retrieve(&id, &window, NormalizedTemporal)
         .decode(&context(), response(203, &[(PreferenceApplied::name(), "ngsi-ld=1.8.1")], RETRIEVED))
         .unwrap();
     assert_eq!(amended.preference_applied().map(ToString::to_string).as_deref(), Some("1.8.1"));
@@ -285,7 +286,7 @@ fn a_query_or_retrieve_answer_out_of_shape_is_a_typed_error() {
     assert!(matches!(error.kind, DocumentErrorKind::Member(MemberError::MissingMember { member: "id" })));
     assert!(is_unexpected(&operation.decode(&context(), response(204, &[], ""))));
     let id = b();
-    let retrieve = retrieve(&id, &window, Lossless::Normalized);
+    let retrieve = retrieve(&id, &window, NormalizedTemporal);
     assert!(is_unexpected(&retrieve.decode(&context(), response(204, &[], ""))));
     let problem = r#"{"type":"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound","title":"not found"}"#;
     let error = retrieve.decode(&context(), response(404, &[], problem)).unwrap_err();

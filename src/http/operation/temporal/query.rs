@@ -14,6 +14,7 @@ use crate::{
             ArgumentError,
             EntityMapRequest,
             InstancePaging,
+            NormalizedTemporal,
             Operation,
             QueryMethod,
             RepresentationSpelling,
@@ -38,7 +39,6 @@ use crate::{
         Completeness,
         DatasetId,
         EntityId,
-        Lossless,
         NgsiLdMediaType,
         Output,
         Projected,
@@ -70,7 +70,7 @@ use jstrict::Object;
 /// /temporal/entityOperations/query` (clause 6.24.3.1); both bindings are built from these same fields, as for Query
 /// Entities.
 ///
-/// `F` is the representation asked for: a [`Lossless`] one answers with pages of [`TemporalEntity`] values,
+/// `F` is the representation asked for: [`NormalizedTemporal`] answers with pages of [`TemporalEntity`] values,
 /// [`SimplifiedTemporal`] with pages of [`SimplifiedTemporalEntity`] values and [`Aggregated`] with pages of
 /// [`AggregatedTemporalEntity`] values (clause 6.3.12). `C` is what the entities hold of their `id` and `type`
 /// (clause 4.21).
@@ -91,9 +91,8 @@ use jstrict::Object;
 /// use ngsi_ld::{
 ///     http::{
 ///         Endpoint,
-///         operation::{Operation, QueryTemporalEvolution},
+///         operation::{NormalizedTemporal, Operation, QueryTemporalEvolution},
 ///     },
-///     model::Lossless,
 ///     query::{SelectorType, temporal_query::TemporalQuery},
 /// };
 /// use url::Url;
@@ -106,7 +105,7 @@ use jstrict::Object;
 /// let query = QueryTemporalEvolution::builder()
 ///     .entity_type(&vehicles)
 ///     .temporal_q(&since)
-///     .format(Lossless::Normalized)
+///     .format(NormalizedTemporal)
 ///     .build();
 /// let request = query.to_request(&endpoint)?;
 /// assert_eq!(request.method(), "GET");
@@ -122,7 +121,7 @@ use jstrict::Object;
 /// ```
 #[derive(Debug, Clone, PartialEq, bon::Builder)]
 #[builder(start_fn(name = generic_builder, vis = ""))]
-pub struct QueryTemporalEvolution<'a, F = Lossless, C = Complete> {
+pub struct QueryTemporalEvolution<'a, F = NormalizedTemporal, C = Complete> {
     /// What the entities hold of their `id` and `type`, which the start function names.
     #[builder(start_fn)]
     pub completeness: C,
@@ -251,12 +250,11 @@ macro_rules! query_operation {
     };
 }
 
-// A page link carries the `format` of the query; the concise reader also reads normalized instances (clause
-// 4.5.2.3), so it reads the pages of either lossless representation.
-query_operation!(Lossless, Complete, TemporalEntity<Output>, Lossless::Concise);
+// A page link carries the `format` of the query, so its pages are read in the representation the query asked for.
+query_operation!(NormalizedTemporal, Complete, TemporalEntity<Output>, NormalizedTemporal);
 query_operation!(SimplifiedTemporal, Complete, SimplifiedTemporalEntity, SimplifiedTemporal);
 query_operation!(Aggregated, Complete, AggregatedTemporalEntity, Aggregated);
-query_operation!(Lossless, Projected, TemporalEntity<Output, Projected>, Lossless::Concise);
+query_operation!(NormalizedTemporal, Projected, TemporalEntity<Output, Projected>, NormalizedTemporal);
 query_operation!(SimplifiedTemporal, Projected, SimplifiedTemporalEntity<Projected>, SimplifiedTemporal);
 query_operation!(Aggregated, Projected, AggregatedTemporalEntity<Projected>, Aggregated);
 

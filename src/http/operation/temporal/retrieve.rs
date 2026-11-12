@@ -12,6 +12,7 @@ use crate::{
             Aggregated,
             EntityMapRequest,
             InstancePaging,
+            NormalizedTemporal,
             Operation,
             RepresentationSpelling,
             SimplifiedTemporal,
@@ -30,7 +31,6 @@ use crate::{
         Completeness,
         DatasetId,
         EntityId,
-        Lossless,
         NgsiLdMediaType,
         Output,
         Projected,
@@ -45,7 +45,7 @@ use http::{Method, Request, Response};
 ///
 /// Its request is `GET /temporal/entities/{entityId}` (NGSI-LD clause 6.19.3.1).
 ///
-/// `F` is the representation asked for: a [`Lossless`] one answers with a [`TemporalEntity`], [`SimplifiedTemporal`]
+/// `F` is the representation asked for: [`NormalizedTemporal`] answers with a [`TemporalEntity`], [`SimplifiedTemporal`]
 /// with a [`SimplifiedTemporalEntity`] and [`Aggregated`] with an [`AggregatedTemporalEntity`] (clause 6.3.12). `C`
 /// is what the entity holds of its `id` and `type`: [`Complete`], so `send()` refuses a `pick` or `omit` that
 /// removes either, or [`Projected`] (clause 4.21).
@@ -61,9 +61,14 @@ use http::{Method, Request, Response};
 /// use ngsi_ld::{
 ///     http::{
 ///         Endpoint,
-///         operation::{Operation, RetrieveTemporalEvolution, TemporalSelection},
+///         operation::{
+///             NormalizedTemporal,
+///             Operation,
+///             RetrieveTemporalEvolution,
+///             TemporalSelection,
+///         },
 ///     },
-///     model::{EntityId, Lossless},
+///     model::EntityId,
 ///     query::temporal_query::TemporalProperty,
 /// };
 /// use std::num::NonZeroU64;
@@ -81,7 +86,7 @@ use http::{Method, Request, Response};
 ///         aggregation_methods: None,
 ///         aggregation_period: None,
 ///     })
-///     .format(Lossless::Normalized)
+///     .format(NormalizedTemporal)
 ///     .build();
 /// let request = last_ten.to_request(&endpoint)?;
 /// assert_eq!(
@@ -96,7 +101,7 @@ use http::{Method, Request, Response};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, bon::Builder)]
 #[builder(start_fn(name = generic_builder, vis = ""))]
-pub struct RetrieveTemporalEvolution<'a, F = Lossless, C = Complete> {
+pub struct RetrieveTemporalEvolution<'a, F = NormalizedTemporal, C = Complete> {
     /// What the entity holds of its `id` and `type`, which the start function names.
     #[builder(start_fn)]
     pub completeness: C,
@@ -170,10 +175,10 @@ macro_rules! retrieve_operation {
     };
 }
 
-retrieve_operation!(Lossless, Complete, TemporalEntity<Output>);
+retrieve_operation!(NormalizedTemporal, Complete, TemporalEntity<Output>);
 retrieve_operation!(SimplifiedTemporal, Complete, SimplifiedTemporalEntity);
 retrieve_operation!(Aggregated, Complete, AggregatedTemporalEntity);
-retrieve_operation!(Lossless, Projected, TemporalEntity<Output, Projected>);
+retrieve_operation!(NormalizedTemporal, Projected, TemporalEntity<Output, Projected>);
 retrieve_operation!(SimplifiedTemporal, Projected, SimplifiedTemporalEntity<Projected>);
 retrieve_operation!(Aggregated, Projected, AggregatedTemporalEntity<Projected>);
 

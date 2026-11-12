@@ -6,9 +6,9 @@ use crate::{
     client::{Answering, ClientError, Temporal, Transport},
     http::{
         Retrieved,
-        operation::{IntervalRequest, LocalScopeOperation, Operation, RetrieveTemporalEvolution, TemporalSelection},
+        operation::{IntervalRequest, LocalScopeOperation, NormalizedTemporal, Operation, RetrieveTemporalEvolution, TemporalSelection},
     },
-    model::{Completeness, Lossless, Output, Tenant, evolution::TemporalEntity},
+    model::{Completeness, Output, Tenant, evolution::TemporalEntity},
     query::Locality,
     seal::Seal,
 };
@@ -41,11 +41,11 @@ impl<T: Transport, M: Answering> Temporal<'_, T, M> {
     pub(super) async fn whole_range<C: Completeness + Copy>(
         &self,
         locality: Locality,
-        retrieve: RetrieveTemporalEvolution<'_, Lossless, C>,
+        retrieve: RetrieveTemporalEvolution<'_, NormalizedTemporal, C>,
         tenant: Option<&Tenant>,
     ) -> Result<M::Answer<Retrieved<TemporalEntity<Output, C>>>, ClientError<T::Error>>
     where
-        for<'r> RetrieveTemporalEvolution<'r, Lossless, C>: LocalScopeOperation + Operation<Outcome = Retrieved<TemporalEntity<Output, C>>> + Sync,
+        for<'r> RetrieveTemporalEvolution<'r, NormalizedTemporal, C>: LocalScopeOperation + Operation<Outcome = Retrieved<TemporalEntity<Output, C>>> + Sync,
         for<'r> IntervalRequest<'r, TemporalEntity<Output, C>>: Operation<Outcome = Retrieved<TemporalEntity<Output, C>>> + Sync,
     {
         let (mut answer, mut last) = M::split(Seal::new(), self.answer(locality, retrieve, tenant).await?);

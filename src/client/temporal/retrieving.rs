@@ -11,14 +11,21 @@ use crate::{
     },
     http::{
         Retrieved,
-        operation::{Aggregated, EntityMapRequest, RepresentationSpelling, RetrieveTemporalEvolution, SimplifiedTemporal, SystemAttributes},
+        operation::{
+            Aggregated,
+            EntityMapRequest,
+            NormalizedTemporal,
+            RepresentationSpelling,
+            RetrieveTemporalEvolution,
+            SimplifiedTemporal,
+            SystemAttributes,
+        },
     },
     model::{
         Complete,
         DatasetId,
         Duration,
         EntityId,
-        Lossless,
         Output,
         Projected,
         Tenant,
@@ -102,7 +109,7 @@ macro_rules! retrieve_method {
 }
 
 retrieve_method!(
-    /// Retrieve Temporal Evolution of an Entity (clause 6.19.3.1), in normalized or concise representation.
+    /// Retrieve Temporal Evolution of an Entity (clause 6.19.3.1), in normalized representation.
     ///
     /// The instances are those of `temporal_q`, or, without one, the broker's default range, of which `last_n`
     /// keeps the last ones by `time_property` (`observedAt` by default, clause 5.7.3.4); `time_property`, `last_n`
@@ -113,7 +120,7 @@ retrieve_method!(
     ///
     /// [`retrieve_projected`]: Temporal::retrieve_projected
     retrieve, TemporalEntity<Output>,
-    format => form, [#[builder(default)] form: Lossless,],
+    format => NormalizedTemporal, [],
     completeness => Complete,
     send => answer
 );
@@ -145,9 +152,9 @@ retrieve_method!(
 
 retrieve_method!(
     /// Retrieve Temporal Evolution of an Entity (clause 6.19.3.1) with a `pick` or `omit` that may remove `id` or
-    /// `type` (clause 4.21), in normalized or concise representation.
+    /// `type` (clause 4.21), in normalized representation.
     retrieve_projected, TemporalEntity<Output, Projected>,
-    format => form, [#[builder(default)] form: Lossless,],
+    format => NormalizedTemporal, [],
     completeness => Projected,
     send => answer
 );
@@ -171,7 +178,7 @@ retrieve_method!(
 );
 
 retrieve_method!(
-    /// Retrieve Temporal Evolution of an Entity (clause 6.19.3.1), in normalized or concise representation, over the
+    /// Retrieve Temporal Evolution of an Entity (clause 6.19.3.1), in normalized representation, over the
     /// whole time range: while the broker answers 206 Partial Content (clause 6.3.10), the rest of the range is asked
     /// for and the answers are joined, each instance once (see [`TemporalEntity::absorb`]), and, with `lastN`, the
     /// last `lastN` instances of each attribute over the whole range (see [`TemporalEntity::absorb_last`]). The
@@ -185,7 +192,7 @@ retrieve_method!(
     /// twice at a boundary cannot be told from two instances recorded with the same value at the same time, and an
     /// aggregate of a period two ranges cut is two partial aggregates that cannot be combined.
     retrieve_whole_range, TemporalEntity<Output>,
-    format => form, [#[builder(default)] form: Lossless,],
+    format => NormalizedTemporal, [],
     completeness => Complete,
     send => whole_range
 );
@@ -195,7 +202,7 @@ retrieve_method!(
     /// [`retrieve_whole_range`](Temporal::retrieve_whole_range) does, with a `pick` or `omit` that may remove `id` or
     /// `type` (clause 4.21).
     retrieve_projected_whole_range, TemporalEntity<Output, Projected>,
-    format => form, [#[builder(default)] form: Lossless,],
+    format => NormalizedTemporal, [],
     completeness => Projected,
     send => whole_range
 );

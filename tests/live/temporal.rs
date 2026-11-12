@@ -146,19 +146,6 @@ async fn retrieve_reads_the_aggregated_temporal_representation() {
 
 #[tokio::test]
 #[ignore = "needs a live broker: set NGSI_LD_TEST_BROKER_URL"]
-async fn retrieve_reads_the_concise_temporal_representation() {
-    let client = client();
-    let id = entity_id("temporalConcise");
-    record(&client, &recorded(&id, "Vehicle", &[3, 5])).await;
-    let concise = client.temporal().retrieve(&id).temporal_q(whole_day()).form(Lossless::Concise).send().await;
-    forget(&client, &id).await;
-    // Known deviation: clause 6.3.7 asks for the concise representation with `format=concise`; on a temporal
-    // resource the broker answers it with a 500 `InternalError`.
-    assert_eq!(instances(concise.unwrap().body(), "speed"), 2);
-}
-
-#[tokio::test]
-#[ignore = "needs a live broker: set NGSI_LD_TEST_BROKER_URL"]
 async fn query_selects_the_evolutions_of_a_type_within_a_time_range() {
     let client = client();
     let entity_type = unique("TemporalVehicle");
